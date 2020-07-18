@@ -10,6 +10,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.Event.Rsvp.Answer
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.EventRepo
 import gospeak.infra.services.storage.sql.EventRepoSql._
@@ -34,6 +35,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     }
   }
 
+  override def editDescription(event: Event.Id, description: LiquidMarkdown[Message.EventInfo])(implicit ctx: AdminCtx): IO[Done] =
+    updateDescription(event)(description).run(xa)
+
   override def editNotes(event: Event.Slug, notes: String)(implicit ctx: OrgaCtx): IO[Done] =
     updateNotes(ctx.group.id, event)(notes, ctx.user.id, ctx.now).run(xa)
 
@@ -48,7 +52,7 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]] = selectOne(ctx.group.id, event).runOption(xa)
 
-  override def find(event: Event.Id): IO[Option[Event]] = selectOne(event).runOption(xa)
+  override def find(event: Event.Id)(implicit ctx: AdminCtx): IO[Option[Event]] = selectOne(event).runOption(xa)
 
   override def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]] = selectOneFull(ctx.group.id, event).runOption(xa)
 
@@ -124,6 +128,9 @@ object EventRepoSql {
     val fields = fr0"cfp_id=${d.cfp}, slug=${d.slug}, name=${d.name}, kind=${d.kind}, start=${d.start}, max_attendee=${d.maxAttendee}, allow_rsvp=${d.allowRsvp}, description=${d.description}, venue=${d.venue}, tags=${d.tags}, meetupGroup=${d.refs.meetup.map(_.group)}, meetupEvent=${d.refs.meetup.map(_.event)}, updated_at=$now, updated_by=$by"
     table.update(fields, where(group, event))
   }
+
+  private[sql] def updateDescription(event: Event.Id)(description: LiquidMarkdown[Message.EventInfo]): Update =
+    table.update(fr0"description=$description", fr0"WHERE e.id=$event")
 
   private[sql] def updateNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): Update =
     table.update(fr0"orga_notes=$notes, orga_notes_updated_at=$now, orga_notes_updated_by=$by", where(group, event))

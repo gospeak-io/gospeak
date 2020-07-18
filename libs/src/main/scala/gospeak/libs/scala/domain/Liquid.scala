@@ -34,6 +34,8 @@ final case class LiquidMarkdown[A](value: String) extends AnyVal {
 
   def render(data: Json): Either[Liquid.Error, Markdown] = Liquid.render(value, data).map(Markdown(_))
 
+  def as[B]: LiquidMarkdown[B] = LiquidMarkdown[B](value)
+
   def asText: Liquid[A] = Liquid[A](value)
 }
 

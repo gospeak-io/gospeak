@@ -40,4 +40,8 @@ trait OrgaGroupSettingsRepo {
 
 trait AdminGroupSettingsRepo {
   def list(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]]
+
+  def find(group: Group.Id)(implicit ctx: AdminCtx): IO[Group.Settings]
+
+  def set(group: Group.Id, settings: Group.Settings)(implicit ctx: AdminCtx): IO[Done]
 }

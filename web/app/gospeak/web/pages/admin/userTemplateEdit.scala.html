@@ -1,0 +1,30 @@
+@import gospeak.core.domain.Group
+@import gospeak.core.domain.messages.Message
+@import gospeak.libs.scala.domain.{Liquid, Page}
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.pages.admin.routes.AdminCtrl
+@import gospeak.web.pages.partials.display.html._
+@import gospeak.web.pages.partials.form.html._
+@import gospeak.web.utils._
+
+@(group: Group.Id, kind: String, ref: String, form: Form[Liquid[Nothing]], templateRef: Message.Ref, params: Page.Params)(implicit req: AdminReq[AnyContent])
+@container(s"Admin")() {
+    <h1>Edit template</h1>
+
+    @formElt(form, AdminCtrl.doEditUserTemplate(group, kind, ref, params)) {
+        <div class="row">
+            <div class="col-6">
+            @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
+                @inputTemplate(field, Some(templateRef), markdown = false, args = args ++ Seq("autofocus" -> "true"))
+            }
+            </div>
+            <div class="col-6">
+                @displayTemplateData(Some(templateRef))
+            </div>
+        </div>
+        @actionsVertical() {
+            @btnCancel(AdminCtrl.checkUserTemplates(params))
+            @btnSubmit(s"Update template")
+        }
+    }
+}()

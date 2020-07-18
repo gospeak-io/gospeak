@@ -51,7 +51,7 @@ class SettingsCtrl(cc: ControllerComponents,
       settings <- groupSettingsRepo.find
       res <- GsForms.groupAction.bindFromRequest.fold(
         formWithErrors => IO.pure(BadRequest(createActionView(formWithErrors))),
-        data => groupSettingsRepo.set(createActionToSettings(settings, data))
+        data => groupSettingsRepo.set(settings.addAction(data.trigger, data.action))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action created"))
       )
     } yield res
@@ -75,7 +75,7 @@ class SettingsCtrl(cc: ControllerComponents,
       settings <- groupSettingsRepo.find
       res <- GsForms.groupAction.bindFromRequest.fold(
         formWithErrors => IO.pure(BadRequest(updateActionView(trigger, index, formWithErrors))),
-        data => groupSettingsRepo.set(updateActionToSettings(settings, trigger, index, data))
+        data => groupSettingsRepo.set(settings.updateAction(trigger, index)(data.trigger, data.action))
           .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action updated"))
       )
     } yield res
@@ -89,7 +89,7 @@ class SettingsCtrl(cc: ControllerComponents,
   def doRemoveAction(group: Group.Slug, trigger: Group.Settings.Action.Trigger, index: Int): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      _ <- groupSettingsRepo.set(removeActionToSettings(settings, trigger, index))
+      _ <- groupSettingsRepo.set(settings.removeAction(trigger, index))
     } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> "Action removed")
   }
 
@@ -146,23 +146,23 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"${kind.capitalize} account removed")
   }
 
-  def updateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def updateEventTemplate(group: Group.Slug, templateName: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     (for {
       settings <- OptionT.liftF(groupSettingsRepo.find)
-      template <- templateId.map(id => OptionT.fromOption[IO](settings.event.getTemplate(id)).map(t => Some(GsForms.GroupEventTemplateItem(id, t))))
+      template <- templateName.map(name => OptionT.fromOption[IO](settings.event.getTemplate(name)).map(t => Some(GsForms.GroupEventTemplateItem(name, t))))
         .getOrElse(OptionT.pure[IO](None))
       form = template.map(GsForms.groupEventTemplateItem.fill).getOrElse(GsForms.groupEventTemplateItem)
-    } yield updateEventTemplateView(templateId, settings, form))
+    } yield updateEventTemplateView(templateName, settings, form))
       .value.map(_.getOrElse(groupNotFound(group)))
   }
 
-  def doUpdateEventTemplate(group: Group.Slug, templateId: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doUpdateEventTemplate(group: Group.Slug, templateName: Option[String]): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
       res <- GsForms.groupEventTemplateItem.bindFromRequest.fold(
-        formWithErrors => IO.pure(updateEventTemplateView(templateId, settings, formWithErrors)),
-        data => templateId.map(id => settings.updateEventTemplate(id, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template)).fold(
-          e => IO.pure(updateEventTemplateView(templateId, settings, GsForms.groupEventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
+        formWithErrors => IO.pure(updateEventTemplateView(templateName, settings, formWithErrors)),
+        data => templateName.map(name => settings.updateEventTemplate(name, data.id, data.template)).getOrElse(settings.addEventTemplate(data.id, data.template)).fold(
+          e => IO.pure(updateEventTemplateView(templateName, settings, GsForms.groupEventTemplateItem.bindFromRequest.withGlobalError(e.getMessage))),
           updated => groupSettingsRepo.set(updated)
             .map(_ => Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '${data.id}' updated for events"))
         )
@@ -170,12 +170,12 @@ class SettingsCtrl(cc: ControllerComponents,
     } yield res
   }
 
-  def doRemoveEventTemplate(group: Group.Slug, templateId: String): Action[AnyContent] = OrgaAction(group) { implicit req =>
+  def doRemoveEventTemplate(group: Group.Slug, templateName: String): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {
       settings <- groupSettingsRepo.find
-      updated <- settings.removeEventTemplate(templateId).toIO
+      updated <- settings.removeEventTemplate(templateName).toIO
       _ <- groupSettingsRepo.set(updated)
-    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '$templateId' removed for events")
+    } yield Redirect(routes.SettingsCtrl.settings(group)).flashing("success" -> s"Template '$templateName' removed for events")
   }
 
   def updateProposalTweet(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
@@ -240,15 +240,15 @@ class SettingsCtrl(cc: ControllerComponents,
     )(listBreadcrumb))
   }
 
-  private def updateEventTemplateView(templateId: Option[String],
+  private def updateEventTemplateView(templateName: Option[String],
                                       settings: Group.Settings,
                                       form: Form[GsForms.GroupEventTemplateItem])
                                      (implicit req: OrgaReq[AnyContent]): Result = {
     val b = listBreadcrumb.add(
       "Event" -> routes.SettingsCtrl.settings(req.group.slug),
       "Templates" -> routes.SettingsCtrl.settings(req.group.slug),
-      templateId.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(req.group.slug, templateId))
-    Ok(html.updateEventTemplate(templateId, settings, form)(b))
+      templateName.getOrElse("New") -> routes.SettingsCtrl.updateEventTemplate(req.group.slug, templateName))
+    Ok(html.updateEventTemplate(templateName, settings, form)(b))
   }
 
   private def updateEventTemplateView(group: Group.Slug, form: Form[Liquid[Nothing]])(implicit req: OrgaReq[AnyContent]): IO[Result] = {
@@ -265,25 +265,6 @@ class SettingsCtrl(cc: ControllerComponents,
         routes.SettingsCtrl.doUpdateProposalTweet(group),
         markdown = false)(b))
     } yield res
-  }
-
-  private def createActionToSettings(settings: Group.Settings, addAction: GsForms.GroupAction): Group.Settings = {
-    val actions = settings.actions.getOrElse(addAction.trigger, Seq()) :+ addAction.action
-    settings.copy(actions = settings.actions + (addAction.trigger -> actions))
-  }
-
-  private def updateActionToSettings(settings: Group.Settings, trigger: Group.Settings.Action.Trigger, index: Int, addAction: GsForms.GroupAction): Group.Settings = {
-    if (addAction.trigger == trigger) {
-      val actions = settings.actions.getOrElse(addAction.trigger, Seq()).zipWithIndex.map { case (a, i) => if (i == index) addAction.action else a }
-      settings.copy(actions = settings.actions + (addAction.trigger -> actions))
-    } else {
-      createActionToSettings(removeActionToSettings(settings, trigger, index), addAction)
-    }
-  }
-
-  private def removeActionToSettings(settings: Group.Settings, trigger: Group.Settings.Action.Trigger, index: Int): Group.Settings = {
-    val actions = settings.actions.getOrElse(trigger, Seq()).zipWithIndex.filter(_._2 != index).map(_._1)
-    settings.copy(actions = (settings.actions + (trigger -> actions)).filter(_._2.nonEmpty))
   }
 }
 

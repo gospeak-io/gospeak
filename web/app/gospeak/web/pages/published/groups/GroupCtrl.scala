@@ -114,13 +114,13 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))
   }
 
-  def showTemplate(group: Group.Slug, event: Event.Slug, templateId: String): Action[AnyContent] = UserAwareAction { implicit req =>
+  def showTemplate(group: Group.Slug, event: Event.Slug, templateName: String): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       info <- OptionT.liftF(ms.eventInfo(groupElt, eventElt.event))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates(groupElt.id))
-      res = eventTemplates.get(templateId).toEither(s"Template '$templateId' not found")
+      res = eventTemplates.get(templateName).toEither(s"Template '$templateName' not found")
         .flatMap(_.render(info).left.map(_.message))
         .fold(
           err => Redirect(routes.GroupCtrl.event(group, event)).flashing("error" -> err),

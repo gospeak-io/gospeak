@@ -8,9 +8,9 @@
 @import gospeak.web.utils.GsForms
 @import gospeak.web.utils.OrgaReq
 
-@(templateId: Option[String], settings: Group.Settings, form: Form[GsForms.GroupEventTemplateItem])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
-@container(templateId.map(id => s"Edit $id template for event").getOrElse("Create event template"), b)() {
-    @templateId match {
+@(templateName: Option[String], settings: Group.Settings, form: Form[GsForms.GroupEventTemplateItem])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@container(templateName.map(id => s"Edit $id template for event").getOrElse("Create event template"), b)() {
+    @templateName match {
         case Some(id) => {
             <h1>Update template event '@id'</h1>
         }
@@ -19,11 +19,11 @@
         }
     }
 
-    @formElt(form, SettingsCtrl.doUpdateEventTemplate(req.group.slug, templateId)) {
+    @formElt(form, SettingsCtrl.doUpdateEventTemplate(req.group.slug, templateName)) {
         <div class="row">
             <div class="col-6">
                 @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
-                    @inputTemplate(field, Some(Message.Ref.eventInfo), markdown = templateId.exists(!settings.event.templates.contains(_)), args = args ++ Seq("autofocus" -> "true"))
+                    @inputTemplate(field, Some(Message.Ref.eventInfo), markdown = templateName.exists(!settings.event.templates.contains(_)), args = args ++ Seq("autofocus" -> "true"))
                 }
             </div>
             <div class="col-6">
@@ -35,7 +35,7 @@
         }
         @actionsVertical() {
             @btnCancel(SettingsCtrl.settings(req.group.slug))
-            @btnSubmit(templateId.map(id => s"Update template event '$id'").getOrElse("Create new template"))
+            @btnSubmit(templateName.map(id => s"Update template event '$id'").getOrElse("Create new template"))
         }
     }
 }()

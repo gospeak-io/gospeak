@@ -23,13 +23,22 @@
                     <div class="collapse" id="collapse-@r.group.slug.value">
                         <ol class="mt-1 mb-0">
                             @r.groupSettingsActionsErrors.map { case (trigger, index, action, attr, err) =>
-                                <li><b>@err.message</b> in attribute '@attr' from @action action on @trigger.value trigger (index: @index)</li>
+                                <li>
+                                    <b>@err.message</b> in attribute '@attr' from @action action on @trigger.value trigger (index: @index)
+                                    <a href="@AdminCtrl.editUserTemplate(r.group.id, "action", s"${trigger.value}/$index/$action/$attr", groupReports.params)">edit</a>
+                                </li>
                             }
                             @r.groupSettingsEventErrors.map { case (name, err) =>
-                                <li><b>@err.message</b> in event template '@name' (see group settings)</li>
+                                <li>
+                                    <b>@err.message</b> in event template '@name' (see group settings)
+                                    <a href="@AdminCtrl.editUserTemplate(r.group.id, "template", name, groupReports.params)">edit</a>
+                                </li>
                             }
                             @r.eventErrors.map { case (e, err) =>
-                                <li><b>@err.message</b> in '@e.name.value' event description</li>
+                                <li>
+                                    <b>@err.message</b> in '@e.name.value' event description
+                                    <a href="@AdminCtrl.editUserTemplate(r.group.id, "event", e.id.value, groupReports.params)">edit</a>
+                                </li>
                             }
                         </ol>
                     </div>

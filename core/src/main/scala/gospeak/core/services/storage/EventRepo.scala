@@ -5,8 +5,9 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Done, Liquid, LiquidMarkdown, Page, Tag}
 
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with AdminEventRepo with SuggestEventRepo
 
@@ -35,8 +36,6 @@ trait OrgaEventRepo {
 
   def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]]
 
-  def find(event: Event.Id): IO[Option[Event]]
-
   def find(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event]]
 
   def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]]
@@ -48,8 +47,6 @@ trait OrgaEventRepo {
 
 trait SpeakerEventRepo {
   def list(ids: Seq[Event.Id]): IO[Seq[Event]]
-
-  def find(event: Event.Id): IO[Option[Event]]
 }
 
 trait UserEventRepo {
@@ -80,6 +77,10 @@ trait PublicEventRepo {
 
 trait AdminEventRepo {
   def listAllFromGroups(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]]
+
+  def find(event: Event.Id)(implicit ctx: AdminCtx): IO[Option[Event]]
+
+  def editDescription(event: Event.Id, description: LiquidMarkdown[Message.EventInfo])(implicit ctx: AdminCtx): IO[Done]
 }
 
 trait SuggestEventRepo {

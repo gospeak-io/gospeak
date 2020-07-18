@@ -19,6 +19,9 @@ object PathBindables {
   implicit def userRequestIdPathBinder(implicit s: PathBindable[String]): PathBindable[UserRequest.Id] =
     stringBindable(UserRequest.Id.from, _.value)
 
+  implicit def groupIdPathBinder(implicit s: PathBindable[String]): PathBindable[Group.Id] =
+    stringBindable(Group.Id.from, _.value)
+
   implicit def groupSlugPathBinder(implicit s: PathBindable[String]): PathBindable[Group.Slug] =
     stringBindable(Group.Slug.from, _.value)
 

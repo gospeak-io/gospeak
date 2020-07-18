@@ -166,14 +166,39 @@ object Group {
       case _ => Failure(new IllegalArgumentException(s"Account '$kind' does not exists"))
     }
 
-    def addEventTemplate(id: String, tmpl: Liquid[Message.EventInfo]): Try[Settings] =
-      event.addTemplate(id, tmpl).map(e => copy(event = e))
+    def getAction(trigger: Settings.Action.Trigger, index: Int): Option[Settings.Action] =
+      actions.getOrElse(trigger, Seq()).zipWithIndex.find(_._2 == index).map(_._1)
 
-    def removeEventTemplate(id: String): Try[Settings] =
-      event.removeTemplate(id).map(e => copy(event = e))
+    def addAction(trigger: Settings.Action.Trigger, action: Settings.Action): Settings = {
+      val triggerActions = actions.getOrElse(trigger, Seq()) :+ action
+      copy(actions = actions + (trigger -> triggerActions))
+    }
 
-    def updateEventTemplate(oldId: String, newId: String, tmpl: Liquid[Message.EventInfo]): Try[Settings] =
-      event.updateTemplate(oldId, newId, tmpl).map(e => copy(event = e))
+    def removeAction(trigger: Settings.Action.Trigger, index: Int): Settings = {
+      val triggerActions = actions.getOrElse(trigger, Seq()).zipWithIndex.filter(_._2 != index).map(_._1)
+      copy(actions = (actions + (trigger -> triggerActions)).filter(_._2.nonEmpty))
+    }
+
+    def updateAction(oldTrigger: Settings.Action.Trigger, index: Int)(newTrigger: Settings.Action.Trigger, action: Settings.Action): Settings = {
+      if (newTrigger == oldTrigger) {
+        val triggerActions = actions.getOrElse(newTrigger, Seq()).zipWithIndex.map { case (a, i) => if (i == index) action else a }
+        copy(actions = actions + (newTrigger -> triggerActions))
+      } else {
+        removeAction(oldTrigger, index).addAction(newTrigger, action)
+      }
+    }
+
+    def getEventTemplate(name: String): Option[Liquid[Message.EventInfo]] =
+      event.getTemplate(name)
+
+    def addEventTemplate(name: String, tmpl: Liquid[Message.EventInfo]): Try[Settings] =
+      event.addTemplate(name, tmpl).map(e => copy(event = e))
+
+    def removeEventTemplate(name: String): Try[Settings] =
+      event.removeTemplate(name).map(e => copy(event = e))
+
+    def updateEventTemplate(oldName: String, newName: String, tmpl: Liquid[Message.EventInfo]): Try[Settings] =
+      event.updateTemplate(oldName, newName, tmpl).map(e => copy(event = e))
   }
 
   object Settings {
@@ -222,22 +247,22 @@ object Group {
         defaultTemplates.toSeq.map { case (id, t) => (id, true, t.asText) } ++
           templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
-      def getTemplate(id: String): Option[Liquid[Message.EventInfo]] =
-        defaultTemplates.get(id).map(_.asText).orElse(templates.get(id))
+      def getTemplate(name: String): Option[Liquid[Message.EventInfo]] =
+        defaultTemplates.get(name).map(_.asText).orElse(templates.get(name))
 
-      def removeTemplate(id: String): Try[Event] =
-        if (templates.contains(id)) Success(copy(templates = templates - id))
-        else if (Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' is a default one, unable to remove it"))
-        else Failure(new IllegalArgumentException(s"Template '$id' does not exists, unable to remove it"))
+      def removeTemplate(name: String): Try[Event] =
+        if (templates.contains(name)) Success(copy(templates = templates - name))
+        else if (Event.defaultTmplIds.contains(name)) Failure(new IllegalArgumentException(s"Template '$name' is a default one, unable to remove it"))
+        else Failure(new IllegalArgumentException(s"Template '$name' does not exists, unable to remove it"))
 
-      def addTemplate(id: String, tmpl: Liquid[Message.EventInfo]): Try[Event] =
-        if (templates.contains(id) || Event.defaultTmplIds.contains(id)) Failure(new IllegalArgumentException(s"Template '$id' already exists, unable to add it"))
-        else Success(copy(templates = templates ++ Map(id -> tmpl)))
+      def addTemplate(name: String, tmpl: Liquid[Message.EventInfo]): Try[Event] =
+        if (templates.contains(name) || Event.defaultTmplIds.contains(name)) Failure(new IllegalArgumentException(s"Template '$name' already exists, unable to add it"))
+        else Success(copy(templates = templates ++ Map(name -> tmpl)))
 
-      def updateTemplate(oldId: String, newId: String, tmpl: Liquid[Message.EventInfo]): Try[Event] =
-        if (newId == Event.descriptionTmplId) Success(copy(description = tmpl.asMarkdown))
-        else removeTemplate(oldId).mapFailure(e => new IllegalArgumentException(s"Template '$oldId' does not exists, unable to update it", e))
-          .flatMap(_.addTemplate(newId, tmpl).mapFailure(e => new IllegalArgumentException(s"Template '$newId' already exists, unable to rename to it", e)))
+      def updateTemplate(oldName: String, newName: String, tmpl: Liquid[Message.EventInfo]): Try[Event] =
+        if (newName == Event.descriptionTmplId) Success(copy(description = tmpl.asMarkdown))
+        else removeTemplate(oldName).mapFailure(e => new IllegalArgumentException(s"Template '$oldName' does not exists, unable to update it", e))
+          .flatMap(_.addTemplate(newName, tmpl).mapFailure(e => new IllegalArgumentException(s"Template '$newName' already exists, unable to rename to it", e)))
     }
 
     object Event {

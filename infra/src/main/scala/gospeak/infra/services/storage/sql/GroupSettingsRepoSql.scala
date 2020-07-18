@@ -10,7 +10,7 @@ import gospeak.core.GsConf
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain.Group.Settings.Action
 import gospeak.core.domain.messages.Message
-import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.SlackCredentials
@@ -22,12 +22,16 @@ import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{Done, Liquid, LiquidMarkdown}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
-  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] =
-    selectOne(ctx.group.id).runOption(xa).flatMap { opt =>
+  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] = setSettings(ctx.group.id, settings)
+
+  override def set(group: Group.Id, settings: Group.Settings)(implicit ctx: AdminCtx): IO[Done] = setSettings(group, settings)
+
+  private def setSettings(group: Group.Id, settings: Group.Settings)(implicit ctx: UserCtx): IO[Done] =
+    selectOne(group).runOption(xa).flatMap { opt =>
       opt.map { _ =>
-        update(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa)
+        update(group, settings, ctx.user.id, ctx.now).run(xa)
       }.getOrElse {
-        insert(ctx.group.id, settings, ctx.user.id, ctx.now).run(xa).map(_ => Done)
+        insert(group, settings, ctx.user.id, ctx.now).run(xa).map(_ => Done)
       }
     }
 
@@ -35,6 +39,9 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
 
   override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =
     selectOne(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
+
+  override def find(group: Group.Id)(implicit ctx: AdminCtx): IO[Group.Settings] =
+    selectOne(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
 
   override def findAccounts(group: Group.Id): IO[Group.Settings.Accounts] =
     selectOneAccounts(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts))

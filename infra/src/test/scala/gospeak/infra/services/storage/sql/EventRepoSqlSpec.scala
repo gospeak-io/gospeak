@@ -2,6 +2,7 @@ package gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import gospeak.core.domain.Event
+import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.FakeCtx
 import gospeak.infra.services.storage.sql.CfpRepoSqlSpec.{fields => cfpFields, table => cfpTable}
 import gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{fields => contactFields, table => contactTable}
@@ -11,6 +12,7 @@ import gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerF
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.libs.scala.domain.LiquidMarkdown
 
 class EventRepoSqlSpec extends RepoSpec {
   describe("EventRepoSql") {
@@ -44,6 +46,10 @@ class EventRepoSqlSpec extends RepoSpec {
       it("should build update") {
         val q = EventRepoSql.update(group.id, event.slug)(eventData1, user.id, now)
         check(q, s"UPDATE $table SET cfp_id=?, slug=?, name=?, kind=?, start=?, max_attendee=?, allow_rsvp=?, description=?, venue=?, tags=?, meetupGroup=?, meetupEvent=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
+      }
+      it("should build updateDescription") {
+        val q = EventRepoSql.updateDescription(event.id)(LiquidMarkdown[Message.EventInfo](""))
+        check(q, s"UPDATE $table SET description=? WHERE e.id=?")
       }
       it("should build updateNotes") {
         val q = EventRepoSql.updateNotes(group.id, event.slug)("notes", user.id, now)

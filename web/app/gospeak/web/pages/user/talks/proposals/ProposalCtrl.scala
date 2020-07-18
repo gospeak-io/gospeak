@@ -227,10 +227,9 @@ class ProposalCtrl(cc: ControllerComponents,
       formWithErrors => IO.pure(next.flashing(formWithErrors.flash)),
       data => (for {
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
-        proposalElt <- OptionT(proposalRepo.find(talk, cfp))
-        eventElt <- proposalElt.event.map(id => OptionT(eventRepo.find(id))).sequence
+        proposalElt <- OptionT(proposalRepo.findFull(talk, cfp))
         invite <- OptionT.liftF(userRequestRepo.invite(proposalElt.id, data.email))
-        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, cfpElt, eventElt, proposalElt, data.message)))
+        _ <- OptionT.liftF(emailSrv.send(Emails.inviteSpeakerToProposal(invite, cfpElt, proposalElt.event, proposalElt.proposal, data.message)))
       } yield next.flashing("success" -> s"<b>${invite.email.value}</b> is invited as speaker")).value.map(_.getOrElse(proposalNotFound(talk, cfp)))
     )
   }

@@ -16,11 +16,12 @@ import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.pages.admin.AdminCtrl.{UpdateExtEventVideoJob, UserTemplateReport}
 import gospeak.web.services.{MessageSrv, SchedulerSrv}
-import gospeak.web.utils.{AdminReq, UICtrl}
+import gospeak.web.utils.{AdminReq, GsForms, UICtrl}
 import io.circe.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 import scala.collection.mutable
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class AdminCtrl(cc: ControllerComponents,
@@ -68,8 +69,80 @@ class AdminCtrl(cc: ControllerComponents,
       defaultTemplates = Map(
         "gospeak.event.description" -> req.conf.gospeak.event.description.render(eventInfo),
         "gospeak.proposal.tweet" -> req.conf.gospeak.proposal.tweet.render(proposalInfo)
-      ).collect { case (k,Left(e)) => (k, e) }
-    } yield Ok(html.checkUserTemplates(reports, defaultTemplates))
+      ).collect { case (k, Left(e)) => (k, e) }
+    } yield Ok(html.userTemplatesCheck(reports, defaultTemplates))
+  }
+
+  def editUserTemplate(group: Group.Id, kind: String, ref: String, params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
+    for {
+      (tmplOpt, templateRef) <- kind match {
+        case "event" => for {
+          eventId <- Event.Id.from(ref).toIO
+          event <- eventRepo.find(eventId)
+        } yield event.map(_.description.asText.as[Nothing]) -> Message.Ref.eventInfo
+        case "template" => for {
+          settings <- groupSettingsRepo.find(group)
+        } yield settings.getEventTemplate(ref).map(_.as[Nothing]) -> Message.Ref.eventInfo
+        case "action" => for {
+          settings <- groupSettingsRepo.find(group)
+          List(t, i, _, attr) = ref.split('/').toList
+          trigger <- Group.Settings.Action.Trigger.from(t).toIO
+          index <- Try(i.toInt).mapFailure(e => CustomException(s"Invalid index: ${e.getMessage}")).toIO
+          tmpl = settings.actions.getOrElse(trigger, Seq())(index) match {
+            case Group.Settings.Action.Email(to, _, _) if attr == "to" => Some(to.as[Nothing])
+            case Group.Settings.Action.Email(_, subject, _) if attr == "subject" => Some(subject.as[Nothing])
+            case Group.Settings.Action.Email(_, _, content) if attr == "content" => Some(content.asText.as[Nothing])
+            case Group.Settings.Action.Slack(SlackAction.PostMessage(channel, _, _, _)) if attr == "channel" => Some(channel.as[Nothing])
+            case Group.Settings.Action.Slack(SlackAction.PostMessage(_, message, _, _)) if attr == "message" => Some(message.asText.as[Nothing])
+            case _ => None
+          }
+        } yield tmpl -> trigger.message
+      }
+      notFound = redirectToPreviousPageOr(routes.AdminCtrl.checkUserTemplates()).flashing("warning" -> s"$kind/$ref not found :(")
+    } yield tmplOpt.map(tmpl => Ok(html.userTemplateEdit(group, kind, ref, GsForms.templateForm.fill(tmpl), templateRef, params))).getOrElse(notFound)
+  }
+
+  def doEditUserTemplate(group: Group.Id, kind: String, ref: String, params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
+    val next = Redirect(routes.AdminCtrl.checkUserTemplates(params))
+    GsForms.templateForm.bindFromRequest.fold(
+      formWithErrors => kind match {
+        case "event" | "template" => IO.pure(Ok(html.userTemplateEdit(group, kind, ref, formWithErrors, Message.Ref.eventInfo, params)))
+        case "action" =>
+          val List(t, _, _, _) = ref.split('/').toList
+          Group.Settings.Action.Trigger.from(t).toIO.map { trigger =>
+            Ok(html.userTemplateEdit(group, kind, ref, formWithErrors, trigger.message, params))
+          }
+      },
+      tmpl => kind match {
+        case "event" => for {
+          eventId <- Event.Id.from(ref).toIO
+          event <- eventRepo.find(eventId).flatMap(_.toIO(CustomException(s"Event ${eventId.value} not found")))
+          _ <- eventRepo.editDescription(eventId, tmpl.asMarkdown.as[Message.EventInfo])
+        } yield next.flashing("success" -> s"Description updated for <b>${event.name.value}</b>")
+        case "template" => for {
+          groupElt <- groupRepo.find(group).flatMap(_.toIO(CustomException(s"Group ${group.value} not found")))
+          settings <- groupSettingsRepo.find(group)
+          updatedSettings <- settings.updateEventTemplate(ref, ref, tmpl.as[Message.EventInfo]).toIO
+          _ <- groupSettingsRepo.set(group, updatedSettings)
+        } yield next.flashing("success" -> s"Event template '<b>$ref</b>' updated for <b>${groupElt.name.value}</b> group")
+        case "action" => for {
+          groupElt <- groupRepo.find(group).flatMap(_.toIO(CustomException(s"Group ${group.value} not found")))
+          settings <- groupSettingsRepo.find(group)
+          List(t, i, action, attr) = ref.split('/').toList
+          trigger <- Group.Settings.Action.Trigger.from(t).toIO
+          index <- Try(i.toInt).mapFailure(e => CustomException(s"Invalid index: ${e.getMessage}")).toIO
+          updatedSettings <- settings.getAction(trigger, index).map {
+            case Group.Settings.Action.Email(_, subject, content) if attr == "to" => Group.Settings.Action.Email(tmpl.as[Any], subject, content)
+            case Group.Settings.Action.Email(to, _, content) if attr == "subject" => Group.Settings.Action.Email(to, tmpl.as[Any], content)
+            case Group.Settings.Action.Email(to, subject, _) if attr == "content" => Group.Settings.Action.Email(to, subject, tmpl.asMarkdown.as[Any])
+            case Group.Settings.Action.Slack(SlackAction.PostMessage(_, message, c, i)) if attr == "channel" => Group.Settings.Action.Slack(SlackAction.PostMessage(tmpl.as[Any], message, c, i))
+            case Group.Settings.Action.Slack(SlackAction.PostMessage(channel, _, c, i)) if attr == "message" => Group.Settings.Action.Slack(SlackAction.PostMessage(channel, tmpl.asMarkdown.as[Any], c, i))
+            case action => action
+          }.map(settings.updateAction(trigger, index)(trigger, _)).toIO(CustomException(s"Action $i on $t not found"))
+          _ <- groupSettingsRepo.set(group, updatedSettings)
+        } yield next.flashing("success" -> s"$attr attribute updated for $action on $t for <b>${groupElt.name.value}</b> group")
+      }
+    )
   }
 
   private val updateExtEventVideosJobs = mutable.HashMap[ExternalEvent.Id, UpdateExtEventVideoJob]()

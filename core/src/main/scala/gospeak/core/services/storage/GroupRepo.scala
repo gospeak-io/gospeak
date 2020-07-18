@@ -73,6 +73,8 @@ trait PublicGroupRepo {
 
 trait AdminGroupRepo {
   def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[Group]]
+
+  def find(group: Group.Id): IO[Option[Group]]
 }
 
 trait SuggestGroupRepo {
