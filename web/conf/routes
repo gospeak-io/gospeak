@@ -56,6 +56,15 @@ GET         /speakers/:speaker/contact                                          
 GET         /videos                                                                        gospeak.web.pages.published.videos.VideoCtrl.list(params: Page.Params ?= Page.Params.defaults)
 GET         /videos/:video                                                                 gospeak.web.pages.published.videos.VideoCtrl.detail(video: Url.Video.Id)
 
+GET         /hovercards/users/:user                                                        gospeak.web.pages.published.UtilsCtrl.hovercardUser(user: User.Slug)
+GET         /hovercards/groups/:group                                                      gospeak.web.pages.published.UtilsCtrl.hovercardGroup(group: Group.Slug)
+GET         /hovercards/groups/:group/events/:event                                        gospeak.web.pages.published.UtilsCtrl.hovercardEvent(group: Group.Slug, event: Event.Slug)
+GET         /hovercards/groups/:group/partners/:partner                                    gospeak.web.pages.published.UtilsCtrl.hovercardPartner(group: Group.Slug, partner: Partner.Slug)
+GET         /hovercards/groups/:group/proposals/:proposal                                  gospeak.web.pages.published.UtilsCtrl.hovercardProposal(group: Group.Slug, proposal: Proposal.Id)
+GET         /hovercards/ext-proposals/:proposal                                            gospeak.web.pages.published.UtilsCtrl.hovercardProposalExt(proposal: ExternalProposal.Id)
+GET         /hovercards/cfps/:cfp                                                          gospeak.web.pages.published.UtilsCtrl.hovercardCfp(cfp: Cfp.Slug)
+GET         /hovercards/talks/:talk                                                        gospeak.web.pages.published.UtilsCtrl.hovercardTalk(talk: Talk.Slug)
+
 GET         /signup                                                                        gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
 POST        /signup                                                                        gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
 GET         /login                                                                         gospeak.web.auth.AuthCtrl.login(redirect: Option[String] ?= None)

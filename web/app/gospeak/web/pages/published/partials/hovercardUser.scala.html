@@ -1,0 +1,16 @@
+@import gospeak.core.domain.User
+@import gospeak.web.utils._
+@(user: User.Full)
+<div class="hovercard user">
+    <div class="media">
+        <img src="@user.avatar.value" alt="@user.name.value avatar" class="avatar mr-3">
+        <div class="media-body">
+            <h5 class="mt-0">@user.name.value@user.title.map { t => <small class="text-muted">@t</small> }</h5>
+            @user.bio.map(_.asExcerpt).map { b => @b<br> }
+        </div>
+    </div>
+    @if(user.company.isDefined || user.location.isDefined || user.website.isDefined) { <hr/> }
+    @user.company.map(_.asCompanyItem)
+    @user.location.map(_.asLocationItem)
+    @user.website.map(_.asWebsiteItemLink)
+</div>

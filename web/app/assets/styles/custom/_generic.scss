@@ -214,6 +214,16 @@ ul.no-padding, ol.no-padding {
   padding: 0;
 }
 
+.pull-right {
+  float: right;
+}
+
+.mb-1, .mb-2, .mb-3, .mb-4, .mb-5 {
+  &:last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
 .u-header.dark {
   .u-header__nav-link.active,
   .u-sidebar--account__toggle-text,

@@ -62,6 +62,8 @@ trait PublicEventRepo {
 
   def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]]
 
+  def findFull(group: Group.Slug, event: Event.Slug)(implicit ctx: UserAwareCtx): IO[Option[Event.Full]]
+
   def countYesRsvp(event: Event.Id): IO[Long]
 
   def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]]

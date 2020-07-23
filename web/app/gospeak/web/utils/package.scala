@@ -4,10 +4,11 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
-import gospeak.core.domain.utils.Constants
 import gospeak.core.domain._
+import gospeak.core.domain.utils.Constants
 import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Filter, Sort}
 import gospeak.libs.scala.domain._
+import io.circe.Encoder
 import play.api.data.{Form, FormError}
 import play.api.mvc.{AnyContent, Call, Flash}
 import play.twirl.api.Html
@@ -89,6 +90,8 @@ package object utils {
     def asLocationItem: Html = Html(s"""<span class="location-link"><i class="fas fa-map-marker-alt" title="Location"></i> $s</span>""")
 
     def asPhoneItemLink: Html = Html(s"""<span class="phone-link"><i class="fas fa-phone" title="Phone"></i> <a href="tel:$s" class="no-style" target="_blank">$s</a></span>""")
+
+    def asExcerpt: String = if (s.length > 200) s.take(197) + "..." else s
   }
 
   implicit class RichLong(val l: Long) extends AnyVal {
@@ -166,6 +169,8 @@ package object utils {
   }
 
   implicit class RichGMapPlace(val p: GMapPlace) extends AnyVal {
+    def asText: String = p.formatted
+
     def asLink: Html = Html(s"""<a href="${p.url}" target="_blank">${p.formatted}</a>""")
   }
 
@@ -173,14 +178,20 @@ package object utils {
     def asBadges: Html = asBadges()
 
     def asBadges(color: String = "primary", title: String = "tag"): Html =
-      Html(l.map(t => s"""<span class="badge badge-$color" title="$title">${t.value}</span>""").mkString(" "))
+      Html(l.sortBy(_.value).map(t => s"""<span class="badge badge-$color" title="$title">${t.value}</span>""").mkString(" "))
 
     def asBadgeLinks(link: Tag => Call, color: String = "primary", title: String = "tag"): Html =
-      Html(l.map(t => s"""<a href="${link(t)}" class="badge badge-$color" title="$title">${t.value}</a>""").mkString(" "))
+      Html(l.sortBy(_.value).map(t => s"""<a href="${link(t)}" class="badge badge-$color" title="$title">${t.value}</a>""").mkString(" "))
   }
 
   implicit class RichMarkdown(val m: Markdown) {
     def render: Html = Html(m.toHtml.value)
+
+    def asExcerpt: String = m.toText.asExcerpt
+  }
+
+  implicit class RichLiquidMarkdown[A](val m: LiquidMarkdown[A]) {
+    def asExcerpt(a: A)(implicit e: Encoder[A]): String = m.render(a).fold(_ => Markdown(m.value), identity).asExcerpt
   }
 
   implicit class RichPage[A](val p: Page[A]) extends AnyVal {

@@ -107,6 +107,49 @@ declare const autosize;
     });
 })();
 
+// hovercards
+(function () {
+    const cache = {};
+
+    $('[data-hovercard]').each(function () {
+        const $elt = $(this);
+        const path = $elt.attr('data-hovercard');
+        $elt.mouseenter(function () {
+            $elt.off('mouseenter');
+            initHovercard($elt, path);
+        });
+    });
+
+    function initHovercard($elt, path: string) {
+        const start = Date.now();
+        if (cache[path]) {
+            addHovercard($elt, cache[path], start);
+        } else {
+            fetch(path).then(res => res.text()).then(html => {
+                cache[path] = html;
+                addHovercard($elt, cache[path], start);
+            });
+        }
+    }
+
+    function addHovercard($elt, content: string, start: number) {
+        const delay = 400;
+        const popover = $elt.popover({
+            placement: 'auto',
+            offset: 1000,
+            trigger: 'hover',
+            delay: {'show': delay, 'hide': 0},
+            html: true,
+            content: content
+        });
+        setTimeout(function () {
+            if ($elt.is(':hover')) {
+                popover.popover('show');
+            }
+        }, delay - (Date.now() - start)); // reduce delay by time taken to init popover (especially when fetch is called)
+    }
+})();
+
 // remote input validation
 (function () {
     $('input[remote-validate]').each(function () {

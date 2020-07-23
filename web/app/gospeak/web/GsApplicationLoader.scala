@@ -176,6 +176,7 @@ class GsComponents(context: ApplicationLoader.Context)
 
   lazy val styleguideCtrl = wire[styleguide.StyleguideCtrl]
   lazy val homeCtrl = wire[published.HomeCtrl]
+  lazy val utilsCtrl = wire[published.UtilsCtrl]
   lazy val cfpCtrl = wire[published.cfps.CfpCtrl]
   lazy val eventCtrl = wire[published.events.EventCtrl]
   lazy val groupCtrl = wire[published.groups.GroupCtrl]

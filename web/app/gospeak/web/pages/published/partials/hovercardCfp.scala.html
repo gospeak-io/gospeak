@@ -1,0 +1,14 @@
+@import gospeak.core.domain.Cfp
+@import gospeak.web.utils._
+@(cfp: Cfp)(implicit req: UserAwareReq[AnyContent])
+<div class="hovercard cfp">
+    <div class="media">
+        <div class="media-body">
+            @cfp.close.map { d => <span class="pull-right"><span class="badge badge-danger">Closes on @d.asDate</span></span> }
+            <h5 class="mt-0">@cfp.name.value</h5>
+            <div class="my-2">@cfp.description.asExcerpt</div>
+        </div>
+    </div>
+    @if(cfp.tags.nonEmpty) { <hr/> }
+    @if(cfp.tags.nonEmpty) { <div>@cfp.tags.asBadges</div> }
+</div>

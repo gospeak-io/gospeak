@@ -1,9 +1,10 @@
 @import gospeak.core.domain.{Cfp, Talk}
+@import gospeak.web.pages.published.routes.UtilsCtrl
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.utils._
 
 @(talk: Talk, cfp: Cfp)
 <a href="@ProposalCtrl.create(talk.slug, cfp.slug)" class="list-group-item list-group-item-action">
-    <h5 class="mb-1">@cfp.name.value</h5>
+    <h5 class="mb-1"><span data-hovercard="@UtilsCtrl.hovercardCfp(cfp.slug)">@cfp.name.value</span></h5>
     @cfp.tags.asBadges
 </a>

@@ -1,11 +1,12 @@
 @import gospeak.core.domain.Talk
+@import gospeak.web.pages.published.routes.UtilsCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils._
 
 @(talk: Talk)(implicit req: BasicReq[AnyContent])
 <a href="@TalkCtrl.detail(talk.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
     <div>
-        <h5 class="mb-1">@talk.title.value</h5>
+        <h5 class="mb-1" data-hovercard="@UtilsCtrl.hovercardTalk(talk.slug)">@talk.title.value</h5>
         @talk.status.asBadge @talk.duration.asBadge @talk.tags.asBadges
     </div>
     @if(talk.speakers.length > 1) {

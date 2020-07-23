@@ -112,10 +112,6 @@ object Proposal {
     def hasOrga(user: User.Id): Boolean = group.hasOrga(user)
 
     def users: List[User.Id] = (proposal.users ++ cfp.users ++ group.users ++ talk.users ++ event.map(_.users).getOrElse(List()) ++ venue.map(_.users).getOrElse(List())).distinct
-
-    def commentCount: Long = speakerCommentCount + orgaCommentCount
-
-    def lastComment: Option[Instant] = speakerLastComment.map(s => orgaLastComment.map(o => if (s.isAfter(o)) s else o).getOrElse(s)).orElse(orgaLastComment)
   }
 
   final case class Rating(proposal: Id,

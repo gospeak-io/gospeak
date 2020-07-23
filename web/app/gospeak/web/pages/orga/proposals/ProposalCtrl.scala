@@ -17,8 +17,6 @@ class ProposalCtrl(cc: ControllerComponents,
                    conf: AppConf,
                    userRepo: OrgaUserRepo,
                    val groupRepo: OrgaGroupRepo,
-                   cfpRepo: OrgaCfpRepo,
-                   eventRepo: OrgaEventRepo,
                    proposalRepo: OrgaProposalRepo) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction(group) { implicit req =>
     for {

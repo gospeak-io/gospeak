@@ -10,7 +10,7 @@ import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
 import gospeak.infra.services.EmbedSrv
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Html, Markdown, LiquidMarkdown, Url}
+import gospeak.libs.scala.domain.{Html, LiquidMarkdown, Markdown, Url}
 import gospeak.web.AppConf
 import gospeak.web.api.domain.ApiExternalCfp
 import gospeak.web.api.domain.utils.ApiResult

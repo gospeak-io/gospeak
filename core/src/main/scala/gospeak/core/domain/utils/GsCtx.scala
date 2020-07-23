@@ -25,21 +25,33 @@ trait OrgaCtx extends UserCtx {
 trait AdminCtx extends UserCtx
 
 object FakeCtx {
-  def apply(now: Instant): BasicCtx = FakeBasicCtx(now)
+  def apply(now: Instant): FakeBasicCtx = FakeBasicCtx(now)
 
-  def apply(now: Instant, user: Option[User]): UserAwareCtx = FakeUserAwareCtx(now, user)
+  def apply(now: Instant, user: Option[User]): FakeUserAwareCtx = FakeUserAwareCtx(now, user)
 
-  def apply(now: Instant, user: User): UserCtx = FakeUserCtx(now, user)
+  def apply(now: Instant, user: User): FakeUserCtx = FakeUserCtx(now, user)
 
-  def apply(now: Instant, user: User, group: Group): OrgaCtx = FakeOrgaCtx(now, user, group)
+  def apply(now: Instant, user: User, group: Group): FakeOrgaCtx = FakeOrgaCtx(now, user, group)
 }
 
 final case class FakeBasicCtx(now: Instant) extends BasicCtx
 
 final case class FakeUserAwareCtx(now: Instant, user: Option[User]) extends UserAwareCtx
 
-final case class FakeUserCtx(now: Instant, user: User) extends UserCtx
+final case class FakeUserCtx(now: Instant, user: User) extends UserCtx {
+  def userAwareCtx: FakeUserAwareCtx = FakeUserAwareCtx(now, Some(user))
+}
 
-final case class FakeOrgaCtx(now: Instant, user: User, group: Group) extends OrgaCtx
+final case class FakeOrgaCtx(now: Instant, user: User, group: Group) extends OrgaCtx {
+  def orgaCtx: OrgaCtx = this
 
-final case class FakeAdminCtx(now: Instant, user: User) extends AdminCtx
+  def userAwareCtx: FakeUserAwareCtx = FakeUserAwareCtx(now, Some(user))
+
+  def userCtx: FakeUserCtx = FakeUserCtx(now, user)
+}
+
+final case class FakeAdminCtx(now: Instant, user: User) extends AdminCtx {
+  def userAwareCtx: FakeUserAwareCtx = FakeUserAwareCtx(now, Some(user))
+
+  def userCtx: FakeUserCtx = FakeUserCtx(now, user)
+}

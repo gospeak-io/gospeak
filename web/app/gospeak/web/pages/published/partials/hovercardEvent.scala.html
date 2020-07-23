@@ -1,0 +1,23 @@
+@import gospeak.core.domain.Event
+@import gospeak.core.domain.messages.Message
+@import gospeak.web.services.MessageSrv._
+@import gospeak.web.utils._
+@(event: Event.Full, info: Message.EventInfo)(implicit req: UserAwareReq[AnyContent])
+<div class="hovercard event">
+    <div class="media">
+        <div class="media-body">
+            <span class="pull-right">
+               @if(event.allowRsvp && req.isOrga(event.group)) { <span class="badge badge-success"><i class="fas fa-check"></i> RSVP</span> }
+               @event.maxAttendee.map { max => <span class="badge badge-success">@max places</span> }
+            </span>
+            <h5 class="mt-0">@event.name.value <small>(@event.start.asDate)</small></h5>
+            @event.venue.map { v => <h6 class="mb-0">At @v.partner.name.value <small>(@v.address.asText)</small></h6> }
+            <div class="my-2">@event.description.asExcerpt(info)</div>
+        </div>
+    </div>
+    @if(req.isOrga(event.group)) {
+        <hr/>
+        <div class="mb-1"><i class="far fa-comment-alt"></i> @event.talks.length planned talks</div>
+        @if(event.orgaNotes.isDefined){ <div class="mb-1"><i class="far fa-clipboard"></i> Orga notes: @event.orgaNotes.text</div> }
+    }
+</div>

@@ -58,6 +58,8 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def findPublished(group: Group.Id, event: Event.Slug): IO[Option[Event.Full]] = selectOnePublished(group, event).runOption(xa)
 
+  override def findFull(group: Group.Slug, event: Event.Slug)(implicit ctx: UserAwareCtx): IO[Option[Event.Full]] = selectOneFull(group, event).runOption(xa)
+
   override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(params).run(xa)
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(params).run(xa)
@@ -152,6 +154,9 @@ object EventRepoSql {
 
   private[sql] def selectOneFull(group: Group.Id, event: Event.Slug): Select[Event.Full] =
     tableFull.selectOne[Event.Full](where(group, event))
+
+  private[sql] def selectOneFull(group: Group.Slug, event: Event.Slug)(implicit ctx: UserAwareCtx): Select[Event.Full] =
+    tableFull.selectOne[Event.Full](fr0"WHERE g.slug=$group AND e.slug=$event AND (e.published IS NOT NULL OR g.owners LIKE ${"%" + ctx.user.map(_.id).getOrElse("unknown") + "%"})")
 
   private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
     tableFull.selectOne[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")

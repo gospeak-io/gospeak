@@ -1,6 +1,7 @@
 @import gospeak.core.domain.{Comment, User}
 @import gospeak.web.auth.routes.AuthCtrl
 @import gospeak.web.pages.partials.form.html._
+@import gospeak.web.pages.published.routes.UtilsCtrl
 @import gospeak.web.utils._
 
 @(comments: Seq[Comment.Full], sendComment: Call, pageUrl: Call, userProfile: User => Option[Call], tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
@@ -34,9 +35,9 @@
                 <div class="media-body ml-3">
                     <div class="d-flex justify-content-between align-items-center">
                         @userProfile(comment.createdBy).map { url =>
-                            <a href="@url" class="no-style">@comment.createdBy.name.value</a>
+                            <a href="@url" class="no-style" data-hovercard="@UtilsCtrl.hovercardUser(comment.createdBy.slug)">@comment.createdBy.name.value</a>
                         }.getOrElse {
-                            @comment.createdBy.name.value
+                            <span data-hovercard="@UtilsCtrl.hovercardUser(comment.createdBy.slug)">@comment.createdBy.name.value</span>
                         }
                         <small class="text-muted">@comment.createdAt.asTimeAgo</small>
                     </div>

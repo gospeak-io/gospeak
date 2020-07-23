@@ -11,7 +11,7 @@ import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.MessageBus
-import gospeak.libs.scala.domain.{Done, Html, Markdown, Page}
+import gospeak.libs.scala.domain.{Done, Markdown, Page}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb

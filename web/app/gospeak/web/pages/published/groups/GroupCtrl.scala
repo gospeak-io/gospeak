@@ -118,7 +118,7 @@ class GroupCtrl(cc: ControllerComponents,
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
-      info <- OptionT.liftF(ms.eventInfo(groupElt, eventElt.event))
+      info <- OptionT.liftF(ms.eventInfo(eventElt))
       eventTemplates <- OptionT.liftF(groupSettingsRepo.findEventTemplates(groupElt.id))
       res = eventTemplates.get(templateName).toEither(s"Template '$templateName' not found")
         .flatMap(_.render(info).left.map(_.message))
@@ -157,7 +157,7 @@ class GroupCtrl(cc: ControllerComponents,
       userMembership <- OptionT.liftF(req.user.map(_.id).map(groupRepo.findActiveMember(groupElt.id, _)).sequence.map(_.flatten))
       userRsvp <- OptionT.liftF(req.user.map(_.id).map(eventRepo.findRsvp(eventElt.id, _)).sequence.map(_.flatten))
       rsvps <- OptionT.liftF(eventRepo.listRsvps(eventElt.id))
-      info <- OptionT.liftF(ms.eventInfo(groupElt, eventElt.event))
+      info <- OptionT.liftF(ms.eventInfo(eventElt))
       description = eventElt.description.render(info).getOrElse(Markdown("")) // FIXME
       b = breadcrumbEvent(groupElt, eventElt)
       res = Ok(html.event(groupElt, eventElt, description, proposalsWithTweet, speakers, comments, yesRsvp, userMembership, userRsvp, rsvps)(b))

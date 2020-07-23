@@ -1,0 +1,15 @@
+@import gospeak.core.domain.ExternalProposal
+@import gospeak.web.utils._
+@(proposal: ExternalProposal.Full)(implicit req: UserAwareReq[AnyContent])
+<div class="hovercard ext-proposal">
+    <div class="media">
+        <div class="media-body">
+            <span class="pull-right"><span class="badge badge-dark">External</span> @proposal.status.asBadge</span>
+            <h5 class="mt-0">@proposal.title.value</h5>
+            <h6 class="mb-0">At @proposal.event.name.value@proposal.event.start.map { d => <small>(@d.asDate)</small>}</h6>
+            <div class="my-2">@proposal.description.asExcerpt</div>
+        </div>
+    </div>
+    @if(proposal.tags.nonEmpty) { <hr/> }
+    <div>@proposal.tags.asBadges</div>
+</div>

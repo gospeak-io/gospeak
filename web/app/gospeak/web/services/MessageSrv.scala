@@ -38,8 +38,8 @@ class MessageSrv(groupRepo: OrgaGroupRepo,
   def eventInfo(event: Event)(implicit req: OrgaReq[AnyContent]): IO[EventInfo] =
     groupAndEventData(req.group, event, req.now)(req.userAware).map { case (g, e) => EventInfo(g, e) }
 
-  def eventInfo(group: Group, event: Event)(implicit req: UserAwareReq[AnyContent]): IO[EventInfo] =
-    groupAndEventData(group, event, req.now).map { case (g, e) => EventInfo(g, e) }
+  def eventInfo(event: Event.Full)(implicit req: UserAwareReq[AnyContent]): IO[EventInfo] =
+    groupAndEventData(event.group, event.event, req.now).map { case (g, e) => EventInfo(g, e) }
 
   def proposalCreated(cfp: Cfp, proposal: Proposal)(implicit req: UserReq[AnyContent]): IO[Option[ProposalCreated]] = (for {
     group <- OptionT(groupRepo.find(cfp.group))

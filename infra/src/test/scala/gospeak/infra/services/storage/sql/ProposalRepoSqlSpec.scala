@@ -68,6 +68,16 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
       an[Exception] should be thrownBy proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
     }
+    it("should compute comment counts") {
+      val (user, group, cfp, partner, venue, contact, event, talk, proposal, ctx) = createProposal().unsafeRunSync()
+      eventRepo.publish(event.slug)(ctx).unsafeRunSync()
+      commentRepo.addComment(proposal.id, commentData1.copy(answers = None))(ctx).unsafeRunSync()
+      commentRepo.addOrgaComment(proposal.id, commentData2.copy(answers = None))(ctx).unsafeRunSync()
+      commentRepo.addOrgaComment(proposal.id, commentData3.copy(answers = None))(ctx).unsafeRunSync()
+      val p = proposalRepo.findPublicFull(group.id, proposal.id)(ctx.userAwareCtx).unsafeRunSync().get
+      p.speakerCommentCount shouldBe 1
+      p.orgaCommentCount shouldBe 2
+    }
     describe("Queries") {
       it("should build insert") {
         val q = ProposalRepoSql.insert(proposal)

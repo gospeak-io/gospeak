@@ -77,22 +77,22 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val Seq(commentData1, commentData2, commentData3) = random[Comment.Data](3)
   protected val params: Page.Params = Page.Params()
 
-  protected val adminCtx: AdminCtx = FakeAdminCtx(now, user)
-  protected implicit val orgaCtx: OrgaCtx = FakeOrgaCtx(now, user, group)
+  protected val adminCtx: FakeAdminCtx = FakeAdminCtx(now, user)
+  protected implicit val orgaCtx: FakeOrgaCtx = FakeOrgaCtx(now, user, group)
   protected implicit val userCtx: UserCtx = FakeUserCtx(now, user)
-  protected implicit val userAwareCtx: UserAwareCtx = FakeUserAwareCtx(now, Some(user))
+  protected implicit val userAwareCtx: FakeUserAwareCtx = FakeUserAwareCtx(now, Some(user))
 
   override def beforeEach(): Unit = db.migrate().unsafeRunSync()
 
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
 
-  protected def createUserAndGroup(): IO[(User, Group, OrgaCtx)] = for {
+  protected def createUserAndGroup(): IO[(User, Group, FakeOrgaCtx)] = for {
     user <- userRepo.create(userData1, now, None)
     group <- groupRepo.create(groupData1)(FakeCtx(now, user))
     ctx = FakeCtx(now, user, group)
   } yield (user, group, ctx)
 
-  protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk, OrgaCtx)] = for {
+  protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk, FakeOrgaCtx)] = for {
     (user, group, ctx) <- createUserAndGroup()
     cfp <- cfpRepo.create(cfpData1)(ctx)
     talk <- talkRepo.create(talkData1)(ctx)
@@ -104,7 +104,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
     venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))(ctx)
   } yield (partner, venue, contact)
 
-  protected def createProposal(): IO[(User, Group, Cfp, Partner, Venue, Option[Contact], Event, Talk, Proposal, OrgaCtx)] = for {
+  protected def createProposal(): IO[(User, Group, Cfp, Partner, Venue, Option[Contact], Event, Talk, Proposal, FakeOrgaCtx)] = for {
     (user, group, cfp, talk, ctx) <- createUserGroupCfpAndTalk()
     (partner, venue, contact) <- createPartnerAndVenue(user, group)(ctx)
     event <- eventRepo.create(eventData1.copy(cfp = Some(cfp.id), venue = Some(venue.id)))(ctx)

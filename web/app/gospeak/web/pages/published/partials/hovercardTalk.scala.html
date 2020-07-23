@@ -1,0 +1,13 @@
+@import gospeak.core.domain.Talk
+@import gospeak.web.utils._
+@(talk: Talk)
+<div class="hovercard talk">
+    <div class="media">
+        <div class="media-body">
+            <h5 class="mt-0">@talk.title.value</h5>
+            @talk.description.asExcerpt<br>
+        </div>
+    </div>
+    @if(talk.tags.nonEmpty) { <hr/> }
+    @talk.tags.asBadges
+</div>

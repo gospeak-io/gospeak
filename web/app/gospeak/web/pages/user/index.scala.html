@@ -4,6 +4,7 @@
 @import gospeak.web.pages.orga.routes.{GroupCtrl => OrgaGroupCtrl}
 @import gospeak.web.pages.published.cfps.routes.CfpCtrl
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
+@import gospeak.web.pages.published.routes.UtilsCtrl
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.proposals.routes.{ProposalCtrl => ProposalListCtrl}
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
@@ -24,8 +25,8 @@
             } else {
                 <div class="list-group list-group-flush">
                 @incomingEvents.items.map { case (e, r) =>
-                <a href="@PublicGroupCtrl.event(e.group.slug, e.event.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                    @e.event.name.value
+                <a href="@PublicGroupCtrl.event(e.group.slug, e.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span data-hovercard="@UtilsCtrl.hovercardEvent(e.group.slug, e.slug)">@e.event.name.value</span>
                     @r.map(_.answer).map {
                         case Event.Rsvp.Answer.Yes => {
                             <span class="badge badge-success">Yes</span>
@@ -60,7 +61,7 @@
             </h5>
             <div class="list-group list-group-flush">
                 @joinedGroups.items.map { case (g, m) =>
-                    <a href="@PublicGroupCtrl.detail(g.slug)" class="list-group-item list-group-item-action">@g.name.value</a>
+                    <a href="@PublicGroupCtrl.detail(g.slug)" class="list-group-item list-group-item-action"><span data-hovercard="@UtilsCtrl.hovercardGroup(g.slug)">@g.name.value</span></a>
                 }
             </div>
         }
@@ -72,7 +73,7 @@
             <h5 class="card-header">Owned groups</h5>
             <div class="list-group list-group-flush">
                 @req.groups.map { g =>
-                    <a href="@OrgaGroupCtrl.detail(g.slug)" class="list-group-item list-group-item-action">@g.name.value</a>
+                    <a href="@OrgaGroupCtrl.detail(g.slug)" class="list-group-item list-group-item-action"><span data-hovercard="@UtilsCtrl.hovercardGroup(g.slug)">@g.name.value</span></a>
                 }
             </div>
         </div>
@@ -98,7 +99,7 @@
             <div class="list-group list-group-flush">
                 @currentTalks.items.map { t =>
                     <a href="@TalkCtrl.detail(t.slug)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        @t.title.value
+                        <span data-hovercard="@UtilsCtrl.hovercardTalk(t.slug)">@t.title.value</span>
                         @t.status.asBadge
                     </a>
                 }
@@ -131,7 +132,7 @@
                                     case Proposal.Status.Accepted => {<span class="badge badge-success">@p.status.toString</span>}
                                     case Proposal.Status.Declined => {<span class="badge badge-danger">@p.status.toString</span>}
                                 }
-                                @p.title.value
+                                <span data-hovercard="@UtilsCtrl.hovercardProposalExt(e.id)">@p.title.value</span>
                             </span>
                             <span class="badge badge-primary badge-pill" @e.event.start.map { s => title="on @s.asDate"}><i class="fas fa-external-link-alt"></i> @e.event.name.value</span>
                         </a>
@@ -143,7 +144,7 @@
                                     case Proposal.Status.Accepted => {<span class="badge badge-success">@p.status.toString</span>}
                                     case Proposal.Status.Declined => {<span class="badge badge-danger">@p.status.toString</span>}
                                 }
-                                @p.title.value
+                                <span data-hovercard="@UtilsCtrl.hovercardProposal(i.group.slug, i.id)">@p.title.value</span>
                             </span>
                             @i.event.map { e =>
                                 <span class="badge badge-primary badge-pill" title="on @e.start.asDate">@e.name.value</span>

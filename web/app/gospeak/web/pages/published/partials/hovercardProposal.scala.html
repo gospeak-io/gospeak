@@ -1,0 +1,27 @@
+@import gospeak.core.domain.Proposal
+@import gospeak.web.utils._
+@(proposal: Proposal.Full)(implicit req: UserAwareReq[AnyContent])
+<div class="hovercard proposal">
+    <div class="media">
+        <div class="media-body">
+            <span class="pull-right">@proposal.status.asBadge</span>
+            <h5 class="mb-0">@proposal.title.value</h5>
+            @proposal.event.map { e => <h6 class="mb-0">At @e.name.value <small>(@e.start.asDate)</small></h6> }
+            <div class="my-2">@proposal.description.asExcerpt</div>
+            <div class="text-muted">Proposed on @proposal.info.createdAt.asDate, @proposal.speakerCommentCount comments</div>
+        </div>
+    </div>
+    @if(proposal.tags.nonEmpty) { <hr/> }
+    @if(proposal.tags.nonEmpty) { <div>@proposal.tags.asBadges</div> }
+    @if(req.isOrga(proposal.group)) {
+        <hr/>
+        <div class="mb-1">
+            @proposal.userGrade.map {
+                case Proposal.Rating.Grade.Like => {<i class="far fa-thumbs-up"></i> You voted for this proposal (global score: @proposal.score)}
+                case Proposal.Rating.Grade.Dislike => {<i class="far fa-thumbs-down"></i> You disliked this proposal (global score: @proposal.score)}
+            }.getOrElse { Global score: @proposal.score }
+        </div>
+        <div class="mb-1">@proposal.orgaCommentCount orga comments</div>
+        @if(proposal.orgaTags.nonEmpty) { <div class="mb-1">@proposal.orgaTags.asBadges(color = "info", title = "orga tag")</div> }
+    }
+</div>

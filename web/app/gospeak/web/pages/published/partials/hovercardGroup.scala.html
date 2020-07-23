@@ -1,0 +1,15 @@
+@import gospeak.core.domain.Group
+@import gospeak.web.utils._
+@(group: Group)
+<div class="hovercard group">
+    <div class="media">
+        @group.logo.map { l => <img src="@l.value" alt="@group.name.value logo" class="avatar mr-3"> }
+        <div class="media-body">
+            <h5 class="mt-0">@group.name.value</h5>
+            @group.description.asExcerpt<br>
+            @group.location.flatMap(_.locality).map(_.asLocationItem)
+        </div>
+    </div>
+    @if(group.website.isDefined) { <hr/> }
+    @group.website.map(_.asWebsiteItemLink)
+</div>
