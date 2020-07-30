@@ -1,0 +1,10 @@
+@import gospeak.core.domain.ExternalEvent
+@import gospeak.web.utils._
+@(event: ExternalEvent)
+<div class="hovercard ext-event">
+    <div class="media">
+        <div class="media-body">
+            <h5 class="mt-0">@event.name.value</h5>
+        </div>
+    </div>
+</div>

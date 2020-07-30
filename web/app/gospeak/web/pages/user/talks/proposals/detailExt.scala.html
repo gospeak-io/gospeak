@@ -3,6 +3,7 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.pages.partials.html._
+@import gospeak.web.pages.published.routes.UtilsCtrl
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.pages.user.talks.proposals.routes.ProposalCtrl
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
@@ -27,7 +28,7 @@
     </div>
     <h2>
         @proposal.status.asIcon
-        <a href="@PublicEventCtrl.detailExt(proposal.event.id)">@proposal.event.name.value</a>
+        <a href="@PublicEventCtrl.detailExt(proposal.event.id)" data-hovercard="@UtilsCtrl.hovercardEventExt(proposal.event.id)">@proposal.event.name.value</a>
         @proposal.event.start.map { s => - @s.asDate }
     </h2>
 

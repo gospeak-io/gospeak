@@ -1,0 +1,10 @@
+@import gospeak.core.domain.ExternalCfp
+@import gospeak.web.utils._
+@(cfp: ExternalCfp.Full)
+<div class="hovercard ext-cfp">
+    <div class="media">
+        <div class="media-body">
+            <h5 class="mt-0">@cfp.event.name.value</h5>
+        </div>
+    </div>
+</div>

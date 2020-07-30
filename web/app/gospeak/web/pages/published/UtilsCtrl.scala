@@ -19,8 +19,10 @@ class UtilsCtrl(cc: ControllerComponents,
                 eventRepo: PublicEventRepo,
                 talkRepo: PublicTalkRepo,
                 proposalRepo: PublicProposalRepo,
-                proposalExtRepo: PublicExternalProposalRepo,
                 partnerRepo: OrgaPartnerRepo,
+                cfpExtRepo: PublicExternalCfpRepo,
+                eventExtRepo: PublicExternalEventRepo,
+                proposalExtRepo: PublicExternalProposalRepo,
                 ms: MessageSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def hovercardUser(user: User.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     userRepo.findPublic(user).map(_.map(u => Ok(partials.html.hovercardUser(u))).getOrElse(NotFound))
@@ -48,15 +50,24 @@ class UtilsCtrl(cc: ControllerComponents,
     } yield Ok(partials.html.hovercardProposal(p))).value.map(_.getOrElse(NotFound))
   }
 
-  def hovercardProposalExt(proposal: ExternalProposal.Id): Action[AnyContent] = UserAwareAction { implicit req =>
-    proposalExtRepo.findFull(proposal).map(_.map(p => Ok(partials.html.hovercardProposalExt(p))).getOrElse(NotFound))
-  }
-
   def hovercardCfp(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
     cfpRepo.findRead(cfp).map(_.map(c => Ok(partials.html.hovercardCfp(c))).getOrElse(NotFound))
   }
 
   def hovercardTalk(talk: Talk.Slug): Action[AnyContent] = UserAction { implicit req =>
+    // TODO: add proposal count
     talkRepo.find(talk).map(_.map(u => Ok(partials.html.hovercardTalk(u))).getOrElse(NotFound))
+  }
+
+  def hovercardCfpExt(cfp: ExternalCfp.Id): Action[AnyContent] = UserAwareAction { implicit req =>
+    cfpExtRepo.findFull(cfp).map(_.map(c => Ok(partials.html.hovercardCfpExt(c))).getOrElse(NotFound))
+  }
+
+  def hovercardEventExt(event: ExternalEvent.Id): Action[AnyContent] = UserAwareAction { implicit req =>
+    eventExtRepo.find(event).map(_.map(e => Ok(partials.html.hovercardEventExt(e))).getOrElse(NotFound))
+  }
+
+  def hovercardProposalExt(proposal: ExternalProposal.Id): Action[AnyContent] = UserAwareAction { implicit req =>
+    proposalExtRepo.findFull(proposal).map(_.map(p => Ok(partials.html.hovercardProposalExt(p))).getOrElse(NotFound))
   }
 }

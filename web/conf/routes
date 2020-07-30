@@ -61,9 +61,11 @@ GET         /hovercards/groups/:group                                           
 GET         /hovercards/groups/:group/events/:event                                        gospeak.web.pages.published.UtilsCtrl.hovercardEvent(group: Group.Slug, event: Event.Slug)
 GET         /hovercards/groups/:group/partners/:partner                                    gospeak.web.pages.published.UtilsCtrl.hovercardPartner(group: Group.Slug, partner: Partner.Slug)
 GET         /hovercards/groups/:group/proposals/:proposal                                  gospeak.web.pages.published.UtilsCtrl.hovercardProposal(group: Group.Slug, proposal: Proposal.Id)
-GET         /hovercards/ext-proposals/:proposal                                            gospeak.web.pages.published.UtilsCtrl.hovercardProposalExt(proposal: ExternalProposal.Id)
 GET         /hovercards/cfps/:cfp                                                          gospeak.web.pages.published.UtilsCtrl.hovercardCfp(cfp: Cfp.Slug)
 GET         /hovercards/talks/:talk                                                        gospeak.web.pages.published.UtilsCtrl.hovercardTalk(talk: Talk.Slug)
+GET         /hovercards/ext/cfps/:cfp                                                      gospeak.web.pages.published.UtilsCtrl.hovercardCfpExt(cfp: ExternalCfp.Id)
+GET         /hovercards/ext/events/:event                                                  gospeak.web.pages.published.UtilsCtrl.hovercardEventExt(event: ExternalEvent.Id)
+GET         /hovercards/ext/proposals/:proposal                                            gospeak.web.pages.published.UtilsCtrl.hovercardProposalExt(proposal: ExternalProposal.Id)
 
 GET         /signup                                                                        gospeak.web.auth.AuthCtrl.signup(redirect: Option[String] ?= None)
 POST        /signup                                                                        gospeak.web.auth.AuthCtrl.doSignup(redirect: Option[String] ?= None)
