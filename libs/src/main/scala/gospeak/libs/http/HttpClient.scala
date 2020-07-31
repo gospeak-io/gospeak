@@ -4,9 +4,33 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 import cats.effect.IO
+import gospeak.libs.http.HttpClient._
 import gospeak.libs.scala.domain.CustomException
 import hammock.apache.ApacheInterpreter
 import hammock.{Encoder, Entity, Hammock, HttpResponse, InterpTrans, Method, Uri}
+
+trait HttpClient {
+
+  def get(url: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def postJson(url: String, body: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def putJson(url: String, body: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def patchJson(url: String, body: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def deleteJson(url: String, body: String, query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def postForm(url: String, body: Map[String, String], query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def putForm(url: String, body: Map[String, String], query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def patchForm(url: String, body: Map[String, String], query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def deleteForm(url: String, body: Map[String, String], query: Map[String, String] = Map(), headers: Map[String, String] = Map()): IO[Response]
+
+  def buildUrl(url: String, query: Map[String, String]): String
+}
 
 object HttpClient {
 
@@ -32,6 +56,9 @@ object HttpClient {
         })
   }
 
+}
+
+class HttpClientImpl extends HttpClient {
   private implicit val interpreter: InterpTrans[IO] = ApacheInterpreter.instance[IO]
   private implicit val stringEncoder: Encoder[String] = (value: String) => Entity.StringEntity(value)
 

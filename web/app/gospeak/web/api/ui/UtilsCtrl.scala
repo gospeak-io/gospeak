@@ -38,6 +38,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 externalCfpRepo: PublicExternalCfpRepo,
                 cloudinarySrv: CloudinarySrv,
                 slackSrv: SlackSrv,
+                embedSrv: EmbedSrv,
                 ms: MessageSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
@@ -59,7 +60,7 @@ class UtilsCtrl(cc: ControllerComponents,
   }
 
   def embed(url: Url): Action[AnyContent] = UserAwareAction { implicit req =>
-    EmbedSrv.embedCode(url).map(_.value).map(ApiResult.of(_))
+    embedSrv.embedCode(url).map(_.value).map(ApiResult.of(_))
   }
 
   def markdownToHtml(): Action[JsValue] = UserAwareActionJson[String, String] { implicit req =>
@@ -72,17 +73,6 @@ class UtilsCtrl(cc: ControllerComponents,
     IO.pure(ApiResult.of(TemplateDataResponse(data)))
   }
 
-  def renderTemplate(): Action[JsValue] = UserActionJson[TemplateRequest, TemplateResponse] { implicit req =>
-    val data = ms.sample(req.body.ref)(req.withBody(AnyContent()))
-    val tmpl = req.body.template.render(data)
-    val res = tmpl match {
-      case Left(err) => TemplateResponse(None, Some(err.message))
-      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(tmpl.toHtml), None)
-      case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
-    }
-    IO.pure(ApiResult.of(res))
-  }
-
   private def circeToPlay(json: io.circe.Json): JsValue = {
     json.fold(
       jsonNull = JsNull,
@@ -92,5 +82,16 @@ class UtilsCtrl(cc: ControllerComponents,
       jsonArray = (v: Vector[io.circe.Json]) => JsArray(v.map(circeToPlay)),
       jsonObject = (o: io.circe.JsonObject) => JsObject(o.toMap.mapValues(circeToPlay))
     )
+  }
+
+  def renderTemplate(): Action[JsValue] = UserActionJson[TemplateRequest, TemplateResponse] { implicit req =>
+    val data = ms.sample(req.body.ref)(req.withBody(AnyContent()))
+    val tmpl = req.body.template.render(data)
+    val res = tmpl match {
+      case Left(err) => TemplateResponse(None, Some(err.message))
+      case Right(tmpl) if req.body.markdown => TemplateResponse(Some(tmpl.toHtml), None)
+      case Right(tmpl) => TemplateResponse(Some(Html(s"<pre>${HtmlFormat.escape(tmpl.value)}</pre>")), None)
+    }
+    IO.pure(ApiResult.of(res))
   }
 }

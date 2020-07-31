@@ -3,6 +3,7 @@ package gospeak.libs.meetup
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+import gospeak.libs.http.HttpClientImpl
 import gospeak.libs.meetup.domain.{MeetupEvent, MeetupToken, MeetupVenue}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Geo, Secret}
@@ -11,7 +12,7 @@ import gospeak.libs.testingutils.BaseSpec
 class MeetupClientSpec extends BaseSpec {
   private val redirectUri = "http://localhost:9000/u/groups/ht-paris/settings/meetup-oauth2"
   private val localConf = MeetupClient.Conf("...", Secret("..."))
-  private val client = new MeetupClient(localConf, "http://localhost:9000", false)
+  private val client = new MeetupClient(localConf, "http://localhost:9000", new HttpClientImpl, false)
   private val code = "..."
   private implicit val accessToken: MeetupToken.Access = MeetupToken.Access("...")
   private val refreshToken = "..."

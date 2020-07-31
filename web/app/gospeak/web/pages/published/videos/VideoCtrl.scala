@@ -17,7 +17,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 class VideoCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
-                videoRepo: PublicVideoRepo) extends UICtrl(cc, silhouette, conf) {
+                videoRepo: PublicVideoRepo,
+                embedSrv: EmbedSrv) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
     videoRepo.list(params).map(videos => Ok(html.list(videos)(listBreadcrumb())))
   }
@@ -25,7 +26,7 @@ class VideoCtrl(cc: ControllerComponents,
   def detail(video: Url.Video.Id): Action[AnyContent] = UserAwareAction { implicit req =>
     (for {
       videoElt <- OptionT(videoRepo.find(video))
-      embed: Html <- OptionT.liftF(EmbedSrv.embedCode(videoElt.url))
+      embed: Html <- OptionT.liftF(embedSrv.embedCode(videoElt.url))
       b = breadcrumb(videoElt)
     } yield Ok(html.detail(videoElt, embed)(b))).value.map(_.getOrElse(publicVideoNotFound(video)))
   }

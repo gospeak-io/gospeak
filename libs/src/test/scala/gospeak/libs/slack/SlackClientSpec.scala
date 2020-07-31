@@ -1,12 +1,13 @@
 package gospeak.libs.slack
 
+import gospeak.libs.http.HttpClientImpl
 import gospeak.libs.slack.domain.{SlackSender, SlackToken}
 import gospeak.libs.testingutils.BaseSpec
 
 class SlackClientSpec extends BaseSpec {
   private val token = SlackToken("...")
   private val sender = SlackSender.Bot("Gospeak test", None)
-  private val client = new SlackClient
+  private val client = new SlackClient(new HttpClientImpl)
 
   ignore("SlackClient") {
     it("should get info") {

@@ -17,14 +17,14 @@ import scala.util.{Failure, Try}
  *
  * `groupSlug` is `urlname` in API, this name change in parameters is for better clariry
  */
-class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, val performWriteOps: Boolean) {
+class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, http: HttpClient, val performWriteOps: Boolean) {
   private val baseUrl = "https://api.meetup.com"
 
   def hasSecureCallback: Boolean = appBaseUrl.startsWith("https")
 
   def buildAuthorizationUrl(redirectUri: String): Try[Url] =
     if (redirectUri.startsWith(appBaseUrl)) {
-      Url.from(HttpClient.buildUrl("https://secure.meetup.com/oauth2/authorize", Map(
+      Url.from(http.buildUrl("https://secure.meetup.com/oauth2/authorize", Map(
         "scope" -> "event_management",
         "client_id" -> conf.key,
         "response_type" -> "code",
@@ -35,7 +35,7 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, val performWrite
 
   // https://www.meetup.com/meetup_api/auth/#oauth2server
   def requestAccessToken(redirectUri: String, code: String): IO[Either[MeetupError, MeetupToken]] =
-    HttpClient.postForm("https://secure.meetup.com/oauth2/access", Map(
+    http.postForm("https://secure.meetup.com/oauth2/access", Map(
       "client_id" -> conf.key,
       "client_secret" -> conf.secret.decode,
       "grant_type" -> "authorization_code",
@@ -44,7 +44,7 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, val performWrite
 
   // cf https://www.meetup.com/meetup_api/auth/#oauth2-refresh
   def refreshAccessToken(refreshToken: String): IO[Either[MeetupError, MeetupToken]] =
-    HttpClient.postForm("https://secure.meetup.com/oauth2/access", Map(
+    http.postForm("https://secure.meetup.com/oauth2/access", Map(
       "client_id" -> conf.key,
       "client_secret" -> conf.secret.decode,
       "grant_type" -> "refresh_token",
@@ -147,16 +147,16 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, val performWrite
     get[Seq[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> geo.lat.toString, "lon" -> geo.lng.toString))
 
   private def get[A](url: String, query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
-    HttpClient.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+    http.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 
   private def post[A](url: String, body: Map[String, String], query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
-    HttpClient.postForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+    http.postForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 
   private def patch[A](url: String, body: Map[String, String], query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
-    HttpClient.patchForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+    http.patchForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 
   private def delete[A](url: String, body: Map[String, String], query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
-    HttpClient.deleteForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
+    http.deleteForm(url, body, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])
 
   private def parse[A](res: Response)(implicit d: Decoder[A]): IO[Either[MeetupError, A]] = {
     val body = transformBody(res.body)

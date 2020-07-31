@@ -6,6 +6,7 @@ import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.upload.UploadConf
 import gospeak.libs.cloudinary.CloudinaryClient
 import gospeak.libs.cloudinary.domain.CloudinaryUploadRequest
+import gospeak.libs.http.HttpClient
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Avatar, Banner, Logo}
 
@@ -64,11 +65,12 @@ class CloudinarySrvImpl(client: CloudinaryClient) extends CloudinarySrv {
 }
 
 object CloudinarySrvImpl {
-  def from(conf: UploadConf.Cloudinary): CloudinarySrvImpl =
+  def from(conf: UploadConf.Cloudinary, http: HttpClient): CloudinarySrvImpl =
     new CloudinarySrvImpl(new CloudinaryClient(CloudinaryClient.Conf(
       cloudName = conf.cloudName,
       uploadPreset = conf.uploadPreset,
-      creds = conf.creds)))
+      creds = conf.creds),
+      http = http))
 
   def userAvatarFile: Option[String] = Some("avatar")
 

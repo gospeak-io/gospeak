@@ -6,7 +6,7 @@ import gospeak.libs.scala.domain.{Html, Url}
 
 import scala.util.control.NonFatal
 
-object EmbedSrv {
+class EmbedSrv(http: HttpClient) {
   def embedCode(url: Url): IO[Html] = {
     embedCodeSync(url).map(IO.pure).getOrElse {
       embedCodeAsync(url)
@@ -22,7 +22,7 @@ object EmbedSrv {
     }
 
   private def embedCodeAsync(url: Url): IO[Option[Html]] =
-    HttpClient.get(url.value).map { res =>
+    http.get(url.value).map { res =>
       AsyncService.all.foldLeft(Option.empty[Html]) { (acc, cur) =>
         if (acc.isDefined) acc
         else cur.embed(url, res.body)

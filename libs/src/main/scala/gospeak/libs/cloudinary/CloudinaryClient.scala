@@ -11,7 +11,7 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Creds
 import io.circe.parser.decode
 
-class CloudinaryClient(conf: CloudinaryClient.Conf) {
+class CloudinaryClient(conf: CloudinaryClient.Conf, http: HttpClient) {
   private val baseUrl = "https://api.cloudinary.com/v1_1"
   private val ignoreOnSign = Set("api_key", "file")
 
@@ -27,7 +27,7 @@ class CloudinaryClient(conf: CloudinaryClient.Conf) {
         "api_key" -> creds.key,
         "timestamp" -> Instant.now().getEpochSecond.toString)
       val signature = sign(creds, allParams)
-      HttpClient.postForm(uploadUrl, allParams ++ Map("signature" -> signature))
+      http.postForm(uploadUrl, allParams ++ Map("signature" -> signature))
         .map(r => decode[CloudinaryUploadResponse](r.body).leftMap(_.getMessage))
     }.sequence.map(_.flatMap(identity))
   }

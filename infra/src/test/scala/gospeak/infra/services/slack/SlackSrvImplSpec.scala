@@ -2,6 +2,7 @@ package gospeak.infra.services.slack
 
 import gospeak.core.services.slack.domain.{SlackCredentials, SlackToken}
 import gospeak.infra.testingutils.BaseSpec
+import gospeak.libs.http.HttpClientImpl
 import gospeak.libs.scala.domain.Crypted
 import gospeak.libs.slack.SlackClient
 import gospeak.libs.slack.domain.SlackError
@@ -9,7 +10,7 @@ import gospeak.libs.slack.domain.SlackError
 class SlackSrvImplSpec extends BaseSpec {
   private val token = SlackToken(Crypted("..."))
   private val creds = SlackCredentials(token, "Gospeak test", None)
-  private val client = new SlackClient
+  private val client = new SlackClient(new HttpClientImpl)
   private val srv = new SlackSrvImpl(client)
 
   describe("SlackSrvImpl") {

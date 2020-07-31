@@ -9,6 +9,7 @@ import gospeak.core.services.meetup.{MeetupConf, MeetupSrv, domain => gs}
 import gospeak.libs.meetup.MeetupClient
 import gospeak.libs.meetup.domain._
 import gospeak.infra.services.meetup.MeetupSrvImpl._
+import gospeak.libs.http.HttpClient
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
@@ -191,8 +192,8 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
 }
 
 object MeetupSrvImpl {
-  def from(conf: MeetupConf, appBaseUrl: String, performWriteOps: Boolean): MeetupSrvImpl =
-    new MeetupSrvImpl(new MeetupClient(MeetupClient.Conf(key = conf.key, secret = conf.secret), appBaseUrl, performWriteOps))
+  def from(conf: MeetupConf, appBaseUrl: String, http: HttpClient, performWriteOps: Boolean): MeetupSrvImpl =
+    new MeetupSrvImpl(new MeetupClient(MeetupClient.Conf(key = conf.key, secret = conf.secret), appBaseUrl, http, performWriteOps))
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
   private[meetup] def toSimpleHtml(md: Markdown): String = {
