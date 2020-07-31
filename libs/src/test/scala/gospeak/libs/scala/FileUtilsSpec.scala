@@ -3,7 +3,7 @@ package gospeak.libs.scala
 import gospeak.libs.testingutils.BaseSpec
 
 class FileUtilsSpec extends BaseSpec {
-  private val path = if (FileUtils.exists("libs")) "libs/target/test/test.txt" else "target/test/test.txt"
+  private val path = FileUtils.adaptLocalPath("libs/target/test/test.txt")
 
   describe("FileUtils") {
     it("should write, read and delete a file") {

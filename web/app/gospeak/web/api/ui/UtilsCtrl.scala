@@ -8,7 +8,7 @@ import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
-import gospeak.infra.services.EmbedSrv
+import gospeak.infra.services.{EmbedSrv, ScraperSrv}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Html, LiquidMarkdown, Markdown, Url}
 import gospeak.web.AppConf
@@ -39,6 +39,7 @@ class UtilsCtrl(cc: ControllerComponents,
                 cloudinarySrv: CloudinarySrv,
                 slackSrv: SlackSrv,
                 embedSrv: EmbedSrv,
+                scraperSrv: ScraperSrv,
                 ms: MessageSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
@@ -61,6 +62,10 @@ class UtilsCtrl(cc: ControllerComponents,
 
   def embed(url: Url): Action[AnyContent] = UserAwareAction { implicit req =>
     embedSrv.embedCode(url).map(_.value).map(ApiResult.of(_))
+  }
+
+  def fetchMetas(url: Url): Action[AnyContent] = UserAwareAction { implicit req =>
+    scraperSrv.fetchMetas(url).map(ApiResult.of(_))
   }
 
   def markdownToHtml(): Action[JsValue] = UserAwareActionJson[String, String] { implicit req =>

@@ -1,7 +1,7 @@
 package gospeak.web.api.ui.helpers
 
 import gospeak.core.domain.messages.Message
-import gospeak.libs.scala.domain.{Html, LiquidMarkdown}
+import gospeak.libs.scala.domain.{Html, LiquidMarkdown, PageData, Url}
 import gospeak.web.api.ui._
 import play.api.libs.json._
 
@@ -15,4 +15,9 @@ object JsonFormats {
   implicit val templateRequestReads: Reads[TemplateRequest] = Json.reads[TemplateRequest]
   implicit val htmlWrites: Writes[Html] = (o: Html) => JsString(o.value)
   implicit val templateResponseWrites: Writes[TemplateResponse] = Json.writes[TemplateResponse]
+  implicit val urlWrites: Writes[Url] = (u: Url) => JsString(u.value)
+  implicit val pageDataSizeWrites: Writes[PageData.Size] = Json.writes[PageData.Size]
+  implicit val pageDataSizedItemWrites: Writes[PageData.SizedItem] = Json.writes[PageData.SizedItem]
+  implicit val pageDataRowItemWrites: Writes[PageData.RowItem] = Json.writes[PageData.RowItem]
+  implicit val pageDataWrites: Writes[PageData] = Json.writes[PageData]
 }

@@ -1,6 +1,7 @@
 package gospeak.infra.services
 
 import cats.effect.IO
+import gospeak.infra.services.EmbedSrv._
 import gospeak.libs.http.HttpClient
 import gospeak.libs.scala.domain.{Html, Url}
 
@@ -28,14 +29,9 @@ class EmbedSrv(http: HttpClient) {
         else cur.embed(url, res.body)
       }
     }
+}
 
-  private def embedCodeDefault(url: Url): Html =
-    Html(
-      s"""<div class="no-embed">
-         |  Not embeddable: <a href="${url.value}" target="_blank">${url.value}</a>
-         |</div>
-       """.stripMargin.trim)
-
+object EmbedSrv {
   private val hash = "([^/?&#]+)"
 
   sealed trait SyncService {
@@ -67,7 +63,7 @@ class EmbedSrv(http: HttpClient) {
         case _ => None
       }
 
-      private def embedUrl(id: String): Option[Url] = Url.from(s"//www.dailymotion.com/embed/video/${id.split("_").headOption.getOrElse(id)}").toOption
+      private def embedUrl(id: String): Option[Url] = Url.from(s"https://www.dailymotion.com/embed/video/${id.split("_").headOption.getOrElse(id)}").toOption
 
       private def embedCode(url: Url): Html = Html(s"""<iframe src="${url.value}" width="560" height="315" frameborder="0" allowfullscreen></iframe>""")
     }
@@ -106,7 +102,7 @@ class EmbedSrv(http: HttpClient) {
         case _ => None
       }
 
-      private def embedUrl(user: String, id: String): Option[Url] = Url.from(s"//slides.com/$user/$id/embed?style=light").toOption
+      private def embedUrl(user: String, id: String): Option[Url] = Url.from(s"https:////slides.com/$user/$id/embed?style=light").toOption
 
       private def embedCode(url: Url): Html = Html(s"""<iframe src="${url.value}" width="576" height="420" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>""")
     }
@@ -148,7 +144,7 @@ class EmbedSrv(http: HttpClient) {
 
     case object SpeakerDeck extends AsyncService {
       private val templateUrl = s"https?://speakerdeck.com/$hash/$hash.*".r
-      private val templateBody = "(?is).*<div class=\"speakerdeck-embed\" data-id=\"([^\"]+)\" data-ratio=\"([^\"]+)\"></div>.*".r
+      private val templateBody = "(?is).*data-id=\"([^\"]+)\" data-ratio=\"([^\"]+)\".*".r
 
       override def embed(url: Url, content: String): Option[Html] = url.value match {
         case templateUrl(_, _) => content match {
@@ -175,4 +171,10 @@ class EmbedSrv(http: HttpClient) {
     val all: Seq[AsyncService] = Seq(SlideShare, SpeakerDeck, HtmlSlides)
   }
 
+  private def embedCodeDefault(url: Url): Html =
+    Html(
+      s"""<div class="no-embed">
+         |  Not embeddable: <a href="${url.value}" target="_blank">${url.value}</a>
+         |</div>
+       """.stripMargin.trim)
 }

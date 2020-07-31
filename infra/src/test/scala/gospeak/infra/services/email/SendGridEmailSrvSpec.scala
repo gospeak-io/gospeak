@@ -1,13 +1,12 @@
-package gospeak.infra.services
+package gospeak.infra.services.email
 
 import gospeak.core.services.email.EmailConf.SendGrid
 import gospeak.core.services.email.EmailSrv._
-import gospeak.infra.services.email.SendGridEmailSrv
 import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{EmailAddress, Secret}
 
-class EmailSrvSpec extends BaseSpec {
+class SendGridEmailSrvSpec extends BaseSpec {
   private val sender = EmailAddress.from("unit-test@gospeak.io").get
   private val receiver = EmailAddress.from("loicknuchel@gmail.com").get
 

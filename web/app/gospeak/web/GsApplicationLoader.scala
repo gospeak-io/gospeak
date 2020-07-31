@@ -23,7 +23,7 @@ import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
 import gospeak.core.services.video.VideoSrv
-import gospeak.infra.services.{AvatarSrv, EmbedSrv}
+import gospeak.infra.services.{AvatarSrv, EmbedSrv, ScraperSrv}
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
@@ -96,6 +96,7 @@ class GsComponents(context: ApplicationLoader.Context)
 
   lazy val http: HttpClient = new HttpClientImpl()
   lazy val embedSrv: EmbedSrv = wire[EmbedSrv]
+  lazy val scraperSrv: ScraperSrv = wire[ScraperSrv]
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
   lazy val cloudinarySrv: CloudinarySrv = UploadSrvFactory.from(conf.upload, http)

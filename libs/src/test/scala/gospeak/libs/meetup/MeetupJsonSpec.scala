@@ -7,7 +7,7 @@ import gospeak.libs.testingutils.BaseSpec
 import io.circe.parser.decode
 
 class MeetupJsonSpec extends BaseSpec {
-  private val basePath = Some("libs/src/test/resources/meetup").filter(FileUtils.exists).getOrElse("src/test/resources/meetup")
+  private val basePath = FileUtils.adaptLocalPath("libs/src/test/resources/meetup")
 
   it("should parse access token response") {
     decode[MeetupToken](FileUtils.read(basePath + "/accessToken.json").get).toTry.get

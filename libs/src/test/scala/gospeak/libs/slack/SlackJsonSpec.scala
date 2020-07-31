@@ -7,7 +7,7 @@ import gospeak.libs.testingutils.BaseSpec
 import io.circe.parser.decode
 
 class SlackJsonSpec extends BaseSpec {
-  private val basePath = Some("libs/src/test/resources/slack").filter(FileUtils.exists).getOrElse("src/test/resources/slack")
+  private val basePath = FileUtils.adaptLocalPath("libs/src/test/resources/slack")
 
   describe("SlackJson") {
     it("should parse auth.test response") {

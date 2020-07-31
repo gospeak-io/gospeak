@@ -23,4 +23,10 @@ object FileUtils {
 
   def delete(path: String): Try[Unit] =
     Try(Files.delete(Paths.get(path)))
+
+  // remove the first folder if it does not exist as IntelliJ uses project home and sbt uses module home to run tests :(
+  def adaptLocalPath(path: String): String = {
+    val base = path.split('/').head
+    if (FileUtils.exists(base)) path else path.split('/').drop(1).mkString("/")
+  }
 }

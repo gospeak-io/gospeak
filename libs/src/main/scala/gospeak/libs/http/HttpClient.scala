@@ -56,6 +56,19 @@ object HttpClient {
         })
   }
 
+  def buildUrl(url: String, query: Map[String, String]): String = {
+    if (query.isEmpty) {
+      url
+    } else if (url.contains("?")) {
+      url + "&" + buildParams(query)
+    } else {
+      url + "?" + buildParams(query)
+    }
+  }
+
+  def buildParams(params: Map[String, String]): String =
+    params.map { case (key, value) => s"$key=${URLEncoder.encode(value, "UTF8")}" }.mkString("&")
+
 }
 
 class HttpClientImpl extends HttpClient {
@@ -108,16 +121,27 @@ class HttpClientImpl extends HttpClient {
     // .recoverWith { case e => println(s"\n$requestInfo\n  response: ${e.getClass.getSimpleName}: ${e.getMessage}"); IO.raiseError(e) }
   }
 
-  def buildUrl(url: String, query: Map[String, String]): String = {
-    if (query.isEmpty) {
-      url
-    } else if (url.contains("?")) {
-      url + "&" + buildParams(query)
-    } else {
-      url + "?" + buildParams(query)
-    }
-  }
+  def buildUrl(url: String, query: Map[String, String]): String = HttpClient.buildUrl(url, query)
+}
 
-  private def buildParams(params: Map[String, String]): String =
-    params.map { case (key, value) => s"$key=${URLEncoder.encode(value, "UTF8")}" }.mkString("&")
+class FakeHttpClient(fetch: String => IO[Response]) extends HttpClient {
+  override def get(url: String, query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def postJson(url: String, body: String, query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def putJson(url: String, body: String, query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def patchJson(url: String, body: String, query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def deleteJson(url: String, body: String, query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def postForm(url: String, body: Map[String, String], query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def putForm(url: String, body: Map[String, String], query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def patchForm(url: String, body: Map[String, String], query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def deleteForm(url: String, body: Map[String, String], query: Map[String, String], headers: Map[String, String]): IO[Response] = fetch(url)
+
+  override def buildUrl(url: String, query: Map[String, String]): String = HttpClient.buildUrl(url, query)
 }
