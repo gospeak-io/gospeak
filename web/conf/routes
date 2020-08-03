@@ -130,6 +130,9 @@ POST        /u/profile/edit                                                     
 
 GET         /u/groups/create                                                               gospeak.web.pages.orga.GroupCtrl.create
 POST        /u/groups/create                                                               gospeak.web.pages.orga.GroupCtrl.doCreate
+POST        /u/groups/meetup/connect                                                       gospeak.web.pages.orga.GroupCtrl.meetupConnect
+GET         /u/groups/meetup/callback                                                      gospeak.web.pages.orga.GroupCtrl.meetupCallback
+POST        /u/groups/meetup/import                                                        gospeak.web.pages.orga.GroupCtrl.meetupImport
 GET         /u/groups/join                                                                 gospeak.web.pages.orga.GroupCtrl.join(params: Page.Params ?= Page.Params.defaults)
 POST        /u/groups/join/:group                                                          gospeak.web.pages.orga.GroupCtrl.doJoin(group: Group.Slug, params: Page.Params)
 GET         /u/groups/:group                                                               gospeak.web.pages.orga.GroupCtrl.detail(group: Group.Slug)

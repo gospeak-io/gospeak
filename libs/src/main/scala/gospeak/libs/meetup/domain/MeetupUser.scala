@@ -1,6 +1,7 @@
 package gospeak.libs.meetup.domain
 
 final case class MeetupUser(id: Long,
+                            status: String, // ex: "active"
                             name: String,
                             bio: Option[String],
                             photo: MeetupPhoto,
@@ -10,12 +11,12 @@ final case class MeetupUser(id: Long,
                             country: String,
                             lon: Double,
                             lat: Double,
-                            lang: Option[String],
-                            status: String)
+                            lang: Option[String])
 
 object MeetupUser {
 
   final case class Alt(id: Long,
+                       status: String,
                        name: String,
                        bio: String,
                        photo: MeetupPhoto.Alt,
@@ -25,8 +26,7 @@ object MeetupUser {
                        country: String,
                        lon: Double,
                        lat: Double,
-                       lang: String,
-                       status: String)
+                       lang: String)
 
   final case class Basic(id: Long,
                          name: String,
@@ -34,10 +34,10 @@ object MeetupUser {
                          photo: MeetupPhoto)
 
   final case class Member(id: Long,
+                          status: String,
                           name: String,
                           email: Option[String],
                           bio: Option[String],
-                          status: String, // ex: "active"
                           joined: Long,
                           city: String,
                           country: String,
@@ -64,14 +64,14 @@ object MeetupUser {
     }
 
     final case class GroupDetails(id: Long,
-                                  urlname: String,
+                                  status: String,
+                                  join_mode: String, // ex: "open"
                                   name: String,
-                                  status: String, // ex: "active"
+                                  urlname: String,
                                   who: String,
                                   members: Int,
-                                  join_mode: String, // ex: "open"
                                   localized_location: String,
-                                  group_photo: MeetupPhoto)
+                                  group_photo: Option[MeetupPhoto])
 
   }
 

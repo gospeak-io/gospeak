@@ -19,11 +19,13 @@ trait MeetupSrv {
 
   def getLoggedUser(key: AesSecretKey)(implicit token: MeetupToken): IO[MeetupUser]
 
+  def getOwnedGroups(key: AesSecretKey)(implicit token: MeetupToken): IO[List[MeetupGroup]]
+
   def getGroup(group: MeetupGroup.Slug, key: AesSecretKey)(implicit token: MeetupToken): IO[MeetupGroup]
 
-  def getEvents(group: MeetupGroup.Slug, key: AesSecretKey, creds: MeetupCredentials): IO[Seq[MeetupEvent]]
+  def getEvents(group: MeetupGroup.Slug, key: AesSecretKey, creds: MeetupCredentials): IO[List[MeetupEvent]]
 
-  def getAttendees(group: MeetupGroup.Slug, event: MeetupEvent.Id, key: AesSecretKey, creds: MeetupCredentials): IO[Seq[MeetupAttendee]]
+  def getAttendees(group: MeetupGroup.Slug, event: MeetupEvent.Id, key: AesSecretKey, creds: MeetupCredentials): IO[List[MeetupAttendee]]
 
   def publish(event: Event,
               venue: Option[Venue.Full],

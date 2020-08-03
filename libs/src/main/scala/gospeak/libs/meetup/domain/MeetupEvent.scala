@@ -1,15 +1,17 @@
 package gospeak.libs.meetup.domain
 
+import java.time.{LocalDateTime, ZoneOffset}
+
 final case class MeetupEvent(id: Long,
                              name: String,
-                             status: String, // "cancelled", "upcoming", "past", "proposed", "suggested" or "draft"
-                             visibility: String, // "public", "public_limited", or "members"
+                             status: String, // ex: "draft", "suggested", "proposed", "upcoming", "past", "cancelled"
+                             visibility: String, // ex: "public", "public_limited", or "members"
                              description: Option[String],
-                             time: Option[Long],
-                             local_date: Option[String],
-                             local_time: Option[String],
-                             utc_offset: Option[Int],
-                             duration: Option[Int],
+                             time: Option[Long], // ex: 1562691600000
+                             utc_offset: Option[Int], // ex: 7200000
+                             local_date: Option[String], // ex: "2019-07-09"
+                             local_time: Option[String], // ex: "19:00"
+                             duration: Option[Int], // ex: 10800000
                              venue: Option[MeetupVenue.Basic],
                              group: MeetupGroup.Basic,
                              rsvp_limit: Option[Int],
@@ -18,7 +20,12 @@ final case class MeetupEvent(id: Long,
                              link: String,
                              member_pay_fee: Boolean,
                              created: Long,
-                             updated: Long)
+                             updated: Long) {
+  def localTime: LocalDateTime =
+    time.map(MeetupEvent.toLocalDate(_, utc_offset))
+      .orElse(local_date.map(MeetupEvent.toLocalDate(_, local_time)))
+      .getOrElse(MeetupEvent.toLocalDate(updated, None))
+}
 
 object MeetupEvent {
   val maxHosts = 5
@@ -64,4 +71,9 @@ object MeetupEvent {
       "self_rsvp" -> Some(self_rsvp.toString)).collect { case (k, Some(v)) => (k, v) }
   }
 
+  def toLocalDate(timestamp: Long, offset: Option[Int]): LocalDateTime =
+    LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofTotalSeconds(offset.map(_ / 1000).getOrElse(0)))
+
+  def toLocalDate(date: String, time: Option[String]): LocalDateTime =
+    LocalDateTime.parse(date + "T" + time.getOrElse("00:00"))
 }

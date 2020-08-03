@@ -34,15 +34,19 @@ class MeetupClientSpec extends BaseSpec {
         val user = client.getLoggedUser().unsafeRunSync().get
         println(s"user: $user")
       }
+      it("should get logged user groups") {
+        val groups = client.getLoggedUserGroups().unsafeRunSync().get
+        println(s"groups (${groups.length}):\n${groups.mkString("\n")}")
+      }
       it("should get user details") {
         val user = client.getUser(userId).unsafeRunSync().get
         println(s"user: $user")
       }
-      it("should get group users") {
+      it("should get group orgas") {
         val users = client.getOrgas(groupId).unsafeRunSync().get
         println(s"users (${users.length}):\n${users.mkString("\n")}")
       }
-      it("should get group user") {
+      it("should get group member") {
         val user = client.getMember(groupId, userId).unsafeRunSync().get
         println(s"user: $user")
       }
@@ -94,6 +98,8 @@ class MeetupClientSpec extends BaseSpec {
         val venue = MeetupVenue.Create(
           name = "Test venue",
           address_1 = "119 rue des Pyrénées",
+          address_2 = None,
+          address_3 = None,
           city = "Paris",
           state = None,
           country = "fr",

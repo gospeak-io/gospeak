@@ -3,9 +3,17 @@ package gospeak.web.pages.orga
 import cats.data.OptionT
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
-import gospeak.core.domain.{Group, UserRequest}
+import gospeak.core.domain._
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.{Constants, SocialAccounts}
 import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.meetup.MeetupSrv
+import gospeak.core.services.meetup.domain._
+import gospeak.core.services.places.PlacesSrv
 import gospeak.core.services.storage._
+import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.StringUtils
+import gospeak.libs.scala.domain._
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain._
@@ -15,26 +23,28 @@ import gospeak.web.pages.orga.settings.SettingsCtrl
 import gospeak.web.pages.orga.settings.routes.{SettingsCtrl => SettingsRoutes}
 import gospeak.web.pages.user.UserCtrl
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
-import gospeak.web.utils.{GsForms, OrgaReq, UICtrl, UserReq}
-import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.Page
+import gospeak.web.utils.{GsForms, OrgaReq, UICtrl, UserReq, _}
 import play.api.data.Form
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+
+import scala.util.control.NonFatal
 
 class GroupCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 userRepo: OrgaUserRepo,
                 val groupRepo: OrgaGroupRepo,
-                cfpRepo: OrgaCfpRepo,
-                eventRepo: OrgaEventRepo,
                 venueRepo: OrgaVenueRepo,
+                eventRepo: OrgaEventRepo,
                 proposalRepo: OrgaProposalRepo,
                 sponsorRepo: OrgaSponsorRepo,
                 sponsorPackRepo: OrgaSponsorPackRepo,
                 partnerRepo: OrgaPartnerRepo,
                 userRequestRepo: OrgaUserRequestRepo,
-                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
+                groupSettingsRepo: OrgaGroupSettingsRepo,
+                emailSrv: EmailSrv,
+                meetupSrv: MeetupSrv,
+                placesSrv: PlacesSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def create(): Action[AnyContent] = UserAction { implicit req =>
     createForm(GsForms.group)
   }
@@ -50,6 +60,101 @@ class GroupCtrl(cc: ControllerComponents,
     val b = groupBreadcrumb.add("New" -> routes.GroupCtrl.create())
     IO.pure(Ok(html.create(form)(b)))
   }
+
+  def meetupConnect(): Action[AnyContent] = UserAction { implicit req =>
+    val redirectUri = routes.GroupCtrl.meetupCallback().absoluteURL(meetupSrv.hasSecureCallback)
+    meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
+  }
+
+  def meetupCallback(): Action[AnyContent] = UserAction { implicit req =>
+    val redirectUri = routes.GroupCtrl.meetupCallback().absoluteURL(meetupSrv.hasSecureCallback)
+    req.getQueryString("code").map { code =>
+      (for {
+        token <- meetupSrv.requestAccessToken(redirectUri, code, conf.app.aesKey)
+        meetupGroups <- meetupSrv.getOwnedGroups(conf.app.aesKey)(token)
+        b = groupBreadcrumb.add("New" -> routes.GroupCtrl.create())
+        next = Ok(html.importMeetup(GsForms.meetupImport, meetupGroups, MeetupToken.toText(token))(b))
+      } yield next).recover { case NonFatal(e) => Redirect(routes.GroupCtrl.create()).flashing("error" -> e.getMessage) }
+    }.getOrElse {
+      val state = req.getQueryString("state")
+      val error = req.getQueryString("error")
+      val msg = s"Failed to authenticate with meetup${error.map(e => s", reason: $e").getOrElse("")}${state.map(s => s" (state: $s)").getOrElse("")}"
+      IO.pure(Redirect(routes.GroupCtrl.create()).flashing("error" -> msg))
+    }
+  }
+
+  def meetupImport(): Action[AnyContent] = UserAction { implicit req =>
+    GsForms.meetupImport.bindFromRequest.fold(
+      formWithErrors => IO.pure(Redirect(routes.GroupCtrl.create()).flashing(formWithErrors.flash)),
+      { case (token, meetupSlug) => (for {
+        loggedUser <- meetupSrv.getLoggedUser(conf.app.aesKey)(token)
+        meetupGroup <- meetupSrv.getGroup(meetupSlug, conf.app.aesKey)(token)
+        creds = MeetupCredentials(token, loggedUser, meetupGroup)
+        meetupEvents <- meetupSrv.getEvents(meetupSlug, conf.app.aesKey, creds)
+        meetupVenues = meetupEvents.flatMap(_.venue).groupBy(_.id).values.toList.map(_.head)
+        groupData <- toDomain(meetupGroup)
+        group <- groupRepo.create(groupData)
+        ctx = req.orga(group)
+        _ = (for { // launched async to not wait too long before redirecting to the group dashboard
+          _ <- groupSettingsRepo.set(conf.gospeak.defaultGroupSettings.set(creds))(ctx)
+          venuesData <- meetupVenues.map(toDomain(meetupSlug, _)).sequence
+          venueIds <- venuesData.map { case (i, p, v) => partnerRepo.create(p)(ctx).flatMap(pa => venueRepo.create(pa.id, v)(ctx).map(ve => (i, ve.id))) }.sequence.map(_.toMap)
+          eventsData <- meetupEvents.map(toDomain(meetupSlug, _, venueIds)).sequence.toIO
+          _ <- eventsData.map(eventRepo.create(_)(ctx)).sequence
+        } yield ()).unsafeRunAsync(_ => ())
+      } yield Redirect(routes.GroupCtrl.detail(group.slug)).flashing("success" -> s"You created the <b>${group.name.value}</b> group on Gospeak!"))
+        .recover { case NonFatal(e) => Redirect(routes.GroupCtrl.create()).flashing("error" -> e.getMessage) }
+      })
+  }
+
+  private def toDomain(g: MeetupGroup): IO[Group.Data] = for {
+    slug <- Group.Slug.from(g.slug.value.toLowerCase).toIO
+    location <- placesSrv.find(g.address, g.location)
+  } yield Group.Data(
+    slug = slug,
+    name = Group.Name(g.name),
+    logo = g.logo.map(Logo),
+    banner = None,
+    contact = None,
+    website = None,
+    description = g.description,
+    location = location,
+    social = SocialAccounts.fromUrls(meetup = Some(g.link)),
+    tags = (List(g.category) ++ g.topics.take(4)).map(Tag(_)))
+
+  private def toDomain(group: MeetupGroup.Slug, v: MeetupVenue): IO[(MeetupVenue.Id, Partner.Data, Venue.Data)] = for {
+    slug <- Partner.Slug.from(StringUtils.slugify(v.name)).toIO
+    logo <- Url.from(Constants.Placeholders.partnerLogo).map(Logo).toIO
+    place = s"${v.address}, ${v.city}, ${v.country}"
+    location <- placesSrv.find(place, v.geo).flatMap(_.toIO(CustomException(s"Place not found ($place)")))
+  } yield (v.id, Partner.Data(
+    slug = slug,
+    name = Partner.Name(v.name),
+    notes = Markdown(""),
+    description = None,
+    logo = logo,
+    social = SocialAccounts.fromUrls()
+  ), Venue.Data(
+    contact = None,
+    address = location,
+    notes = Markdown(""),
+    roomSize = None,
+    refs = Venue.ExtRefs(meetup = Some(MeetupVenue.Ref(group, v.id)))))
+
+  private def toDomain(group: MeetupGroup.Slug, e: MeetupEvent, venues: Map[MeetupVenue.Id, Venue.Id]): Either[CustomException, Event.Data] = for {
+    slug <- Event.Slug.from(StringUtils.slugify(e.name))
+  } yield Event.Data(
+    cfp = None,
+    slug = slug,
+    name = Event.Name(e.name),
+    kind = Event.Kind.Meetup,
+    start = e.start,
+    maxAttendee = e.rsvp_limit,
+    allowRsvp = false,
+    venue = e.venue.flatMap(v => venues.get(v.id)),
+    description = LiquidMarkdown[Message.EventInfo](e.description.map(_.value).getOrElse("")),
+    tags = Seq(),
+    refs = Event.ExtRefs(meetup = Some(MeetupEvent.Ref(group, e.id))))
 
   def join(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
     for {

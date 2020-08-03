@@ -38,4 +38,8 @@ object Markdown {
     val html = renderer.render(parsed).trim
     Jsoup.parse(html).text()
   }
+
+  def fromBasicHtml(html: String): Markdown = {
+    Markdown(html) // FIXME remove some basic html tags (p, br, a, b, i...)
+  }
 }

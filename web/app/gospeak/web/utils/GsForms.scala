@@ -7,7 +7,7 @@ import gospeak.core.domain.Group.Settings
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.SocialAccounts
-import gospeak.core.services.meetup.domain.MeetupGroup
+import gospeak.core.services.meetup.domain.{MeetupGroup, MeetupToken}
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
@@ -118,6 +118,11 @@ object GsForms {
     "social" -> socialAccounts,
     "tags" -> tags
   )(Group.Data.apply)(Group.Data.unapply))
+
+  val meetupImport: Form[(MeetupToken, MeetupGroup.Slug)] = Form(mapping(
+    "token" -> nonEmptyText.verifying(MeetupToken.fromText(_).isSuccess).transform[MeetupToken](MeetupToken.fromText(_).get, MeetupToken.toText),
+    "slug" -> nonEmptyText.verifying(MeetupGroup.Slug.from(_).isRight).transform[MeetupGroup.Slug](MeetupGroup.Slug.from(_).get, _.value)
+  )(Tuple2.apply)(Tuple2.unapply))
 
   final case class GroupContact(from: EmailAddress,
                                 subject: String,

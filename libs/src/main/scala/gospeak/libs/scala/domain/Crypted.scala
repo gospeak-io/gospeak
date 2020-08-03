@@ -5,7 +5,7 @@ import gospeak.libs.scala.Crypto.{AesEncrypted, AesSecretKey}
 
 import scala.util.Try
 
-final case class Crypted(value: String) {
+final case class Crypted(value: String) extends AnyVal {
   def decode(key: AesSecretKey): Try[String] = Crypto.aesDecrypt(AesEncrypted(value), key)
 
   override def toString: String = "*****"

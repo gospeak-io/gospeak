@@ -53,6 +53,7 @@ val youtubeApi = Seq(
 )
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
+val googleMaps = Seq("com.google.maps" % "google-maps-services" % "0.14.0") // https://github.com/googlemaps/google-maps-services-java
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.4")
 val cron = Seq(
   "eu.timepit" %% "fs2-cron-core" % "0.2.2",
@@ -101,7 +102,7 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
+val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
 val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest

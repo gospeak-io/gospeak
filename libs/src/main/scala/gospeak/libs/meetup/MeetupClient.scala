@@ -54,30 +54,34 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, http: HttpClient
   def getLoggedUser()(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupUser.Alt]] =
     get[MeetupUser.Alt](s"$baseUrl/2/member/self")
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/members/:member_id#get
+  // cf https://www.meetup.com/meetup_api/docs/self/groups
+  def getLoggedUserGroups()(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupGroup]]] =
+    get[List[MeetupGroup]](s"$baseUrl/self/groups", Map("fields" -> "self,leads,welcome_message,past_event_count,topics"))
+
+  // cf https://www.meetup.com/meetup_api/docs/members/:member_id#get
   def getUser(userId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupUser]] =
     get[MeetupUser](s"$baseUrl/members/$userId")
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/members#list
-  def getMembers(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupUser.Member]]] =
-    get[Seq[MeetupUser.Member]](s"$baseUrl/$groupSlug/members")
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/members#list
+  def getMembers(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupUser.Member]]] =
+    get[List[MeetupUser.Member]](s"$baseUrl/$groupSlug/members")
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/members/:member_id#get
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/members/:member_id#get
   def getMember(groupSlug: String, userId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupUser.Member]] =
     get[MeetupUser.Member](s"$baseUrl/$groupSlug/members/$userId")
 
-  def getOrgas(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupUser.Member]]] =
+  def getOrgas(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupUser.Member]]] =
     getMembers(groupSlug).map(_.map(_.filter(_.isOrga)))
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname#get
+  // cf https://www.meetup.com/meetup_api/docs/:urlname#get
   def getGroup(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupGroup]] =
-    get[MeetupGroup](s"$baseUrl/$groupSlug")
+    get[MeetupGroup](s"$baseUrl/$groupSlug", Map("fields" -> "self,leads,welcome_message,past_event_count,topics"))
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/#list
-  def getEvents(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupEvent]]] =
-    get[Seq[MeetupEvent]](s"$baseUrl/$groupSlug/events", Map("status" -> "upcoming,past"))
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/events/#list
+  def getEvents(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupEvent]]] =
+    get[List[MeetupEvent]](s"$baseUrl/$groupSlug/events", Map("status" -> "upcoming,past"))
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/events#create
   def createEvent(groupSlug: String, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     if (performWriteOps) {
       post[MeetupEvent](s"$baseUrl/$groupSlug/events", event.toMap)
@@ -85,11 +89,11 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, http: HttpClient
       IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to create an event when safe mode is enabled"))))
     }
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#get
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/events/:id#get
   def getEvent(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     get[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId")
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#edit
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/events/:id#edit
   def updateEvent(groupSlug: String, eventId: Long, event: MeetupEvent.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupEvent]] =
     if (performWriteOps) {
       patch[MeetupEvent](s"$baseUrl/$groupSlug/events/$eventId", event.toMap)
@@ -97,7 +101,7 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, http: HttpClient
       IO.pure(Left(MeetupError("safe_mode_enabled", Some("Unable to update an event when safe mode is enabled"))))
     }
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id#delete
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/events/:id#delete
   def deleteEvent(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Unit]] =
     if (performWriteOps) {
       delete[Unit](s"$baseUrl/$groupSlug/events/$eventId", Map("remove_from_calendar" -> "true"))
@@ -105,14 +109,14 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, http: HttpClient
       IO.pure(Right(()))
     }
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events/:id/attendance
-  def getEventAttendees(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupAttendee]]] =
-    get[Seq[MeetupAttendee]](s"$baseUrl/$groupSlug/events/$eventId/attendance")
+  // cf https://www.meetup.com/meetup_api/docs/:urlname/events/:id/attendance
+  def getEventAttendees(groupSlug: String, eventId: Long)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupAttendee]]] =
+    get[List[MeetupAttendee]](s"$baseUrl/$groupSlug/events/$eventId/attendance")
 
   // no venue API doc: https://github.com/meetup/api/issues/331
   // no doc :(
-  def getVenues(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupVenue]]] =
-    get[Seq[MeetupVenue]](s"$baseUrl/$groupSlug/venues", Map("page" -> "50"))
+  def getVenues(groupSlug: String)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupVenue]]] =
+    get[List[MeetupVenue]](s"$baseUrl/$groupSlug/venues", Map("page" -> "50"))
 
   // no doc :(
   def createVenue(groupSlug: String, venue: MeetupVenue.Create)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, MeetupVenue]] =
@@ -142,9 +146,9 @@ class MeetupClient(conf: MeetupClient.Conf, appBaseUrl: String, http: HttpClient
       IO.pure(Right(()))
     }
 
-  // cf https://www.meetup.com/fr-FR/meetup_api/docs/find/locations
-  def getLocations(geo: Geo)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, Seq[MeetupLocation]]] =
-    get[Seq[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> geo.lat.toString, "lon" -> geo.lng.toString))
+  // cf https://www.meetup.com/meetup_api/docs/find/locations
+  def getLocations(geo: Geo)(implicit accessToken: MeetupToken.Access): IO[Either[MeetupError, List[MeetupLocation]]] =
+    get[List[MeetupLocation]](s"$baseUrl/find/locations", Map("lat" -> geo.lat.toString, "lon" -> geo.lng.toString))
 
   private def get[A](url: String, query: Map[String, String] = Map())(implicit accessToken: MeetupToken.Access, d: Decoder[A]): IO[Either[MeetupError, A]] =
     http.get(url, query = query, headers = Map("Authorization" -> s"Bearer ${accessToken.value}")).flatMap(parse[A])

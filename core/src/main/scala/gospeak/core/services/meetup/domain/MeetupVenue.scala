@@ -4,7 +4,7 @@ import gospeak.libs.scala.domain.{CustomException, Geo}
 
 import scala.util.Try
 
-final case class MeetupVenue(id: Long,
+final case class MeetupVenue(id: MeetupVenue.Id,
                              name: String,
                              address: String,
                              city: String,

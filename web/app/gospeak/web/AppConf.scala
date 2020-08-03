@@ -5,6 +5,7 @@ import com.mohiva.play.silhouette.crypto.{JcaCrypterSettings, JcaSignerSettings}
 import com.typesafe.config.Config
 import gospeak.core.services.email.EmailConf
 import gospeak.core.services.meetup.MeetupConf
+import gospeak.core.services.places.GoogleMapsConf
 import gospeak.core.services.storage.DbConf
 import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
@@ -30,6 +31,7 @@ final case class AppConf(app: ApplicationConf,
                          upload: UploadConf,
                          meetup: MeetupConf,
                          youtube: YoutubeConf,
+                         googleMaps: GoogleMapsConf,
                          twitter: Option[TwitterConf],
                          gospeak: GsConf,
                          scheduler: SchedulerSrv.Conf)
@@ -119,6 +121,7 @@ object AppConf {
     private implicit val uploadConfReader: ConfigReader[UploadConf] = deriveReader[UploadConf]
     private implicit val meetupConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
     private implicit val youtubeConfReader: ConfigReader[YoutubeConf] = deriveReader[YoutubeConf]
+    private implicit val googleMapsConfReader: ConfigReader[GoogleMapsConf] = deriveReader[GoogleMapsConf]
     private implicit val twitterConfReader: ConfigReader[TwitterConf] = deriveReader[TwitterConf]
     private implicit val gsConfReader: ConfigReader[GsConf] = deriveReader[GsConf]
     private implicit val schedulerConfReader: ConfigReader[SchedulerSrv.Conf] = deriveReader[SchedulerSrv.Conf]

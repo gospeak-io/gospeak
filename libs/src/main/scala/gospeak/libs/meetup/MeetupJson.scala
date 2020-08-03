@@ -6,6 +6,8 @@ import io.circe.generic.semiauto.deriveDecoder
 
 object MeetupJson {
   implicit val meetupTokenDecoder: Decoder[MeetupToken] = deriveDecoder[MeetupToken]
+  implicit val meetupCategoryDecoder: Decoder[MeetupCategory] = deriveDecoder[MeetupCategory]
+  implicit val meetupTopicDecoder: Decoder[MeetupTopic] = deriveDecoder[MeetupTopic]
   implicit val meetupPhotoDecoder: Decoder[MeetupPhoto] = deriveDecoder[MeetupPhoto]
   implicit val meetupPhotoAltDecoder: Decoder[MeetupPhoto.Alt] = deriveDecoder[MeetupPhoto.Alt]
   implicit val meetupUserDecoder: Decoder[MeetupUser] = deriveDecoder[MeetupUser]
@@ -18,6 +20,7 @@ object MeetupJson {
   implicit val meetupVenueBasicDecoder: Decoder[MeetupVenue.Basic] = deriveDecoder[MeetupVenue.Basic]
   implicit val meetupGroupDecoder: Decoder[MeetupGroup] = deriveDecoder[MeetupGroup]
   implicit val meetupGroupBasicDecoder: Decoder[MeetupGroup.Basic] = deriveDecoder[MeetupGroup.Basic]
+  implicit val meetupGroupSelfDecoder: Decoder[MeetupGroup.Self] = deriveDecoder[MeetupGroup.Self]
   implicit val meetupEventDecoder: Decoder[MeetupEvent] = deriveDecoder[MeetupEvent]
   implicit val meetupAttendeeMemberDecoder: Decoder[MeetupAttendee.Member] = deriveDecoder[MeetupAttendee.Member]
   implicit val meetupAttendeeContextDecoder: Decoder[MeetupAttendee.Context] = deriveDecoder[MeetupAttendee.Context]

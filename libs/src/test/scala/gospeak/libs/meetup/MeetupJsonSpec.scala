@@ -15,6 +15,9 @@ class MeetupJsonSpec extends BaseSpec {
   it("should parse user response") {
     decode[MeetupUser.Alt](FileUtils.read(basePath + "/user.json").get).toTry.get
   }
+  it("should parse groups response") {
+    decode[List[MeetupGroup]](FileUtils.read(basePath + "/groups.json").get).toTry.get
+  }
   it("should parse group response") {
     decode[MeetupGroup](FileUtils.read(basePath + "/group.json").get).toTry.get
   }

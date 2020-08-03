@@ -6,10 +6,10 @@ import cats.effect.IO
 import gospeak.core.domain.utils.Constants
 import gospeak.core.domain.{Event, Venue}
 import gospeak.core.services.meetup.{MeetupConf, MeetupSrv, domain => gs}
-import gospeak.libs.meetup.MeetupClient
-import gospeak.libs.meetup.domain._
 import gospeak.infra.services.meetup.MeetupSrvImpl._
 import gospeak.libs.http.HttpClient
+import gospeak.libs.meetup.MeetupClient
+import gospeak.libs.meetup.domain._
 import gospeak.libs.scala.Crypto.AesSecretKey
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
@@ -35,19 +35,25 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       case Left(err) => IO.raiseError(gs.MeetupException.LoggedUser(err.format))
     }
 
+  override def getOwnedGroups(key: AesSecretKey)(implicit token: gs.MeetupToken): IO[List[gs.MeetupGroup]] =
+    toLib(token, key).toIO.flatMap(client.getLoggedUserGroups()(_)).flatMap {
+      case Right(groups) => groups.filter(_.isOrga).map(fromLib).sequence.toIO
+      case Left(err) => IO.raiseError(gs.MeetupException.LoggedUser(err.format))
+    }
+
   override def getGroup(group: gs.MeetupGroup.Slug, key: AesSecretKey)(implicit token: gs.MeetupToken): IO[gs.MeetupGroup] =
     toLib(token, key).toIO.flatMap(client.getGroup(group.value)(_)).flatMap {
       case Right(group) => fromLib(group).toIO
       case Left(err) => IO.raiseError(gs.MeetupException.GroupNotFound(group, err.format))
     }
 
-  override def getEvents(group: gs.MeetupGroup.Slug, key: AesSecretKey, creds: gs.MeetupCredentials): IO[Seq[gs.MeetupEvent]] =
+  override def getEvents(group: gs.MeetupGroup.Slug, key: AesSecretKey, creds: gs.MeetupCredentials): IO[List[gs.MeetupEvent]] =
     toLib(creds, key).toIO.flatMap(client.getEvents(group.value)(_)).flatMap {
       case Right(events) => events.map(fromLib).sequence.toIO
       case Left(err) => IO.raiseError(gs.MeetupException.GroupNotFound(group, err.format))
     }
 
-  override def getAttendees(group: gs.MeetupGroup.Slug, event: gs.MeetupEvent.Id, key: AesSecretKey, creds: gs.MeetupCredentials): IO[Seq[gs.MeetupAttendee]] =
+  override def getAttendees(group: gs.MeetupGroup.Slug, event: gs.MeetupEvent.Id, key: AesSecretKey, creds: gs.MeetupCredentials): IO[List[gs.MeetupAttendee]] =
     toLib(creds, key).toIO.flatMap(client.getEventAttendees(group.value, event.value)(_)).flatMap {
       case Right(attendees) => attendees.map(fromLib).sequence.toIO
       case Left(err) => IO.raiseError(gs.MeetupException.EventNotFound(group, event, err.format))
@@ -95,6 +101,8 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
     MeetupVenue.Create(
       name = venue.partner.name.value,
       address_1 = venue.address.formatted,
+      address_2 = None,
+      address_3 = None,
       city = location.city,
       state = None,
       country = location.country,
@@ -143,38 +151,41 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
   private def fromLib(group: MeetupGroup): Either[CustomException, gs.MeetupGroup] =
     for {
       slug <- gs.MeetupGroup.Slug.from(group.urlname)
-      photo <- Url.from(group.group_photo.photo_link)
-      link <- Url.from(group.link)
+      photo <- group.group_photo.orElse(group.key_photo).map(p => Url.from(p.photo_link)).sequence
+      link <- Url.Meetup.from(group.link)
     } yield gs.MeetupGroup(
       id = gs.MeetupGroup.Id(group.id),
       slug = slug,
       name = group.name,
-      description = group.description,
-      photo = photo,
+      logo = photo,
+      description = Markdown.fromBasicHtml(group.description),
       link = link,
-      city = group.city,
-      country = group.country)
+      category = group.category.name,
+      topics = group.topics.map(_.name),
+      address = group.localized_location,
+      location = Geo(group.lat, group.lon))
 
   private def fromLib(event: MeetupEvent): Either[CustomException, gs.MeetupEvent] =
     for {
       venue <- event.venue.map(fromLib).sequence
     } yield gs.MeetupEvent(
-      id = event.id,
+      id = gs.MeetupEvent.Id(event.id),
       name = event.name,
       status = event.status,
       visibility = event.visibility,
-      description = event.description,
+      start = event.localTime,
+      description = event.description.map(Markdown.fromBasicHtml),
       venue = venue,
       rsvp_limit = event.rsvp_limit,
       created = Instant.ofEpochMilli(event.created))
 
   private def fromLib(venue: MeetupVenue.Basic): Either[CustomException, gs.MeetupVenue] =
     Right(gs.MeetupVenue(
-      id = venue.id,
+      id = gs.MeetupVenue.Id(venue.id),
       name = venue.name,
       address = venue.address_1,
       city = venue.city,
-      country = venue.country,
+      country = venue.localized_country_name,
       geo = Geo(venue.lat, venue.lon)))
 
   private def fromLib(attendee: MeetupAttendee): Either[CustomException, gs.MeetupAttendee] =

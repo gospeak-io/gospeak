@@ -1,0 +1,626 @@
+[
+  {
+    "id": 9067432,
+    "name": "HumanTalks Paris",
+    "status": "active",
+    "link": "https://www.meetup.com/HumanTalks-Paris/",
+    "urlname": "HumanTalks-Paris",
+    "description": "<p>HumanTalks Paris, c'est un événement mensuel pour les développeuses et développeurs. Chaque mois, 4 speakeuses et/ou speakeurs se succèdent pour présenter en 10 minutes un sujet de leur choix (language, méthode de programmation, projet perso, design...) Quelque soit votre niveau vous pouvez <a href=\"https://humantalks.com/cities/paris/submit_talk\">proposer un talk</a> aux organisateurs du HumanTalks de Paris. L'accès est gratuit !</p>\n<p>Les talks sont filmés et retransmis sur notre <a href=\"https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog\">chaine YouTube</a> <br></p>\n<p> <br></p>",
+    "created": 1372084756000,
+    "city": "Paris",
+    "untranslated_city": "Paris",
+    "country": "FR",
+    "localized_country_name": "France",
+    "localized_location": "Paris, France",
+    "region2": "",
+    "state": "",
+    "join_mode": "open",
+    "visibility": "public",
+    "lat": 48.86,
+    "lon": 2.34,
+    "members": 7399,
+    "member_pay_fee": false,
+    "who": "dev",
+    "group_photo": {
+      "id": 251926612,
+      "highres_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/highres_251926612.jpeg",
+      "photo_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg",
+      "thumb_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/thumb_251926612.jpeg",
+      "type": "event",
+      "base_url": "https://secure.meetupstatic.com"
+    },
+    "key_photo": {
+      "id": 251927072,
+      "highres_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/highres_251927072.jpeg",
+      "photo_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/600_251927072.jpeg",
+      "thumb_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/thumb_251927072.jpeg",
+      "type": "event",
+      "base_url": "https://secure.meetupstatic.com"
+    },
+    "timezone": "Europe/Paris",
+    "category": {
+      "id": 34,
+      "name": "Tech",
+      "shortname": "tech",
+      "sort_name": "Tech"
+    },
+    "leads": 8,
+    "self": {
+      "status": "active",
+      "actions": [
+        "event_create",
+        "event_draft",
+        "role_assign",
+        "edit",
+        "member_approval",
+        "broadcast_message"
+      ],
+      "role": "coorganizer",
+      "visited": 1588338412000,
+      "profile": {
+        "id": 14321102,
+        "name": "loic knuchel",
+        "email": "loicknuchel@gmail.com",
+        "bio": "Développeur web et Java, adore les nouvelles technologies et s'intéresse de près aux startups. J'adore faire de nouvelles rencontres et discuter sur tous ces sujets.",
+        "status": "active",
+        "joined": 1300965978000,
+        "city": "Paris",
+        "country": "fr",
+        "localized_country_name": "France",
+        "lat": 48.86,
+        "lon": 2.34,
+        "photo": {
+          "id": 92521442,
+          "highres_link": "https://secure.meetupstatic.com/photos/member/5/a/2/highres_92521442.jpeg",
+          "photo_link": "https://secure.meetupstatic.com/photos/member/5/a/2/member_92521442.jpeg",
+          "thumb_link": "https://secure.meetupstatic.com/photos/member/5/a/2/thumb_92521442.jpeg",
+          "type": "member",
+          "base_url": "https://secure.meetupstatic.com"
+        },
+        "group_profile": {
+          "status": "active",
+          "visited": 1588338412000,
+          "created": 1372148307000,
+          "updated": 1586079137000,
+          "role": "coorganizer",
+          "group": {
+            "id": 9067432,
+            "urlname": "HumanTalks-Paris",
+            "name": "HumanTalks Paris",
+            "status": "active",
+            "who": "dev",
+            "members": 7399,
+            "join_mode": "open",
+            "localized_location": "Paris, France",
+            "key_photo": {
+              "id": 251927072,
+              "highres_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/highres_251927072.jpeg",
+              "photo_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/600_251927072.jpeg",
+              "thumb_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/thumb_251927072.jpeg",
+              "type": "event",
+              "base_url": "https://secure.meetupstatic.com"
+            },
+            "group_photo": {
+              "id": 251926612,
+              "highres_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/highres_251926612.jpeg",
+              "photo_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg",
+              "thumb_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/thumb_251926612.jpeg",
+              "type": "event",
+              "base_url": "https://secure.meetupstatic.com"
+            }
+          },
+          "intro": "I'm a developer and tech lead, HumanTalks Paris organizer, Gospeak creator, Scala trainer, conference speaker, bagger and, of course, a human ^^\r\nI'm a fan of scala and FP, code quality, high performing teams and skyrocketing businesses.",
+          "link": "https://www.meetup.com/HumanTalks-Paris/members/14321102/"
+        },
+        "is_pro_admin": false,
+        "topics": [
+          {
+            "id": 189,
+            "name": "Java",
+            "urlkey": "java",
+            "lang": "en_US"
+          },
+          {
+            "id": 3833,
+            "name": "Software Development",
+            "urlkey": "softwaredev",
+            "lang": "en_US"
+          },
+          {
+            "id": 9696,
+            "name": "New Technology",
+            "urlkey": "newtech",
+            "lang": "en_US"
+          },
+          {
+            "id": 15582,
+            "name": "Web Development",
+            "urlkey": "web-development",
+            "lang": "en_US"
+          },
+          {
+            "id": 48471,
+            "name": "Computer programming",
+            "urlkey": "computer-programming",
+            "lang": "en_US"
+          },
+          {
+            "id": 58162,
+            "name": "NoSQL",
+            "urlkey": "nosql",
+            "lang": "fr"
+          },
+          {
+            "id": 78565,
+            "name": "HTML5",
+            "urlkey": "html5",
+            "lang": "en_US"
+          },
+          {
+            "id": 25435,
+            "name": "Test Driven Development",
+            "urlkey": "test-driven-development",
+            "lang": "en_US"
+          },
+          {
+            "id": 44602,
+            "name": "Coding Dojos",
+            "urlkey": "coding-dojos",
+            "lang": "en_US"
+          },
+          {
+            "id": 65173,
+            "name": "Software Quality",
+            "urlkey": "software-quality",
+            "lang": "en_US"
+          },
+          {
+            "id": 71692,
+            "name": "Software Craftsmanship",
+            "urlkey": "software-craftsmanship",
+            "lang": "en_US"
+          },
+          {
+            "id": 10579,
+            "name": "Technology",
+            "urlkey": "technology",
+            "lang": "en_US"
+          },
+          {
+            "id": 563,
+            "name": "Open Source",
+            "urlkey": "opensource",
+            "lang": "en_US"
+          },
+          {
+            "id": 128595,
+            "name": "Internet Startups",
+            "urlkey": "internet-startups",
+            "lang": "en_US"
+          },
+          {
+            "id": 18062,
+            "name": "Big Data",
+            "urlkey": "big-data",
+            "lang": "en_US"
+          },
+          {
+            "id": 19882,
+            "name": "Entrepreneurship",
+            "urlkey": "entrepreneurship",
+            "lang": "en_US"
+          },
+          {
+            "id": 29971,
+            "name": "Machine Learning",
+            "urlkey": "machine-learning",
+            "lang": "en_US"
+          },
+          {
+            "id": 30928,
+            "name": "Data Analytics",
+            "urlkey": "data-analytics",
+            "lang": "en_US"
+          },
+          {
+            "id": 55324,
+            "name": "Data Mining",
+            "urlkey": "data-mining",
+            "lang": "en_US"
+          },
+          {
+            "id": 22792,
+            "name": "Functional Programming",
+            "urlkey": "functional-programming",
+            "lang": "en_US"
+          }
+        ]
+      }
+    },
+    "topics": [
+      {
+        "id": 18062,
+        "name": "Big Data",
+        "urlkey": "big-data",
+        "lang": "en_US"
+      },
+      {
+        "id": 15167,
+        "name": "Cloud Computing",
+        "urlkey": "cloud-computing",
+        "lang": "en_US"
+      },
+      {
+        "id": 21441,
+        "name": "Mobile Development",
+        "urlkey": "mobile-development",
+        "lang": "en_US"
+      },
+      {
+        "id": 107583,
+        "name": "UI Design",
+        "urlkey": "ui-design",
+        "lang": "en_US"
+      },
+      {
+        "id": 659,
+        "name": "Web Design",
+        "urlkey": "webdesign",
+        "lang": "en_US"
+      },
+      {
+        "id": 3833,
+        "name": "Software Development",
+        "urlkey": "softwaredev",
+        "lang": "en_US"
+      },
+      {
+        "id": 9696,
+        "name": "New Technology",
+        "urlkey": "newtech",
+        "lang": "en_US"
+      },
+      {
+        "id": 10209,
+        "name": "Web Technology",
+        "urlkey": "web",
+        "lang": "en_US"
+      },
+      {
+        "id": 16216,
+        "name": "Mobile Technology",
+        "urlkey": "mobile-technology",
+        "lang": "en_US"
+      },
+      {
+        "id": 21506,
+        "name": "Database Development",
+        "urlkey": "database-development",
+        "lang": "en_US"
+      },
+      {
+        "id": 29723,
+        "name": "College Students",
+        "urlkey": "college-students",
+        "lang": "en_US"
+      },
+      {
+        "id": 48471,
+        "name": "Computer programming",
+        "urlkey": "computer-programming",
+        "lang": "en_US"
+      },
+      {
+        "id": 437352,
+        "name": "Lean UX",
+        "urlkey": "lean-ux",
+        "lang": "en_US"
+      },
+      {
+        "id": 61781,
+        "name": "UX Design",
+        "urlkey": "ux-design",
+        "lang": "en_US"
+      },
+      {
+        "id": 1454542,
+        "name": "Docker",
+        "urlkey": "docker",
+        "lang": "en_US"
+      }
+    ],
+    "welcome_message": "Bienvenue sur le HumanTalks Paris :)\n\nVous pouvez nous suivre sur twitter @HumanTalksParis, ou nous contacter par mail à paris@humantalks.com pour toute question/suggestion !\n\nN'hésites pas à faire un tour sur notre chaine YouTube https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog\nEn vous inscrivant ici, vous aurez accès aux dates de tous les prochains évènements !\nà très bientôt au prochain HumanTalks Paris :)\n\n",
+    "past_event_count": 72,
+    "meta_category": {
+      "id": 292,
+      "shortname": "tech",
+      "name": "Tech",
+      "sort_name": "Tech",
+      "photo": {
+        "id": 450131949,
+        "highres_link": "https://secure.meetupstatic.com/photos/event/2/e/a/d/highres_450131949.jpeg",
+        "photo_link": "https://secure.meetupstatic.com/photos/event/2/e/a/d/600_450131949.jpeg",
+        "thumb_link": "https://secure.meetupstatic.com/photos/event/2/e/a/d/thumb_450131949.jpeg",
+        "type": "event",
+        "base_url": "https://secure.meetupstatic.com"
+      },
+      "category_ids": [
+        34
+      ]
+    }
+  },
+  {
+    "id": 19990097,
+    "name": "Meetup 404",
+    "status": "active",
+    "link": "https://www.meetup.com/Meetup-404/",
+    "urlname": "Meetup-404",
+    "description": "<p>Un Meetup où l'on partage joyeusement nos erreurs, des plus soft aux plus hard, dans l'univers professionnel (erreurs de recrutement, de code, de prod, d'entrepreneuriat)</p>\n<p>Voici comment on pourrait articuler ce meetup&nbsp;</p>\n<p>- Présentation des dézingueurs : chacun se présente puis dit en une phrase son raté qu'on notera sur un post-it (exemple : Bonjour, je m'appelle Jean-Claude Dus, informaticien, j'ai planté 1000 serveurs...)&nbsp;</p>\n<p>- On met les ratés écris sur les post-it dans une petite boite et on fait un tirage au sort de 4 ratés&nbsp;</p>\n<p>- Le dézingueur qui porte le raté va au devant de la scène, en solo ou en équipe (4 à 6 personnes par team).&nbsp;</p>\n<p>- Il effectue ensuite une présentation du scénario catastrophe du raté (jeu de rôle en solo, avec sa team ou présentation plus formelle)&nbsp;</p>\n<p>- Public miroir : après chaque passage, il y a une confrontation avec le public. On refait le match : compréhension du raté, astuces pour éviter de reproduire l'erreur, etc&nbsp;</p>\n<p>- Notation du meilleur scénario sur plusieurs critères (originalité, enjeu de l'erreur, hard ou soft, compréhension de l'échec par le public, et qualités d'improvisation)&nbsp;</p>\n<p>- Puis remise du 404 Awards !&nbsp;</p>\n<p>- Enfin conclusion pensée inversée : ce que l'on retient pour rater tel truc en énonçant les points clefs&nbsp;</p>\n<p> <br></p>",
+    "created": 1464087790000,
+    "city": "Paris",
+    "untranslated_city": "Paris",
+    "country": "FR",
+    "localized_country_name": "France",
+    "localized_location": "Paris, France",
+    "region2": "",
+    "state": "",
+    "join_mode": "open",
+    "visibility": "public",
+    "lat": 48.86,
+    "lon": 2.34,
+    "members": 147,
+    "member_pay_fee": false,
+    "who": "Dézingueurs",
+    "key_photo": {
+      "id": 450426178,
+      "highres_link": "https://secure.meetupstatic.com/photos/event/1/8/2/2/highres_450426178.jpeg",
+      "photo_link": "https://secure.meetupstatic.com/photos/event/1/8/2/2/600_450426178.jpeg",
+      "thumb_link": "https://secure.meetupstatic.com/photos/event/1/8/2/2/thumb_450426178.jpeg",
+      "type": "event",
+      "base_url": "https://secure.meetupstatic.com"
+    },
+    "timezone": "Europe/Paris",
+    "category": {
+      "id": 34,
+      "name": "Tech",
+      "shortname": "tech",
+      "sort_name": "Tech"
+    },
+    "leads": 2,
+    "self": {
+      "status": "active",
+      "actions": [],
+      "visited": 1464361610000,
+      "profile": {
+        "id": 14321102,
+        "name": "loic knuchel",
+        "email": "loicknuchel@gmail.com",
+        "bio": "Développeur web et Java, adore les nouvelles technologies et s'intéresse de près aux startups. J'adore faire de nouvelles rencontres et discuter sur tous ces sujets.",
+        "status": "active",
+        "joined": 1300965978000,
+        "city": "Paris",
+        "country": "fr",
+        "localized_country_name": "France",
+        "lat": 48.86,
+        "lon": 2.34,
+        "photo": {
+          "id": 92521442,
+          "highres_link": "https://secure.meetupstatic.com/photos/member/5/a/2/highres_92521442.jpeg",
+          "photo_link": "https://secure.meetupstatic.com/photos/member/5/a/2/member_92521442.jpeg",
+          "thumb_link": "https://secure.meetupstatic.com/photos/member/5/a/2/thumb_92521442.jpeg",
+          "type": "member",
+          "base_url": "https://secure.meetupstatic.com"
+        },
+        "group_profile": {
+          "status": "active",
+          "visited": 1464361610000,
+          "created": 1464090305000,
+          "updated": 1464090305000,
+          "group": {
+            "id": 19990097,
+            "urlname": "Meetup-404",
+            "name": "Meetup 404",
+            "status": "active",
+            "who": "Dézingueurs",
+            "members": 147,
+            "join_mode": "open",
+            "localized_location": "Paris, France",
+            "key_photo": {
+              "id": 450426178,
+              "highres_link": "https://secure.meetupstatic.com/photos/event/1/8/2/2/highres_450426178.jpeg",
+              "photo_link": "https://secure.meetupstatic.com/photos/event/1/8/2/2/600_450426178.jpeg",
+              "thumb_link": "https://secure.meetupstatic.com/photos/event/1/8/2/2/thumb_450426178.jpeg",
+              "type": "event",
+              "base_url": "https://secure.meetupstatic.com"
+            }
+          },
+          "link": "https://www.meetup.com/Meetup-404/members/14321102/"
+        },
+        "is_pro_admin": false,
+        "topics": [
+          {
+            "id": 189,
+            "name": "Java",
+            "urlkey": "java",
+            "lang": "en_US"
+          },
+          {
+            "id": 3833,
+            "name": "Software Development",
+            "urlkey": "softwaredev",
+            "lang": "en_US"
+          },
+          {
+            "id": 9696,
+            "name": "New Technology",
+            "urlkey": "newtech",
+            "lang": "en_US"
+          },
+          {
+            "id": 15582,
+            "name": "Web Development",
+            "urlkey": "web-development",
+            "lang": "en_US"
+          },
+          {
+            "id": 48471,
+            "name": "Computer programming",
+            "urlkey": "computer-programming",
+            "lang": "en_US"
+          },
+          {
+            "id": 58162,
+            "name": "NoSQL",
+            "urlkey": "nosql",
+            "lang": "fr"
+          },
+          {
+            "id": 78565,
+            "name": "HTML5",
+            "urlkey": "html5",
+            "lang": "en_US"
+          },
+          {
+            "id": 25435,
+            "name": "Test Driven Development",
+            "urlkey": "test-driven-development",
+            "lang": "en_US"
+          },
+          {
+            "id": 44602,
+            "name": "Coding Dojos",
+            "urlkey": "coding-dojos",
+            "lang": "en_US"
+          },
+          {
+            "id": 65173,
+            "name": "Software Quality",
+            "urlkey": "software-quality",
+            "lang": "en_US"
+          },
+          {
+            "id": 71692,
+            "name": "Software Craftsmanship",
+            "urlkey": "software-craftsmanship",
+            "lang": "en_US"
+          },
+          {
+            "id": 10579,
+            "name": "Technology",
+            "urlkey": "technology",
+            "lang": "en_US"
+          },
+          {
+            "id": 563,
+            "name": "Open Source",
+            "urlkey": "opensource",
+            "lang": "en_US"
+          },
+          {
+            "id": 128595,
+            "name": "Internet Startups",
+            "urlkey": "internet-startups",
+            "lang": "en_US"
+          },
+          {
+            "id": 18062,
+            "name": "Big Data",
+            "urlkey": "big-data",
+            "lang": "en_US"
+          },
+          {
+            "id": 19882,
+            "name": "Entrepreneurship",
+            "urlkey": "entrepreneurship",
+            "lang": "en_US"
+          },
+          {
+            "id": 29971,
+            "name": "Machine Learning",
+            "urlkey": "machine-learning",
+            "lang": "en_US"
+          },
+          {
+            "id": 30928,
+            "name": "Data Analytics",
+            "urlkey": "data-analytics",
+            "lang": "en_US"
+          },
+          {
+            "id": 55324,
+            "name": "Data Mining",
+            "urlkey": "data-mining",
+            "lang": "en_US"
+          },
+          {
+            "id": 22792,
+            "name": "Functional Programming",
+            "urlkey": "functional-programming",
+            "lang": "en_US"
+          }
+        ]
+      }
+    },
+    "topics": [
+      {
+        "id": 3880,
+        "name": "Professional Development",
+        "urlkey": "prodev",
+        "lang": "en_US"
+      },
+      {
+        "id": 31612,
+        "name": "Recruiting and Hiring",
+        "urlkey": "recruiting-and-hiring",
+        "lang": "en_US"
+      },
+      {
+        "id": 110973,
+        "name": "Hiring the Right People",
+        "urlkey": "hiring-the-right-people",
+        "lang": "en_US"
+      },
+      {
+        "id": 17635,
+        "name": "Business Strategy",
+        "urlkey": "business-strategy",
+        "lang": "en_US"
+      },
+      {
+        "id": 18062,
+        "name": "Big Data",
+        "urlkey": "big-data",
+        "lang": "en_US"
+      },
+      {
+        "id": 21681,
+        "name": "Startup Businesses",
+        "urlkey": "startup-businesses",
+        "lang": "en_US"
+      },
+      {
+        "id": 48471,
+        "name": "Computer programming",
+        "urlkey": "computer-programming",
+        "lang": "en_US"
+      }
+    ],
+    "meta_category": {
+      "id": 292,
+      "shortname": "tech",
+      "name": "Tech",
+      "sort_name": "Tech",
+      "photo": {
+        "id": 450131949,
+        "highres_link": "https://secure.meetupstatic.com/photos/event/2/e/a/d/highres_450131949.jpeg",
+        "photo_link": "https://secure.meetupstatic.com/photos/event/2/e/a/d/600_450131949.jpeg",
+        "thumb_link": "https://secure.meetupstatic.com/photos/event/2/e/a/d/thumb_450131949.jpeg",
+        "type": "event",
+        "base_url": "https://secure.meetupstatic.com"
+      },
+      "category_ids": [
+        34
+      ]
+    }
+  }
+]

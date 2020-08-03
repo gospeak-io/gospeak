@@ -19,18 +19,20 @@ import gospeak.core.domain.messages.Message
 import gospeak.core.services.cloudinary.CloudinarySrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
+import gospeak.core.services.places.PlacesSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
 import gospeak.core.services.video.VideoSrv
-import gospeak.infra.services.{AvatarSrv, EmbedSrv, ScraperSrv}
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.meetup.MeetupSrvImpl
+import gospeak.infra.services.places.PlacesSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.twitter.{TwitterConsoleSrv, TwitterSrvImpl}
 import gospeak.infra.services.upload.UploadSrvFactory
 import gospeak.infra.services.video.VideoSrvImpl
+import gospeak.infra.services.{AvatarSrv, EmbedSrv, ScraperSrv}
 import gospeak.libs.http.{HttpClient, HttpClientImpl}
 import gospeak.libs.scala.{BasicMessageBus, MessageBus}
 import gospeak.libs.slack.SlackClient
@@ -48,8 +50,8 @@ import play.api.{Environment => _, _}
 import play.filters.HttpFiltersComponents
 import router.Routes
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
 class GsApplicationLoader extends ApplicationLoader {
   override def load(context: ApplicationLoader.Context): Application = {
@@ -104,6 +106,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, http, conf.app.env.isProd)
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(http))
   lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.app.name, conf.youtube).get
+  lazy val placesSrv: PlacesSrv = PlacesSrvImpl.from(conf.googleMaps)
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
@@ -247,4 +250,10 @@ class GsComponents(context: ApplicationLoader.Context)
   }
 
   onStart()
+
+
+  applicationLifecycle.addStopHook(() => Future {
+    logger.info("Shutting down application")
+    placesSrv.close()
+  })
 }

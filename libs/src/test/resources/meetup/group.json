@@ -11,12 +11,14 @@
   "country": "FR",
   "localized_country_name": "France",
   "localized_location": "Paris, France",
+  "region2": "",
   "state": "",
   "join_mode": "open",
   "visibility": "public",
   "lat": 48.86,
   "lon": 2.34,
-  "members": 6825,
+  "members": 7399,
+  "member_pay_fee": false,
   "organizer": {
     "id": 22982471,
     "name": "Matthieu Segret",
@@ -40,10 +42,10 @@
     "base_url": "https://secure.meetupstatic.com"
   },
   "key_photo": {
-    "id": 483434958,
-    "highres_link": "https://secure.meetupstatic.com/photos/event/3/a/6/e/highres_483434958.jpeg",
-    "photo_link": "https://secure.meetupstatic.com/photos/event/3/a/6/e/600_483434958.jpeg",
-    "thumb_link": "https://secure.meetupstatic.com/photos/event/3/a/6/e/thumb_483434958.jpeg",
+    "id": 251927072,
+    "highres_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/highres_251927072.jpeg",
+    "photo_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/600_251927072.jpeg",
+    "thumb_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/thumb_251927072.jpeg",
     "type": "event",
     "base_url": "https://secure.meetupstatic.com"
   },
@@ -54,6 +56,293 @@
     "shortname": "tech",
     "sort_name": "Tech"
   },
+  "leads": 8,
+  "self": {
+    "status": "active",
+    "actions": [
+      "event_create",
+      "event_draft",
+      "role_assign",
+      "edit",
+      "member_approval",
+      "broadcast_message"
+    ],
+    "role": "coorganizer",
+    "visited": 1588338412000,
+    "profile": {
+      "id": 14321102,
+      "name": "loic knuchel",
+      "email": "loicknuchel@gmail.com",
+      "bio": "Développeur web et Java, adore les nouvelles technologies et s'intéresse de près aux startups. J'adore faire de nouvelles rencontres et discuter sur tous ces sujets.",
+      "status": "active",
+      "joined": 1300965978000,
+      "city": "Paris",
+      "country": "fr",
+      "localized_country_name": "France",
+      "lat": 48.86,
+      "lon": 2.34,
+      "photo": {
+        "id": 92521442,
+        "highres_link": "https://secure.meetupstatic.com/photos/member/5/a/2/highres_92521442.jpeg",
+        "photo_link": "https://secure.meetupstatic.com/photos/member/5/a/2/member_92521442.jpeg",
+        "thumb_link": "https://secure.meetupstatic.com/photos/member/5/a/2/thumb_92521442.jpeg",
+        "type": "member",
+        "base_url": "https://secure.meetupstatic.com"
+      },
+      "group_profile": {
+        "status": "active",
+        "visited": 1588338412000,
+        "created": 1372148307000,
+        "updated": 1586079137000,
+        "role": "coorganizer",
+        "group": {
+          "id": 9067432,
+          "urlname": "HumanTalks-Paris",
+          "name": "HumanTalks Paris",
+          "status": "active",
+          "who": "dev",
+          "members": 7399,
+          "join_mode": "open",
+          "localized_location": "Paris, France",
+          "key_photo": {
+            "id": 251927072,
+            "highres_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/highres_251927072.jpeg",
+            "photo_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/600_251927072.jpeg",
+            "thumb_link": "https://secure.meetupstatic.com/photos/event/b/7/e/0/thumb_251927072.jpeg",
+            "type": "event",
+            "base_url": "https://secure.meetupstatic.com"
+          },
+          "group_photo": {
+            "id": 251926612,
+            "highres_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/highres_251926612.jpeg",
+            "photo_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/600_251926612.jpeg",
+            "thumb_link": "https://secure.meetupstatic.com/photos/event/b/6/1/4/thumb_251926612.jpeg",
+            "type": "event",
+            "base_url": "https://secure.meetupstatic.com"
+          }
+        },
+        "intro": "I'm a developer and tech lead, HumanTalks Paris organizer, Gospeak creator, Scala trainer, conference speaker, bagger and, of course, a human ^^\r\nI'm a fan of scala and FP, code quality, high performing teams and skyrocketing businesses.",
+        "link": "https://www.meetup.com/HumanTalks-Paris/members/14321102/"
+      },
+      "is_pro_admin": false,
+      "topics": [
+        {
+          "id": 189,
+          "name": "Java",
+          "urlkey": "java",
+          "lang": "en_US"
+        },
+        {
+          "id": 3833,
+          "name": "Software Development",
+          "urlkey": "softwaredev",
+          "lang": "en_US"
+        },
+        {
+          "id": 9696,
+          "name": "New Technology",
+          "urlkey": "newtech",
+          "lang": "en_US"
+        },
+        {
+          "id": 15582,
+          "name": "Web Development",
+          "urlkey": "web-development",
+          "lang": "en_US"
+        },
+        {
+          "id": 48471,
+          "name": "Computer programming",
+          "urlkey": "computer-programming",
+          "lang": "en_US"
+        },
+        {
+          "id": 58162,
+          "name": "NoSQL",
+          "urlkey": "nosql",
+          "lang": "fr"
+        },
+        {
+          "id": 78565,
+          "name": "HTML5",
+          "urlkey": "html5",
+          "lang": "en_US"
+        },
+        {
+          "id": 25435,
+          "name": "Test Driven Development",
+          "urlkey": "test-driven-development",
+          "lang": "en_US"
+        },
+        {
+          "id": 44602,
+          "name": "Coding Dojos",
+          "urlkey": "coding-dojos",
+          "lang": "en_US"
+        },
+        {
+          "id": 65173,
+          "name": "Software Quality",
+          "urlkey": "software-quality",
+          "lang": "en_US"
+        },
+        {
+          "id": 71692,
+          "name": "Software Craftsmanship",
+          "urlkey": "software-craftsmanship",
+          "lang": "en_US"
+        },
+        {
+          "id": 10579,
+          "name": "Technology",
+          "urlkey": "technology",
+          "lang": "en_US"
+        },
+        {
+          "id": 563,
+          "name": "Open Source",
+          "urlkey": "opensource",
+          "lang": "en_US"
+        },
+        {
+          "id": 128595,
+          "name": "Internet Startups",
+          "urlkey": "internet-startups",
+          "lang": "en_US"
+        },
+        {
+          "id": 18062,
+          "name": "Big Data",
+          "urlkey": "big-data",
+          "lang": "en_US"
+        },
+        {
+          "id": 19882,
+          "name": "Entrepreneurship",
+          "urlkey": "entrepreneurship",
+          "lang": "en_US"
+        },
+        {
+          "id": 29971,
+          "name": "Machine Learning",
+          "urlkey": "machine-learning",
+          "lang": "en_US"
+        },
+        {
+          "id": 30928,
+          "name": "Data Analytics",
+          "urlkey": "data-analytics",
+          "lang": "en_US"
+        },
+        {
+          "id": 55324,
+          "name": "Data Mining",
+          "urlkey": "data-mining",
+          "lang": "en_US"
+        },
+        {
+          "id": 22792,
+          "name": "Functional Programming",
+          "urlkey": "functional-programming",
+          "lang": "en_US"
+        }
+      ]
+    }
+  },
+  "topics": [
+    {
+      "id": 18062,
+      "name": "Big Data",
+      "urlkey": "big-data",
+      "lang": "en_US"
+    },
+    {
+      "id": 15167,
+      "name": "Cloud Computing",
+      "urlkey": "cloud-computing",
+      "lang": "en_US"
+    },
+    {
+      "id": 21441,
+      "name": "Mobile Development",
+      "urlkey": "mobile-development",
+      "lang": "en_US"
+    },
+    {
+      "id": 107583,
+      "name": "UI Design",
+      "urlkey": "ui-design",
+      "lang": "en_US"
+    },
+    {
+      "id": 659,
+      "name": "Web Design",
+      "urlkey": "webdesign",
+      "lang": "en_US"
+    },
+    {
+      "id": 3833,
+      "name": "Software Development",
+      "urlkey": "softwaredev",
+      "lang": "en_US"
+    },
+    {
+      "id": 9696,
+      "name": "New Technology",
+      "urlkey": "newtech",
+      "lang": "en_US"
+    },
+    {
+      "id": 10209,
+      "name": "Web Technology",
+      "urlkey": "web",
+      "lang": "en_US"
+    },
+    {
+      "id": 16216,
+      "name": "Mobile Technology",
+      "urlkey": "mobile-technology",
+      "lang": "en_US"
+    },
+    {
+      "id": 21506,
+      "name": "Database Development",
+      "urlkey": "database-development",
+      "lang": "en_US"
+    },
+    {
+      "id": 29723,
+      "name": "College Students",
+      "urlkey": "college-students",
+      "lang": "en_US"
+    },
+    {
+      "id": 48471,
+      "name": "Computer programming",
+      "urlkey": "computer-programming",
+      "lang": "en_US"
+    },
+    {
+      "id": 437352,
+      "name": "Lean UX",
+      "urlkey": "lean-ux",
+      "lang": "en_US"
+    },
+    {
+      "id": 61781,
+      "name": "UX Design",
+      "urlkey": "ux-design",
+      "lang": "en_US"
+    },
+    {
+      "id": 1454542,
+      "name": "Docker",
+      "urlkey": "docker",
+      "lang": "en_US"
+    }
+  ],
+  "welcome_message": "Bienvenue sur le HumanTalks Paris :)\n\nVous pouvez nous suivre sur twitter @HumanTalksParis, ou nous contacter par mail à paris@humantalks.com pour toute question/suggestion !\n\nN'hésites pas à faire un tour sur notre chaine YouTube https://www.youtube.com/channel/UCKFAwlgWiAB4vUpgnS63qog\nEn vous inscrivant ici, vous aurez accès aux dates de tous les prochains évènements !\nà très bientôt au prochain HumanTalks Paris :)\n\n",
+  "past_event_count": 72,
   "meta_category": {
     "id": 292,
     "shortname": "tech",
