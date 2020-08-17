@@ -38,7 +38,7 @@ class EventCtrl(cc: ControllerComponents,
                 venueRepo: OrgaVenueRepo,
                 proposalRepo: OrgaProposalRepo,
                 groupSettingsRepo: GroupSettingsRepo,
-                meetupSrv: MeetupSrv,
+                meetupSrvEth: Either[String, MeetupSrv],
                 emailSrv: EmailSrv,
                 ms: MessageSrv,
                 bus: MessageBus[Message]) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
@@ -227,6 +227,7 @@ class EventCtrl(cc: ControllerComponents,
         description = e.description.render(info).getOrElse(Markdown("")) // FIXME
         meetupAccount <- OptionT.liftF(groupSettingsRepo.findMeetup)
         meetup <- OptionT.liftF((for {
+          meetupSrv <- meetupSrvEth.toOption
           creds <- meetupAccount
           info <- data.meetup if info.publish
         } yield meetupSrv.publish(e.event, e.venue, description, info.draft, conf.app.aesKey, creds)).sequence)

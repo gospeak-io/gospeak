@@ -1,6 +1,6 @@
 package gospeak.web.pages.partials.form
 
-import gospeak.infra.services.cloudinary.CloudinarySrvImpl
+import gospeak.core.services.cloudinary.UploadSrv
 import gospeak.web.utils.{OrgaReq, UserReq}
 import play.api.data.Field
 import play.api.mvc.{AnyContent, Call}
@@ -18,8 +18,8 @@ final case class ImgConf(folder: Option[String],
 object ImgConf {
   def userAvatar()(implicit req: UserReq[AnyContent]): ImgConf =
     ImgConf(
-      folder = CloudinarySrvImpl.userFolder(req.user),
-      name = CloudinarySrvImpl.userAvatarFile,
+      folder = UploadSrv.userFolder(req.user),
+      name = UploadSrv.userAvatarFile,
       dynamicName = None,
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
@@ -29,8 +29,8 @@ object ImgConf {
 
   def groupLogo(args: Seq[(String, String)])(implicit req: OrgaReq[AnyContent]): ImgConf =
     ImgConf(
-      folder = CloudinarySrvImpl.groupFolder(req.group),
-      name = CloudinarySrvImpl.groupLogoFile,
+      folder = UploadSrv.groupFolder(req.group),
+      name = UploadSrv.groupLogoFile,
       dynamicName = None,
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
@@ -40,8 +40,8 @@ object ImgConf {
 
   def groupBanner(args: Seq[(String, String)])(implicit req: OrgaReq[AnyContent]): ImgConf =
     ImgConf(
-      folder = CloudinarySrvImpl.groupFolder(req.group),
-      name = CloudinarySrvImpl.groupBannerFile,
+      folder = UploadSrv.groupFolder(req.group),
+      name = UploadSrv.groupBannerFile,
       dynamicName = None,
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
@@ -51,8 +51,8 @@ object ImgConf {
 
   def partnerLogo(partnerSlug: Field)(implicit req: OrgaReq[AnyContent]): ImgConf =
     ImgConf(
-      folder = CloudinarySrvImpl.groupPartnerFolder(req.group),
-      name = CloudinarySrvImpl.groupPartnerFile(partnerSlug.value),
+      folder = UploadSrv.groupPartnerFolder(req.group),
+      name = UploadSrv.groupPartnerFile(partnerSlug.value),
       dynamicName = Some(partnerSlug.id),
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
@@ -62,8 +62,8 @@ object ImgConf {
 
   def slackBotAvatar(args: Seq[(String, String)])(implicit req: OrgaReq[AnyContent]): ImgConf =
     ImgConf(
-      folder = CloudinarySrvImpl.groupFolder(req.group),
-      name = CloudinarySrvImpl.groupSlackBotFile,
+      folder = UploadSrv.groupFolder(req.group),
+      name = UploadSrv.groupSlackBotFile,
       dynamicName = None,
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),
@@ -73,8 +73,8 @@ object ImgConf {
 
   def externalEventLogo(eventName: Field)(implicit req: UserReq[AnyContent]): ImgConf =
     ImgConf(
-      folder = CloudinarySrvImpl.extEventFolder(),
-      name = CloudinarySrvImpl.extEventLogoFile(eventName.value),
+      folder = UploadSrv.extEventFolder(),
+      name = UploadSrv.extEventLogoFile(eventName.value),
       dynamicName = Some(eventName.id),
       tags = Seq(req.user.slug.value, req.user.id.value),
       maxFiles = Some(1),

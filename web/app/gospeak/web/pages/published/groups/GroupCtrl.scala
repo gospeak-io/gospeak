@@ -35,7 +35,7 @@ class GroupCtrl(cc: ControllerComponents,
                 sponsorPackRepo: PublicSponsorPackRepo,
                 commentRepo: PublicCommentRepo,
                 groupSettingsRepo: PublicGroupSettingsRepo,
-                meetupSrv: MeetupSrv,
+                meetupSrvEth: Either[String, MeetupSrv],
                 emailSrv: EmailSrv,
                 ms: MessageSrv) extends UICtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction { implicit req =>
@@ -106,9 +106,12 @@ class GroupCtrl(cc: ControllerComponents,
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       creds <- OptionT.liftF(groupSettingsRepo.findMeetup(groupElt.id))
-      attendees <- OptionT.liftF(eventElt.event.refs.meetup.flatMap { r =>
-        creds.map(c => meetupSrv.getAttendees(r.group, r.event, conf.app.aesKey, c).map(_.right[String]).recover { case NonFatal(e) => Left(e.getMessage) })
-      }.getOrElse(IO.pure(Left("No meetup reference for this event or configured credentials"))))
+      attendees <- OptionT.liftF((for {
+        srv <- meetupSrvEth
+        c <- creds.toEither(s"No Meetup credentials for group ${groupElt.name.value}")
+        ref <- eventElt.event.refs.meetup.toEither("No meetup reference for this event or configured credentials")
+        res = srv.getAttendees(ref.group, ref.event, conf.app.aesKey, c).map(_.right[String]).recover { case NonFatal(e) => Left(e.getMessage) }
+      } yield res).fold(err => IO.pure(Left(err)), identity))
       cleanAttendees = attendees.map(_.filter(a => a.id.value != 0L && a.response == "yes" && !a.host))
       res = Ok(html.attendeeDraw(eventElt, cleanAttendees)).withHeaders(SecurityHeadersFilter.X_FRAME_OPTIONS_HEADER -> "SAMEORIGIN")
     } yield res).value.map(_.getOrElse(publicEventNotFound(group, event)))

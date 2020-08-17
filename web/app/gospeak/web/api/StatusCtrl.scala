@@ -5,7 +5,8 @@ import java.time.Instant
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import generated.BuildInfo
-import gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.services.cloudinary.UploadSrv
+import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.twitter.TwitterSrv
@@ -23,15 +24,16 @@ import scala.util.Try
 class StatusCtrl(cc: ControllerComponents,
                  silhouette: Silhouette[CookieEnv],
                  conf: AppConf,
-                 cloudinarySrv: CloudinarySrv,
-                 meetupSrv: MeetupSrv,
+                 uploadSrv: UploadSrv,
+                 emailSrv: EmailSrv,
+                 meetupSrvEth: Either[String, MeetupSrv],
                  slackSrv: SlackSrv,
                  twitterSrv: TwitterSrv,
                  videoSrv: VideoSrv) extends ApiCtrl(cc, silhouette, conf) {
   private val startedAt = Instant.now()
 
   def getStatus: Action[AnyContent] = UserAwareAction { implicit req =>
-    IO.pure(ApiResult.of(AppStatus(startedAt, generated.BuildInfo, conf, cloudinarySrv, twitterSrv, meetupSrv, slackSrv, videoSrv)))
+    IO.pure(ApiResult.of(AppStatus(startedAt, generated.BuildInfo, conf, uploadSrv, emailSrv, twitterSrv, meetupSrvEth, slackSrv, videoSrv)))
   }
 
 }
@@ -42,9 +44,8 @@ object StatusCtrl {
   implicit val appStatusWrites: Writes[AppStatus] = Json.writes[AppStatus]
 
   final case class SrvStatus(db: String,
-                             email: String,
                              upload: String,
-                             cloudinary: String,
+                             email: String,
                              twitter: String,
                              meetup: String,
                              slack: String,
@@ -71,9 +72,10 @@ object StatusCtrl {
     def apply(startedAt: Instant,
               info: BuildInfo.type,
               conf: AppConf,
-              cloudinarySrv: CloudinarySrv,
+              uploadSrv: UploadSrv,
+              emailSrv: EmailSrv,
               twitterSrv: TwitterSrv,
-              meetupSrv: MeetupSrv,
+              meetupSrvEth: Either[String, MeetupSrv],
               slackSrv: SlackSrv,
               videoSrv: VideoSrv): AppStatus =
       new AppStatus(
@@ -85,11 +87,10 @@ object StatusCtrl {
         sbtVersion = info.sbtVersion,
         services = SrvStatus(
           db = conf.database.getClass.getSimpleName,
-          email = conf.email.getClass.getName.split("\\$").filter(_.nonEmpty).last,
-          upload = conf.upload.getClass.getSimpleName,
-          cloudinary = cloudinarySrv.getClass.getSimpleName,
+          upload = uploadSrv.getClass.getSimpleName,
+          email = emailSrv.getClass.getSimpleName,
           twitter = twitterSrv.getClass.getSimpleName,
-          meetup = if (meetupSrv.performWriteOps) "read/write" else "read only",
+          meetup = meetupSrvEth.map(srv => if (srv.performWriteOps) "read/write" else "read only").getOrElse("disabled"),
           slack = "read/write", // only mode with slackSrv for now
           youtube = if (videoSrv.youtube) "available" else "not available",
           vimeo = if (videoSrv.vimeo) "available" else "not available",

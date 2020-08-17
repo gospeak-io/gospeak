@@ -17,5 +17,5 @@ class PlacesSrvImpl(client: GoogleMapsClient) extends PlacesSrv {
 
 object PlacesSrvImpl {
   def from(conf: GoogleMapsConf): PlacesSrvImpl =
-    new PlacesSrvImpl(GoogleMapsClient.create(conf.apiKey.decode))
+    new PlacesSrvImpl(GoogleMapsClient.create(conf.backendApiKey.decode))
 }

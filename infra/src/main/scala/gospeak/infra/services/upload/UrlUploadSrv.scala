@@ -1,11 +1,11 @@
-package gospeak.infra.services.cloudinary
+package gospeak.infra.services.upload
 
 import cats.effect.IO
 import gospeak.core.domain.{ExternalEvent, Group, Partner, User}
-import gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.services.cloudinary.UploadSrv
 import gospeak.libs.scala.domain.{Avatar, Banner, CustomException, Logo}
 
-class CloudinaryFakeSrv extends CloudinarySrv {
+class UrlUploadSrv extends UploadSrv {
   private val err = "Cloudinary service not implemented"
 
   override def signRequest(params: Map[String, String]): Either[String, String] = Left(err)

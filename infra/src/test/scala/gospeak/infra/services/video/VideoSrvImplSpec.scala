@@ -7,8 +7,8 @@ import gospeak.libs.scala.domain.{Secret, Url}
 
 class VideoSrvImplSpec extends BaseSpec {
   // Add your google api key here
-  private val youtubeConf = YoutubeConf(Some(Secret(
-    """{}""".stripMargin)))
+  private val youtubeConf = YoutubeConf.Enabled(Secret(
+    """{}""".stripMargin))
 
   ignore("YoutubeSrvImpl") {
     val srv = VideoSrvImpl.from("Gospeak VideoSrvImplSpec", youtubeConf).get

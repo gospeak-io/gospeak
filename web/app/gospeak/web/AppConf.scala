@@ -32,7 +32,7 @@ final case class AppConf(app: ApplicationConf,
                          meetup: MeetupConf,
                          youtube: YoutubeConf,
                          googleMaps: GoogleMapsConf,
-                         twitter: Option[TwitterConf],
+                         twitter: TwitterConf,
                          gospeak: GsConf,
                          scheduler: SchedulerSrv.Conf)
 
@@ -101,9 +101,6 @@ object AppConf {
     private implicit val databaseConfReader: ConfigReader[DbConf] = (cur: ConfigCursor) => cur.asString
       .flatMap(DbConf.from(_).leftMap(_ => convertErr(cur, "DatabaseConf", "Invalid value")))
 
-    private implicit val emailConfConsoleReader: ConfigReader[EmailConf.Console] = deriveReader[EmailConf.Console]
-    private implicit val emailConfInMemoryReader: ConfigReader[EmailConf.InMemory] = deriveReader[EmailConf.InMemory]
-    private implicit val emailConfSendGridReader: ConfigReader[EmailConf.SendGrid] = deriveReader[EmailConf.SendGrid]
 
     private implicit val uploadConfUrlReader: ConfigReader[UploadConf.Url] = deriveReader[UploadConf.Url]
     private implicit val uploadConfCloudinaryReader: ConfigReader[UploadConf.Cloudinary] = deriveReader[UploadConf.Cloudinary]
@@ -117,11 +114,20 @@ object AppConf {
 
     private implicit val applicationConfReader: ConfigReader[ApplicationConf] = deriveReader[ApplicationConf]
     private implicit val authConfReader: ConfigReader[AuthConf] = deriveReader[AuthConf]
+    private implicit val emailConfConsoleReader: ConfigReader[EmailConf.Console] = deriveReader[EmailConf.Console]
+    private implicit val emailConfInMemoryReader: ConfigReader[EmailConf.InMemory] = deriveReader[EmailConf.InMemory]
+    private implicit val emailConfSendGridReader: ConfigReader[EmailConf.SendGrid] = deriveReader[EmailConf.SendGrid]
     private implicit val emailConfReader: ConfigReader[EmailConf] = deriveReader[EmailConf]
     private implicit val uploadConfReader: ConfigReader[UploadConf] = deriveReader[UploadConf]
+    private implicit val meetupConfDisabledReader: ConfigReader[MeetupConf.Disabled] = deriveReader[MeetupConf.Disabled]
+    private implicit val meetupConfEnabledReader: ConfigReader[MeetupConf.Enabled] = deriveReader[MeetupConf.Enabled]
     private implicit val meetupConfReader: ConfigReader[MeetupConf] = deriveReader[MeetupConf]
+    private implicit val youtubeConfDisabledReader: ConfigReader[YoutubeConf.Disabled] = deriveReader[YoutubeConf.Disabled]
+    private implicit val youtubeConfEnabledReader: ConfigReader[YoutubeConf.Enabled] = deriveReader[YoutubeConf.Enabled]
     private implicit val youtubeConfReader: ConfigReader[YoutubeConf] = deriveReader[YoutubeConf]
     private implicit val googleMapsConfReader: ConfigReader[GoogleMapsConf] = deriveReader[GoogleMapsConf]
+    private implicit val twitterConfConsoleReader: ConfigReader[TwitterConf.Console] = deriveReader[TwitterConf.Console]
+    private implicit val twitterConfTwitterReader: ConfigReader[TwitterConf.Twitter] = deriveReader[TwitterConf.Twitter]
     private implicit val twitterConfReader: ConfigReader[TwitterConf] = deriveReader[TwitterConf]
     private implicit val gsConfReader: ConfigReader[GsConf] = deriveReader[GsConf]
     private implicit val schedulerConfReader: ConfigReader[SchedulerSrv.Conf] = deriveReader[SchedulerSrv.Conf]

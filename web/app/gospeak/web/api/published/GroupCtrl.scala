@@ -11,7 +11,7 @@ import gospeak.web.api.domain.utils.ApiResult
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.utils.ApiCtrl
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.Page
+import gospeak.libs.scala.domain.{CustomException, Page}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class GroupCtrl(cc: ControllerComponents,
@@ -20,10 +20,9 @@ class GroupCtrl(cc: ControllerComponents,
                 groupRepo: PublicGroupRepo,
                 eventRepo: PublicEventRepo,
                 proposalRepo: PublicProposalRepo,
-                venueRepo: PublicVenueRepo,
                 userRepo: PublicUserRepo,
                 groupSettingsRepo: PublicGroupSettingsRepo,
-                meetupSrv: MeetupSrv) extends ApiCtrl(cc, silhouette, conf) {
+                meetupSrvEth: Either[String, MeetupSrv]) extends ApiCtrl(cc, silhouette, conf) {
   def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiGroup.Published]] { implicit req =>
     groupRepo.listFull(params).map(ApiResult.of(_, ApiGroup.published))
   }
@@ -54,6 +53,7 @@ class GroupCtrl(cc: ControllerComponents,
 
   def eventDrawMeetupAttendee(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction[Seq[ApiAttendee.Published]] { implicit req =>
     (for {
+      meetupSrv <- OptionT.liftF(meetupSrvEth.toIO(CustomException(_)))
       groupElt <- OptionT(groupRepo.find(group))
       eventElt <- OptionT(eventRepo.findPublished(groupElt.id, event))
       creds <- OptionT(groupSettingsRepo.findMeetup(groupElt.id))

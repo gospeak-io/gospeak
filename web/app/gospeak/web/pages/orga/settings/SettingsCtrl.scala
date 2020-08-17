@@ -13,7 +13,7 @@ import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.core.services.storage.{OrgaGroupRepo, OrgaGroupSettingsRepo, OrgaUserRepo, OrgaUserRequestRepo}
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.Liquid
+import gospeak.libs.scala.domain.{CustomException, Liquid}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.domain.Breadcrumb
@@ -36,7 +36,7 @@ class SettingsCtrl(cc: ControllerComponents,
                    userRepo: OrgaUserRepo,
                    userRequestRepo: OrgaUserRequestRepo,
                    emailSrv: EmailSrv,
-                   meetupSrv: MeetupSrv,
+                   meetupSrvEth: Either[String, MeetupSrv],
                    slackSrv: SlackSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def settings(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     groupSettingsRepo.find.flatMap(settingsView(_))
@@ -96,18 +96,19 @@ class SettingsCtrl(cc: ControllerComponents,
   def meetupAuthorize(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
     GsForms.groupAccountMeetup.bindFromRequest.fold(
       formWithErrors => groupSettingsRepo.find.flatMap(settingsView(_, meetup = Some(formWithErrors))),
-      data => {
+      data => meetupSrvEth.fold(err => IO.pure(Redirect(routes.SettingsCtrl.settings(group)).flashing("error" -> err)), meetupSrv => {
         val redirectUri = routes.SettingsCtrl.meetupCallback(group, data.group).absoluteURL(meetupSrv.hasSecureCallback)
         meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
-      }
+      })
     )
   }
 
   def meetupCallback(group: Group.Slug, meetupGroup: MeetupGroup.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    val redirectUri = routes.SettingsCtrl.meetupCallback(group, meetupGroup).absoluteURL(meetupSrv.hasSecureCallback)
     req.getQueryString("code").map { code =>
       (for {
         settings <- groupSettingsRepo.find
+        meetupSrv <- meetupSrvEth.toIO(CustomException(_))
+        redirectUri = routes.SettingsCtrl.meetupCallback(group, meetupGroup).absoluteURL(meetupSrv.hasSecureCallback)
         token <- meetupSrv.requestAccessToken(redirectUri, code, conf.app.aesKey)
         loggedUser <- meetupSrv.getLoggedUser(conf.app.aesKey)(token)
         meetupGroupElt <- meetupSrv.getGroup(meetupGroup, conf.app.aesKey)(token)

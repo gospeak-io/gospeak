@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.ExternalCfp
 import gospeak.core.domain.messages.Message
-import gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.services.cloudinary.UploadSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.slack.domain.SlackToken
 import gospeak.core.services.storage.PublicExternalCfpRepo
@@ -36,14 +36,14 @@ class UtilsCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 externalCfpRepo: PublicExternalCfpRepo,
-                cloudinarySrv: CloudinarySrv,
+                uploadSrv: UploadSrv,
                 slackSrv: SlackSrv,
                 embedSrv: EmbedSrv,
                 scraperSrv: ScraperSrv,
                 ms: MessageSrv) extends ApiCtrl(cc, silhouette, conf) {
   def cloudinarySignature(): Action[AnyContent] = UserAction[String] { implicit req =>
     val queryParams = req.queryString.flatMap { case (key, values) => values.headOption.map(value => (key, value)) }
-    IO.pure(cloudinarySrv.signRequest(queryParams) match {
+    IO.pure(uploadSrv.signRequest(queryParams) match {
       case Right(signature) => ApiResult.of(signature)
       case Left(error) => ApiResult.badRequest(error)
     })

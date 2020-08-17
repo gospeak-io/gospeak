@@ -4,8 +4,8 @@ import gospeak.core.services.twitter.TwitterConf
 import gospeak.infra.testingutils.BaseSpec
 import gospeak.libs.scala.domain.Secret
 
-class TwitterSrvImplSpec extends BaseSpec {
-  private val srv = new TwitterSrvImpl(TwitterConf(
+class RealTwitterSrvSpec extends BaseSpec {
+  private val srv = new RealTwitterSrv(TwitterConf.Twitter(
     consumerKey = "...",
     consumerSecret = Secret("..."),
     accessKey = "...",

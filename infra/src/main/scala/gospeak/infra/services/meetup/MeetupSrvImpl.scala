@@ -203,8 +203,10 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
 }
 
 object MeetupSrvImpl {
-  def from(conf: MeetupConf, appBaseUrl: String, http: HttpClient, performWriteOps: Boolean): MeetupSrvImpl =
-    new MeetupSrvImpl(new MeetupClient(MeetupClient.Conf(key = conf.key, secret = conf.secret), appBaseUrl, http, performWriteOps))
+  def from(conf: MeetupConf, appBaseUrl: String, http: HttpClient, performWriteOps: Boolean): Either[String, MeetupSrvImpl] = conf match {
+    case MeetupConf.Enabled(key, secret) => Right(new MeetupSrvImpl(new MeetupClient(MeetupClient.Conf(key, secret), appBaseUrl, http, performWriteOps)))
+    case _: MeetupConf.Disabled => Left("Gospeak has no Meetup service configured")
+  }
 
   // cf https://www.meetup.com/fr-FR/meetup_api/docs/:urlname/events#create
   private[meetup] def toSimpleHtml(md: Markdown): String = {

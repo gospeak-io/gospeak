@@ -16,7 +16,7 @@ import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, Secure
 import com.softwaremill.macwire.wire
 import gospeak.core.ApplicationConf
 import gospeak.core.domain.messages.Message
-import gospeak.core.services.cloudinary.CloudinarySrv
+import gospeak.core.services.cloudinary.UploadSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.places.PlacesSrv
@@ -29,7 +29,7 @@ import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.places.PlacesSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
-import gospeak.infra.services.twitter.{TwitterConsoleSrv, TwitterSrvImpl}
+import gospeak.infra.services.twitter.TwitterSrvFactory
 import gospeak.infra.services.upload.UploadSrvFactory
 import gospeak.infra.services.video.VideoSrvImpl
 import gospeak.infra.services.{AvatarSrv, EmbedSrv, ScraperSrv}
@@ -100,13 +100,13 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val embedSrv: EmbedSrv = wire[EmbedSrv]
   lazy val scraperSrv: ScraperSrv = wire[ScraperSrv]
   lazy val avatarSrv: AvatarSrv = wire[AvatarSrv]
+  lazy val uploadSrv: UploadSrv = UploadSrvFactory.from(conf.upload, http)
   lazy val emailSrv: EmailSrv = EmailSrvFactory.from(conf.email)
-  lazy val cloudinarySrv: CloudinarySrv = UploadSrvFactory.from(conf.upload, http)
-  lazy val twitterSrv: TwitterSrv = conf.twitter.filter(_ => conf.app.env.isProd).map(new TwitterSrvImpl(_)).getOrElse(new TwitterConsoleSrv())
-  lazy val meetupSrv: MeetupSrv = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, http, conf.app.env.isProd)
-  lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(http))
-  lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.app.name, conf.youtube).get
+  lazy val twitterSrv: TwitterSrv = TwitterSrvFactory.from(conf.twitter)
+  lazy val meetupSrv: Either[String, MeetupSrv] = MeetupSrvImpl.from(conf.meetup, conf.app.baseUrl, http, conf.app.env.isProd)
   lazy val placesSrv: PlacesSrv = PlacesSrvImpl.from(conf.googleMaps)
+  lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.app.name, conf.youtube).get
+  lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(http))
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]
@@ -227,18 +227,13 @@ class GsComponents(context: ApplicationLoader.Context)
   def onStart(): Unit = {
     val env = conf.app.env
     db.checkEnv(env).unsafeRunSync()
-    if (env.isProd) {
-      db.migrate().unsafeRunSync()
-    } else if (env.isStaging) {
-      db.migrate().unsafeRunSync()
-    } else if (env.isDev) {
-      db.dropTables().unsafeRunSync()
-      db.migrate().unsafeRunSync()
-      db.insertMockData().unsafeRunSync()
-    } else {
-      db.dropTables().unsafeRunSync()
-      db.migrate().unsafeRunSync()
-      db.insertMockData().unsafeRunSync()
+    env match {
+      case ApplicationConf.Env.Prod | ApplicationConf.Env.Staging =>
+        db.migrate().unsafeRunSync()
+      case ApplicationConf.Env.Dev | ApplicationConf.Env.Local =>
+        db.dropTables().unsafeRunSync()
+        db.migrate().unsafeRunSync()
+        db.insertMockData().unsafeRunSync()
     }
 
     messageBus.subscribe(messageHandler.logHandler)

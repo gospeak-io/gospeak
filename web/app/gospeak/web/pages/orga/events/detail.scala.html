@@ -44,7 +44,7 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@EventCtrl.edit(req.group.slug, event.slug)">Edit</a>
-                @event.refs.meetup.map { _ =>
+                @event.refs.meetup.filter(_ => req.conf.meetup.isEnabled).map { _ =>
                     @if(event.isPublic) {
                         <a class="dropdown-item"href="@PublicGroupCtrl.eventDrawMeetupAttendee(req.group.slug, event.slug)" target="_blank">Draw meetup attendee</a>
                     } else {

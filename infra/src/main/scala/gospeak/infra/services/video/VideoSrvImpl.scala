@@ -10,7 +10,7 @@ import gospeak.libs.scala.domain.{CustomException, Url}
 import gospeak.libs.youtube.YoutubeClient
 import gospeak.libs.youtube.domain.{YoutubeErrors, YoutubePlaylist}
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
   private val getChannelIdCache: Url.Videos.Channel => IO[Url.Videos.Channel.Id] = Cache.memoizeIO {
@@ -58,6 +58,9 @@ class VideoSrvImpl(youtubeOpt: Option[YoutubeClient]) extends VideoSrv {
 
 object VideoSrvImpl {
   def from(appName: String, youtubeConf: YoutubeConf): Try[VideoSrvImpl] = for {
-    youtubeClient <- youtubeConf.secret.map(YoutubeClient.create(_, appName)).sequence
+    youtubeClient <- youtubeConf match {
+      case YoutubeConf.Enabled(secret) => YoutubeClient.create(secret, appName).map(Some(_))
+      case _: YoutubeConf.Disabled => Success(Option.empty[YoutubeClient])
+    }
   } yield new VideoSrvImpl(youtubeClient)
 }

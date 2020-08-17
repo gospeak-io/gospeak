@@ -7,7 +7,7 @@ import gospeak.core.services.twitter.{TwitterConf, TwitterSrv, domain => gs}
 
 import scala.concurrent.ExecutionContext
 
-class TwitterSrvImpl(conf: TwitterConf) extends TwitterSrv {
+class RealTwitterSrv(conf: TwitterConf.Twitter) extends TwitterSrv {
   implicit private val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   private val consumerToken = ConsumerToken(key = conf.consumerKey, secret = conf.consumerSecret.decode)
   private val accessToken = AccessToken(key = conf.accessKey, secret = conf.accessSecret.decode)

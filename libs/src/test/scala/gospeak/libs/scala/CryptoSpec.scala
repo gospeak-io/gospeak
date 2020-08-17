@@ -28,6 +28,9 @@ class CryptoSpec extends BaseSpec with ScalaCheckPropertyChecks {
       }
     }
     describe("aes") {
+      ignore("should generate an aes key") {
+        println(Crypto.aesGenerateKey().get.value)
+      }
       it("should generate random numbers") {
         val r1 = Crypto.secureRandom().get
         val r2 = Crypto.secureRandom().get

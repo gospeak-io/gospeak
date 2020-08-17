@@ -43,7 +43,7 @@ class GroupCtrl(cc: ControllerComponents,
                 userRequestRepo: OrgaUserRequestRepo,
                 groupSettingsRepo: OrgaGroupSettingsRepo,
                 emailSrv: EmailSrv,
-                meetupSrv: MeetupSrv,
+                meetupSrvEth: Either[String, MeetupSrv],
                 placesSrv: PlacesSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.OrgaAction {
   def create(): Action[AnyContent] = UserAction { implicit req =>
     createForm(GsForms.group)
@@ -62,14 +62,17 @@ class GroupCtrl(cc: ControllerComponents,
   }
 
   def meetupConnect(): Action[AnyContent] = UserAction { implicit req =>
-    val redirectUri = routes.GroupCtrl.meetupCallback().absoluteURL(meetupSrv.hasSecureCallback)
-    meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
+    meetupSrvEth.fold(err => IO.pure(redirectToPreviousPageOr(routes.GroupCtrl.create()).flashing("error" -> err)), meetupSrv => {
+      val redirectUri = routes.GroupCtrl.meetupCallback().absoluteURL(meetupSrv.hasSecureCallback)
+      meetupSrv.buildAuthorizationUrl(redirectUri).map(url => Redirect(url.value)).toIO
+    })
   }
 
   def meetupCallback(): Action[AnyContent] = UserAction { implicit req =>
-    val redirectUri = routes.GroupCtrl.meetupCallback().absoluteURL(meetupSrv.hasSecureCallback)
     req.getQueryString("code").map { code =>
       (for {
+        meetupSrv <- meetupSrvEth.toIO(CustomException(_))
+        redirectUri = routes.GroupCtrl.meetupCallback().absoluteURL(meetupSrv.hasSecureCallback)
         token <- meetupSrv.requestAccessToken(redirectUri, code, conf.app.aesKey)
         meetupGroups <- meetupSrv.getOwnedGroups(conf.app.aesKey)(token)
         b = groupBreadcrumb.add("New" -> routes.GroupCtrl.create())
@@ -87,6 +90,7 @@ class GroupCtrl(cc: ControllerComponents,
     GsForms.meetupImport.bindFromRequest.fold(
       formWithErrors => IO.pure(Redirect(routes.GroupCtrl.create()).flashing(formWithErrors.flash)),
       { case (token, meetupSlug) => (for {
+        meetupSrv <- meetupSrvEth.toIO(CustomException(_))
         loggedUser <- meetupSrv.getLoggedUser(conf.app.aesKey)(token)
         meetupGroup <- meetupSrv.getGroup(meetupSlug, conf.app.aesKey)(token)
         creds = MeetupCredentials(token, loggedUser, meetupGroup)
@@ -95,7 +99,8 @@ class GroupCtrl(cc: ControllerComponents,
         groupData <- toDomain(meetupGroup)
         group <- groupRepo.create(groupData)
         ctx = req.orga(group)
-        _ = (for { // launched async to not wait too long before redirecting to the group dashboard
+        // launched async to not wait too long before redirecting to the group dashboard
+        _ = (for {
           _ <- groupSettingsRepo.set(conf.gospeak.defaultGroupSettings.set(creds))(ctx)
           venuesData <- meetupVenues.map(toDomain(meetupSlug, _)).sequence
           venueIds <- venuesData.map { case (i, p, v) => partnerRepo.create(p)(ctx).flatMap(pa => venueRepo.create(pa.id, v)(ctx).map(ve => (i, ve.id))) }.sequence.map(_.toMap)

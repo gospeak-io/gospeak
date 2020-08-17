@@ -9,11 +9,13 @@
 
 @(form: Form[Group.Data])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("New group", b)() {
-    <h1>Import from meetup</h1>
-    <div class="text-center">
-        @formBtn(GroupCtrl.meetupConnect(), Seq("class" -> "btn btn-primary btn-lg")) {Import group}
-    </div>
-    <hr>
+    @if(req.conf.meetup.isEnabled) {
+        <h1>Import from meetup</h1>
+        <div class="text-center">
+            @formBtn(GroupCtrl.meetupConnect(), Seq("class" -> "btn btn-primary btn-lg")) {Import group}
+        </div>
+        <hr>
+    }
     <h1>Create your group</h1>
     @formElt(form, GroupCtrl.doCreate()) {
         <div class="card mb-3">
