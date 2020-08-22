@@ -7,15 +7,15 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.utils.{BasicCtx, OrgaCtx}
 import gospeak.core.domain.{Group, Partner, User}
 import gospeak.core.services.storage.PartnerRepo
 import gospeak.infra.services.storage.sql.PartnerRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils._
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Done, Page}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
 import org.slf4j.LoggerFactory
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
@@ -67,59 +67,61 @@ object PartnerRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount")
     .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
     .aggregate("MAX(e.start)", "lastEventDate")
-    .copy(filters = Seq(
-      Filter.Bool.fromCount("venues", "With venues", "v.id"),
-      Filter.Bool.fromCount("sponsors", "With sponsors", "s.id"),
-      Filter.Bool.fromCount("contacts", "With contacts", "ct.id"),
-      Filter.Bool.fromCount("events", "With events", "e.id")))
+    .copy(filters = List(
+      Table.Filter.Bool.fromCount("venues", "With venues", "v.id"),
+      Table.Filter.Bool.fromCount("sponsors", "With sponsors", "s.id"),
+      Table.Filter.Bool.fromCount("contacts", "With contacts", "ct.id"),
+      Table.Filter.Bool.fromCount("events", "With events", "e.id")))
     .setSorts(
-      Sort("name", Field("LOWER(pa.name)", "")),
-      Sort("sponsor", "last sponsor date", Field("-MAX(s.finish)", ""), Field("LOWER(pa.name)", "")),
-      Sort("event", "last event date", Field("-MAX(s.start)", ""), Field("LOWER(pa.name)", "")),
-      Sort("created", Field("-created_at", "pa")),
-      Sort("updated", Field("-updated_at", "pa")))
+      Table.Sort("name", Field("LOWER(pa.name)", "")),
+      Table.Sort("sponsor", "last sponsor date", Field("-MAX(s.finish)", ""), Field("LOWER(pa.name)", "")),
+      Table.Sort("event", "last event date", Field("-MAX(s.start)", ""), Field("LOWER(pa.name)", "")),
+      Table.Sort("created", Field("-created_at", "pa")),
+      Table.Sort("updated", Field("-updated_at", "pa")))
   private val tableWithGroup = table
     .join(Tables.groups, _.group_id -> _.id).get
     .dropFields(_.name.startsWith("location_"))
 
-  private[sql] def insert(e: Partner): Insert[Partner] = {
+  private[sql] def insert(e: Partner): Query.Insert[Partner] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Partner](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, partner: Partner.Slug)(d: Partner.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, partner: Partner.Slug)(d: Partner.Data, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"slug=${d.slug}, name=${d.name}, notes=${d.notes}, description=${d.description}, logo=${d.logo}, " ++
       fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
       fr0"updated_at=$now, updated_by=$by"
-    table.update(fields, where(group, partner))
+    table.update(fields).where(where(group, partner))
   }
 
-  private[sql] def delete(group: Group.Id, partner: Partner.Slug): Delete =
-    table.delete(where(group, partner))
+  private[sql] def delete(group: Group.Id, partner: Partner.Slug): Query.Delete =
+    table.delete.where(where(group, partner))
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Partner, OrgaCtx] =
-    table.selectPage[Partner, OrgaCtx](params, fr0"WHERE pa.group_id=${ctx.group.id}")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Partner] =
+    table.selectPage[Partner](params, adapt(ctx)).where(fr0"pa.group_id=${ctx.group.id}")
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Partner.Full, OrgaCtx] =
-    tableFull.selectPage[Partner.Full, OrgaCtx](params, fr0"WHERE pa.group_id=${ctx.group.id}")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Partner.Full] =
+    tableFull.selectPage[Partner.Full](params, adapt(ctx)).where(fr0"pa.group_id=${ctx.group.id}")
 
-  private[sql] def selectAll(group: Group.Id): Select[Partner] =
-    table.select[Partner](fr0"WHERE pa.group_id=$group")
+  private[sql] def selectAll(group: Group.Id): Query.Select[Partner] =
+    table.select[Partner].where(fr0"pa.group_id=$group")
 
-  private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Select[Partner] =
-    table.select[Partner](fr0"WHERE " ++ Fragments.in(fr"pa.id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Query.Select[Partner] =
+    table.select[Partner].where(Fragments.in(fr"pa.id", ids))
 
-  private[sql] def selectOne(group: Group.Id, partner: Partner.Id): Select[Partner] =
-    table.select[Partner](where(group, partner))
+  private[sql] def selectOne(group: Group.Id, partner: Partner.Id): Query.Select[Partner] =
+    table.select[Partner].where(where(group, partner))
 
-  private[sql] def selectOne(group: Group.Id, partner: Partner.Slug): Select[Partner] =
-    table.select[Partner](where(group, partner))
+  private[sql] def selectOne(group: Group.Id, partner: Partner.Slug): Query.Select[Partner] =
+    table.select[Partner].where(where(group, partner))
 
   private def where(group: Group.Id, partner: Partner.Id): Fragment =
-    fr0"WHERE pa.group_id=$group AND pa.id=$partner"
+    fr0"pa.group_id=$group AND pa.id=$partner"
 
   private def where(group: Group.Id, partner: Partner.Slug): Fragment =
-    fr0"WHERE pa.group_id=$group AND pa.slug=$partner"
+    fr0"pa.group_id=$group AND pa.slug=$partner"
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

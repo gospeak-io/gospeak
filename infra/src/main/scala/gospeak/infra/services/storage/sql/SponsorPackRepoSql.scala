@@ -11,10 +11,10 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, SponsorPack, User}
 import gospeak.core.services.storage.SponsorPackRepo
 import gospeak.infra.services.storage.sql.SponsorPackRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{CustomException, Done}
+import gospeak.libs.sql.doobie.Query
 
 class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorPackRepo {
   override def create(data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[SponsorPack] =
@@ -52,36 +52,36 @@ object SponsorPackRepoSql {
   private val _ = sponsorPackIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.sponsorPacks
 
-  private[sql] def insert(e: SponsorPack): Insert[SponsorPack] = {
+  private[sql] def insert(e: SponsorPack): Query.Insert[SponsorPack] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.price.amount}, ${e.price.currency}, ${e.duration}, ${e.active}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, price=${data.price.amount}, currency=${data.price.currency}, duration=${data.duration}, updated_at=$now, updated_by=$by"
-    table.update(fields, where(group, pack))
+    table.update(fields).where(where(group, pack))
   }
 
-  private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): Update =
-    table.update(fr0"active=$active, updated_at=$now, updated_by=$by", where(group, pack))
+  private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"active=$active, updated_at=$now, updated_by=$by").where(where(group, pack))
 
-  private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): Select[SponsorPack] =
-    table.select[SponsorPack](where(group, pack))
+  private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): Query.Select[SponsorPack] =
+    table.select[SponsorPack].where(where(group, pack))
 
-  private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): Select[SponsorPack] =
-    table.select[SponsorPack](fr0"WHERE " ++ Fragments.in(fr"sp.id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): Query.Select[SponsorPack] =
+    table.select[SponsorPack].where(Fragments.in(fr"sp.id", ids))
 
-  private[sql] def selectAll(group: Group.Id): Select[SponsorPack] =
-    table.select[SponsorPack](where(group))
+  private[sql] def selectAll(group: Group.Id): Query.Select[SponsorPack] =
+    table.select[SponsorPack].where(where(group))
 
-  private[sql] def selectActives(group: Group.Id): Select[SponsorPack] = {
+  private[sql] def selectActives(group: Group.Id): Query.Select[SponsorPack] = {
     val active = true
-    table.select[SponsorPack](where(group) ++ fr0" AND sp.active=$active")
+    table.select[SponsorPack].where(where(group) ++ fr0" AND sp.active=$active")
   }
 
   private def where(group: Group.Id, slug: SponsorPack.Slug): Fragment =
-    fr0"WHERE sp.group_id=$group AND sp.slug=$slug"
+    fr0"sp.group_id=$group AND sp.slug=$slug"
 
   private def where(group: Group.Id): Fragment =
-    fr0"WHERE sp.group_id=$group"
+    fr0"sp.group_id=$group"
 }

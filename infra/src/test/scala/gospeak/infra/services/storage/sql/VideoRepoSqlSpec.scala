@@ -48,7 +48,7 @@ class VideoRepoSqlSpec extends RepoSpec {
         }
         it("should build selectRandom") {
           val q = VideoRepoSql.selectOneRandom()
-          val sql = s"SELECT $fields FROM $table  $orderBy LIMIT 1 OFFSET FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))"
+          val sql = s"SELECT $fields FROM $table $orderBy LIMIT 1 OFFSET FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))"
           q.fr.query.sql shouldBe sql
           // check(q, sql)
         }

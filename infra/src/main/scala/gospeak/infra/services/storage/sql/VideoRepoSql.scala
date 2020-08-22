@@ -5,14 +5,14 @@ import java.time.Instant
 import cats.effect.IO
 import doobie.implicits._
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{AdminCtx, UserAwareCtx}
+import gospeak.core.domain.utils.{AdminCtx, BasicCtx, UserAwareCtx}
 import gospeak.core.services.storage.VideoRepo
 import gospeak.infra.services.storage.sql.VideoRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Field, Insert, Select, SelectPage, Sort, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Page, Url}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
 
 import scala.util.control.NonFatal
 
@@ -67,55 +67,57 @@ object VideoRepoSql {
     .dropField(_.platform).get
     .dropField(_.id).get
 
-  private[sql] def insert(v: Url.Video.Id, e: ExternalEvent.Id): Insert[(Url.Video.Id, ExternalEvent.Id)] =
+  private[sql] def insert(v: Url.Video.Id, e: ExternalEvent.Id): Query.Insert[(Url.Video.Id, ExternalEvent.Id)] =
     tableSources.insert[(Url.Video.Id, ExternalEvent.Id)](v -> e, _ => fr0"$v, NULL, NULL, NULL, $e")
 
-  private[sql] def delete(v: Url.Video.Id, e: ExternalEvent.Id): Delete =
-    tableSources.delete(fr0"WHERE video_id=$v AND external_event_id=$e")
+  private[sql] def delete(v: Url.Video.Id, e: ExternalEvent.Id): Query.Delete =
+    tableSources.delete.where(fr0"video_id=$v AND external_event_id=$e")
 
-  private[sql] def selectOne(v: Url.Video.Id, e: ExternalEvent.Id): Select[Video.Sources] =
-    tableSources.select[Video.Sources](fr0"WHERE video_id=$v AND external_event_id=$e")
+  private[sql] def selectOne(v: Url.Video.Id, e: ExternalEvent.Id): Query.Select[Video.Sources] =
+    tableSources.select[Video.Sources].where(fr0"video_id=$v AND external_event_id=$e")
 
-  private[sql] def sum(v: Url.Video.Id): Select[Long] =
-    tableSources.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE video_id=$v GROUP BY vis.video_id")
+  private[sql] def sum(v: Url.Video.Id): Query.Select[Long] =
+    tableSources.select[Long].fields(Field("COUNT(*)", "")).where(fr0"video_id=$v GROUP BY vis.video_id").one
 
-  private[sql] def sum(event: ExternalEvent.Id): Select[Long] =
-    tableSources.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE external_event_id=$event GROUP BY vis.external_event_id", Sort("external_event_id", "vis"))
+  private[sql] def sum(event: ExternalEvent.Id): Query.Select[Long] =
+    tableSources.select[Long].fields(Field("COUNT(*)", "")).where(fr0"external_event_id=$event GROUP BY vis.external_event_id").sort(Table.Sort("external_event_id", "vis")).one
 
-  private[sql] def insert(e: Video): Insert[Video] = {
+  private[sql] def insert(e: Video): Query.Insert[Video] = {
     val values = fr0"${e.url.platform}, ${e.url}, ${e.id}, ${e.channel.id}, ${e.channel.name}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
     table.insert[Video](e, _ => values)
   }
 
-  private[sql] def update(data: Video.Data, now: Instant): Update = {
+  private[sql] def update(data: Video.Data, now: Instant): Query.Update = {
     val fields = fr0"title=${data.title}, description=${data.description}, tags=${data.tags}, duration=${data.duration}, lang=${data.lang}, views=${data.views}, likes=${data.likes}, dislikes=${data.dislikes}, comments=${data.comments}, updated_at=$now"
-    table.update(fields, fr0"WHERE id=${data.id}")
+    table.update(fields).where(fr0"id=${data.id}")
   }
 
-  private[sql] def delete(url: Url.Video): Delete =
-    table.delete(fr0"WHERE id=${url.videoId}")
+  private[sql] def delete(url: Url.Video): Query.Delete =
+    table.delete.where(fr0"id=${url.videoId}")
 
-  private[sql] def selectOne(video: Url.Video.Id): Select[Video] =
-    tableSelect.selectOne[Video](fr0"WHERE vi.id=$video")
+  private[sql] def selectOne(video: Url.Video.Id): Query.Select[Video] =
+    tableSelect.select[Video].where(fr0"vi.id=$video").one
 
-  private[sql] def selectOneRandom(): Select[Video] =
-    tableSelect.selectOne[Video](fr0"", offset = fr0"FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))")
+  private[sql] def selectOneRandom(): Query.Select[Video] =
+    tableSelect.select[Video].offset(fr0"FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))").one
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Video, UserAwareCtx] =
-    tableSelect.selectPage[Video, UserAwareCtx](params)
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Video] =
+    tableSelect.selectPage[Video](params, adapt(ctx))
 
-  private[sql] def selectAll(event: ExternalEvent.Id): Select[Video] =
-    tableWithSources.select[Video](fr0"WHERE vis.external_event_id=$event")
+  private[sql] def selectAll(event: ExternalEvent.Id): Query.Select[Video] =
+    tableWithSources.select[Video].where(fr0"vis.external_event_id=$event")
 
-  private[sql] def selectAllForChannel(channelId: Url.Videos.Channel.Id): Select[Video] =
-    tableSelect.select[Video](fr0"WHERE vi.channel_id=$channelId")
+  private[sql] def selectAllForChannel(channelId: Url.Videos.Channel.Id): Query.Select[Video] =
+    tableSelect.select[Video].where(fr0"vi.channel_id=$channelId")
 
-  private[sql] def selectAllForPlaylist(playlistId: Url.Videos.Playlist.Id): Select[Video] =
-    tableSelect.select[Video](fr0"WHERE vi.playlist_id=$playlistId")
+  private[sql] def selectAllForPlaylist(playlistId: Url.Videos.Playlist.Id): Query.Select[Video] =
+    tableSelect.select[Video].where(fr0"vi.playlist_id=$playlistId")
 
-  private[sql] def countChannelId(channelId: Url.Videos.Channel.Id): Select[Long] =
-    tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.channel_id=$channelId GROUP BY vi.channel_id", Sort("channel_id", "vi"))
+  private[sql] def countChannelId(channelId: Url.Videos.Channel.Id): Query.Select[Long] =
+    tableSelect.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vi.channel_id=$channelId GROUP BY vi.channel_id").sort(Table.Sort("channel_id", "vi"))
 
-  private[sql] def countPlaylistId(playlistId: Url.Videos.Playlist.Id): Select[Long] =
-    tableSelect.select[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE vi.playlist_id=$playlistId GROUP BY vi.playlist_id", Sort("playlist_id", "vi"))
+  private[sql] def countPlaylistId(playlistId: Url.Videos.Playlist.Id): Query.Select[Long] =
+    tableSelect.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vi.playlist_id=$playlistId GROUP BY vi.playlist_id").sort(Table.Sort("playlist_id", "vi"))
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

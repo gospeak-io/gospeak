@@ -6,8 +6,8 @@ import java.util.Locale
 
 import gospeak.core.domain._
 import gospeak.core.domain.utils.Constants
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Filter, Sort}
 import gospeak.libs.scala.domain._
+import gospeak.libs.sql.doobie.Table.{Filter, Sort}
 import io.circe.Encoder
 import play.api.data.{Form, FormError}
 import play.api.mvc.{AnyContent, Call, Flash}

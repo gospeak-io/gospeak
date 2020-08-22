@@ -11,14 +11,14 @@ import doobie.util.fragment.Fragment
 import gospeak.core.domain.Event.Rsvp.Answer
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
-import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils._
 import gospeak.core.services.storage.EventRepo
 import gospeak.infra.services.storage.sql.EventRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Sort, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
+import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
   override def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event] =
@@ -121,99 +121,101 @@ object EventRepoSql {
     .dropField(_.user_id("er")).get
     .dropFields(_.prefix == "gm")
 
-  private[sql] def insert(e: Event): Insert[Event] = {
+  private[sql] def insert(e: Event): Query.Insert[Event] = {
     val values = fr0"${e.id}, ${e.group}, ${e.cfp}, ${e.slug}, ${e.name}, ${e.kind}, ${e.start}, ${e.maxAttendee}, ${e.allowRsvp}, ${e.description}, ${e.orgaNotes.text}, ${e.orgaNotes.updatedAt}, ${e.orgaNotes.updatedBy}, ${e.venue}, ${e.talks}, ${e.tags}, ${e.published}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.event)}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, event: Event.Slug)(d: Event.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, event: Event.Slug)(d: Event.Data, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"cfp_id=${d.cfp}, slug=${d.slug}, name=${d.name}, kind=${d.kind}, start=${d.start}, max_attendee=${d.maxAttendee}, allow_rsvp=${d.allowRsvp}, description=${d.description}, venue=${d.venue}, tags=${d.tags}, meetupGroup=${d.refs.meetup.map(_.group)}, meetupEvent=${d.refs.meetup.map(_.event)}, updated_at=$now, updated_by=$by"
-    table.update(fields, where(group, event))
+    table.update(fields).where(where(group, event))
   }
 
-  private[sql] def updateDescription(event: Event.Id)(description: LiquidMarkdown[Message.EventInfo]): Update =
-    table.update(fr0"description=$description", fr0"WHERE e.id=$event")
+  private[sql] def updateDescription(event: Event.Id)(description: LiquidMarkdown[Message.EventInfo]): Query.Update =
+    table.update(fr0"description=$description").where(fr0"e.id=$event")
 
-  private[sql] def updateNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): Update =
-    table.update(fr0"orga_notes=$notes, orga_notes_updated_at=$now, orga_notes_updated_by=$by", where(group, event))
+  private[sql] def updateNotes(group: Group.Id, event: Event.Slug)(notes: String, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"orga_notes=$notes, orga_notes_updated_at=$now, orga_notes_updated_by=$by").where(where(group, event))
 
-  private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): Update =
-    table.update(fr0"cfp_id=$cfp, updated_at=$now, updated_by=$by", where(group, event))
+  private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"cfp_id=$cfp, updated_at=$now, updated_by=$by").where(where(group, event))
 
-  private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"talks=$talks, updated_at=$now, updated_by=$by", where(group, event))
+  private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"talks=$talks, updated_at=$now, updated_by=$by").where(where(group, event))
 
-  private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): Update =
-    table.update(fr0"published=$now, updated_at=$now, updated_by=$by", where(group, event))
+  private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"published=$now, updated_at=$now, updated_by=$by").where(where(group, event))
 
-  private[sql] def selectOne(event: Event.Id): Select[Event] =
-    table.selectOne[Event](fr0"WHERE e.id=$event")
+  private[sql] def selectOne(event: Event.Id): Query.Select[Event] =
+    table.select[Event].where(fr0"e.id=$event").one
 
-  private[sql] def selectOne(group: Group.Id, event: Event.Slug): Select[Event] =
-    table.selectOne[Event](where(group, event))
+  private[sql] def selectOne(group: Group.Id, event: Event.Slug): Query.Select[Event] =
+    table.select[Event].where(where(group, event)).one
 
-  private[sql] def selectOneFull(group: Group.Id, event: Event.Slug): Select[Event.Full] =
-    tableFull.selectOne[Event.Full](where(group, event))
+  private[sql] def selectOneFull(group: Group.Id, event: Event.Slug): Query.Select[Event.Full] =
+    tableFull.select[Event.Full].where(where(group, event)).one
 
-  private[sql] def selectOneFull(group: Group.Slug, event: Event.Slug)(implicit ctx: UserAwareCtx): Select[Event.Full] =
-    tableFull.selectOne[Event.Full](fr0"WHERE g.slug=$group AND e.slug=$event AND (e.published IS NOT NULL OR g.owners LIKE ${"%" + ctx.user.map(_.id).getOrElse("unknown") + "%"})")
+  private[sql] def selectOneFull(group: Group.Slug, event: Event.Slug)(implicit ctx: UserAwareCtx): Query.Select[Event.Full] =
+    tableFull.select[Event.Full].where(fr0"g.slug=$group AND e.slug=$event AND (e.published IS NOT NULL OR g.owners LIKE ${"%" + ctx.user.map(_.id).getOrElse("unknown") + "%"})").one
 
-  private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Select[Event.Full] =
-    tableFull.selectOne[Event.Full](fr0"WHERE e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL")
+  private[sql] def selectOnePublished(group: Group.Id, event: Event.Slug): Query.Select[Event.Full] =
+    tableFull.select[Event.Full].where(fr0"e.group_id=$group AND e.slug=$event AND e.published IS NOT NULL").one
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event, OrgaCtx] =
-    table.selectPage[Event, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Event] =
+    table.selectPage[Event](params, adapt(ctx)).where(fr0"e.group_id=${ctx.group.id}")
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event.Full, OrgaCtx] =
-    tableFull.selectPage[Event.Full, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id}")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Event.Full] =
+    tableFull.selectPage[Event.Full](params, adapt(ctx)).where(fr0"e.group_id=${ctx.group.id}")
 
-  private[sql] def selectAllPublishedSlugs()(implicit ctx: UserAwareCtx): Select[(Group.Id, Event.Slug)] =
-    table.select[(Group.Id, Event.Slug)](Seq(Field("group_id", "e"), Field("slug", "e")), fr0"WHERE e.published IS NOT NULL")
+  private[sql] def selectAllPublishedSlugs()(implicit ctx: UserAwareCtx): Query.Select[(Group.Id, Event.Slug)] =
+    table.select[(Group.Id, Event.Slug)].fields(Field("group_id", "e"), Field("slug", "e")).where(fr0"e.published IS NOT NULL")
 
-  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Event.Full, UserAwareCtx] =
-    tableFull.selectPage[Event.Full, UserAwareCtx](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
+  private[sql] def selectPagePublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Event.Full] =
+    tableFull.selectPage[Event.Full](params, adapt(ctx)).where(fr0"e.group_id=$group AND e.published IS NOT NULL")
 
-  private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Select[Event] =
-    table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Query.Select[Event] =
+    table.select[Event].where(Fragments.in(fr"e.id", ids))
 
-  private[sql] def selectAllFromGroups(groups: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Select[Event] =
-    table.select[Event](fr0"WHERE " ++ Fragments.in(fr"e.group_id", groups))
+  private[sql] def selectAllFromGroups(groups: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Query.Select[Event] =
+    table.select[Event].where(Fragments.in(fr"e.group_id", groups))
 
-  private[sql] def selectAll(group: Group.Id, venue: Venue.Id): Select[Event] =
-    table.select[Event](fr0"WHERE e.group_id=$group AND e.venue=$venue")
+  private[sql] def selectAll(group: Group.Id, venue: Venue.Id): Query.Select[Event] =
+    table.select[Event].where(fr0"e.group_id=$group AND e.venue=$venue")
 
-  private[sql] def selectAll(group: Group.Id, partner: Partner.Id): Select[(Event, Venue)] =
-    tableWithVenue.select[(Event, Venue)](fr0"WHERE e.group_id=$group AND v.partner_id=$partner")
+  private[sql] def selectAll(group: Group.Id, partner: Partner.Id): Query.Select[(Event, Venue)] =
+    tableWithVenue.select[(Event, Venue)].where(fr0"e.group_id=$group AND v.partner_id=$partner")
 
-  private[sql] def selectPageAfterFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Event.Full, OrgaCtx] =
-    tableFull.selectPage[Event.Full, OrgaCtx](params, fr0"WHERE e.group_id=${ctx.group.id} AND e.start > ${ctx.now.truncatedTo(ChronoUnit.DAYS)}")
+  private[sql] def selectPageAfterFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Event.Full] =
+    tableFull.selectPage[Event.Full](params, adapt(ctx)).where(fr0"e.group_id=${ctx.group.id} AND e.start > ${ctx.now.truncatedTo(ChronoUnit.DAYS)}")
 
-  private[sql] def selectPageIncoming(params: Page.Params)(implicit ctx: UserCtx): SelectPage[(Event.Full, Option[Event.Rsvp]), UserCtx] =
-    tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp]), UserCtx](params, fr0"WHERE e.start > ${ctx.now} AND e.published IS NOT NULL AND gm.user_id=${ctx.user.id}")
+  private[sql] def selectPageIncoming(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[(Event.Full, Option[Event.Rsvp])] =
+    tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp])](params, adapt(ctx)).where(fr0"e.start > ${ctx.now} AND e.published IS NOT NULL AND gm.user_id=${ctx.user.id}")
 
-  private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "e")))
+  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
+    table.select[Seq[Tag]].fields(Field("tags", "e"))
 
-  private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"WHERE e.group_id=$group AND e.slug=$event"
+  private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"e.group_id=$group AND e.slug=$event"
 
-  private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Select[Long] =
-    rsvpTable.selectOne[Long](Seq(Field("COUNT(*)", "")), fr0"WHERE er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer", Sort("event_id", "er"))
+  private[sql] def countRsvp(event: Event.Id, answer: Event.Rsvp.Answer): Query.Select[Long] =
+    rsvpTable.select[Long].fields(Field("COUNT(*)", "")).where(fr0"er.event_id=$event AND er.answer=$answer GROUP BY er.event_id, er.answer").sort(Table.Sort("event_id", "er")).one
 
-  private[sql] def insertRsvp(e: Event.Rsvp): Insert[Event.Rsvp] =
+  private[sql] def insertRsvp(e: Event.Rsvp): Query.Insert[Event.Rsvp] =
     rsvpTable.insert[Event.Rsvp](e, _ => fr0"${e.event}, ${e.user.id}, ${e.answer}, ${e.answeredAt}")
 
-  private[sql] def updateRsvp(event: Event.Id, user: User.Id, answer: Answer, now: Instant): Update =
-    rsvpTable.update(fr0"answer=$answer, answered_at=$now", fr0"WHERE er.event_id=$event AND er.user_id=$user")
+  private[sql] def updateRsvp(event: Event.Id, user: User.Id, answer: Answer, now: Instant): Query.Update =
+    rsvpTable.update(fr0"answer=$answer, answered_at=$now").where(fr0"er.event_id=$event AND er.user_id=$user")
 
-  private[sql] def selectAllRsvp(event: Event.Id): Select[Event.Rsvp] =
-    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event")
+  private[sql] def selectAllRsvp(event: Event.Id): Query.Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp].where(fr0"er.event_id=$event")
 
-  private[sql] def selectAllRsvp(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): Select[Event.Rsvp] =
-    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND " ++ Fragments.in(fr"er.answer", answers))
+  private[sql] def selectAllRsvp(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): Query.Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp].where(fr0"er.event_id=$event AND " ++ Fragments.in(fr"er.answer", answers))
 
-  private[sql] def selectOneRsvp(event: Event.Id, user: User.Id): Select[Event.Rsvp] =
-    rsvpTableWithUser.select[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.user_id=$user")
+  private[sql] def selectOneRsvp(event: Event.Id, user: User.Id): Query.Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp].where(fr0"er.event_id=$event AND er.user_id=$user")
 
-  private[sql] def selectFirstRsvp(event: Event.Id, answer: Answer): Select[Event.Rsvp] =
-    rsvpTableWithUser.selectOne[Event.Rsvp](fr0"WHERE er.event_id=$event AND er.answer=$answer", sort = Sort("answer", Field("answered_at", "er")))
+  private[sql] def selectFirstRsvp(event: Event.Id, answer: Answer): Query.Select[Event.Rsvp] =
+    rsvpTableWithUser.select[Event.Rsvp].where(fr0"er.event_id=$event AND er.answer=$answer").sort(Table.Sort("answer", Field("answered_at", "er"))).one
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

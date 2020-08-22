@@ -6,10 +6,10 @@ import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import gospeak.core.domain.{Comment, Event, Proposal}
 import gospeak.core.services.storage.CommentRepo
 import gospeak.infra.services.storage.sql.CommentRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Insert, Select}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.sql.doobie.Query
 
 class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CommentRepo {
   override def addComment(event: Event.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment] =
@@ -36,19 +36,19 @@ object CommentRepoSql {
     .flatMap(_.dropField(_.event_id))
     .flatMap(_.dropField(_.proposal_id)).get
 
-  private[sql] def insert(e: Event.Id, c: Comment): Insert[Comment] = {
+  private[sql] def insert(e: Event.Id, c: Comment): Query.Insert[Comment] = {
     val values = fr0"$e, ${Option.empty[Proposal.Id]}, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdAt}, ${c.createdBy}"
     table.insert(c, _ => values)
   }
 
-  private[sql] def insert(e: Proposal.Id, c: Comment): Insert[Comment] = {
+  private[sql] def insert(e: Proposal.Id, c: Comment): Query.Insert[Comment] = {
     val values = fr0"${Option.empty[Event.Id]}, $e, ${c.id}, ${c.kind}, ${c.answers}, ${c.text}, ${c.createdAt}, ${c.createdBy}"
     table.insert(c, _ => values)
   }
 
-  private[sql] def selectAll(event: Event.Id, kind: Comment.Kind): Select[Comment.Full] =
-    tableFull.select[Comment.Full](fr0"WHERE co.event_id=$event AND co.kind=$kind")
+  private[sql] def selectAll(event: Event.Id, kind: Comment.Kind): Query.Select[Comment.Full] =
+    tableFull.select[Comment.Full].where(fr0"co.event_id=$event AND co.kind=$kind")
 
-  private[sql] def selectAll(proposal: Proposal.Id, kind: Comment.Kind): Select[Comment.Full] =
-    tableFull.select[Comment.Full](fr0"WHERE co.proposal_id=$proposal AND co.kind=$kind")
+  private[sql] def selectAll(proposal: Proposal.Id, kind: Comment.Kind): Query.Select[Comment.Full] =
+    tableFull.select[Comment.Full].where(fr0"co.proposal_id=$proposal AND co.kind=$kind")
 }

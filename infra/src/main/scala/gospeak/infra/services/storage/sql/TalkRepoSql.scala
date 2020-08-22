@@ -7,15 +7,15 @@ import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import gospeak.core.domain.utils.UserCtx
+import gospeak.core.domain.utils.{BasicCtx, UserCtx}
 import gospeak.core.domain.{Cfp, Talk, User}
 import gospeak.core.services.storage.TalkRepo
 import gospeak.infra.services.storage.sql.TalkRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, SelectPage, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
+import gospeak.libs.sql.doobie.{DbCtx, Field, Query}
 
 class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with TalkRepo {
   override def create(data: Talk.Data)(implicit ctx: UserCtx): IO[Talk] =
@@ -94,60 +94,62 @@ object TalkRepoSql {
   private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.talks
 
-  private[sql] def insert(e: Talk): Insert[Talk] = {
+  private[sql] def insert(e: Talk): Query.Insert[Talk] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert(e, _ => values)
   }
 
-  private[sql] def update(talk: Talk.Slug)(d: Talk.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(talk: Talk.Slug)(d: Talk.Data, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"slug=${d.slug}, title=${d.title}, duration=${d.duration}, description=${d.description}, message=${d.message}, slides=${d.slides}, video=${d.video}, tags=${d.tags}, updated_at=$now, updated_by=$by"
-    table.update(fields, where(by, talk))
+    table.update(fields).where(where(by, talk))
   }
 
-  private[sql] def updateStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): Update =
-    table.update(fr0"status=$status", where(by, talk))
+  private[sql] def updateStatus(talk: Talk.Slug)(status: Talk.Status, by: User.Id): Query.Update =
+    table.update(fr0"status=$status").where(where(by, talk))
 
-  private[sql] def updateSlides(talk: Talk.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(by, talk))
+  private[sql] def updateSlides(talk: Talk.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(by, talk))
 
-  private[sql] def updateVideo(talk: Talk.Slug)(video: Url.Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(by, talk))
+  private[sql] def updateVideo(talk: Talk.Slug)(video: Url.Video, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(by, talk))
 
-  private[sql] def updateSpeakers(talk: Talk.Slug)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by", where(by, talk))
+  private[sql] def updateSpeakers(talk: Talk.Slug)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by").where(where(by, talk))
 
-  private[sql] def selectOne(talk: Talk.Id): Select[Talk] =
-    table.select[Talk](fr0"WHERE t.id=$talk")
+  private[sql] def selectOne(talk: Talk.Id): Query.Select[Talk] =
+    table.select[Talk].where(fr0"t.id=$talk")
 
-  private[sql] def selectOne(talk: Talk.Slug): Select[Talk] =
-    table.select[Talk](fr0"WHERE t.slug=$talk")
+  private[sql] def selectOne(talk: Talk.Slug): Query.Select[Talk] =
+    table.select[Talk].where(fr0"t.slug=$talk")
 
-  private[sql] def selectOne(user: User.Id, talk: Talk.Slug): Select[Talk] =
-    table.select[Talk](where(user, talk))
+  private[sql] def selectOne(user: User.Id, talk: Talk.Slug): Query.Select[Talk] =
+    table.select[Talk].where(where(user, talk))
 
-  private[sql] def selectOne(user: User.Id, talk: Talk.Slug, status: Talk.Status): Select[Talk] =
-    table.selectOne[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk AND t.status=$status")
+  private[sql] def selectOne(user: User.Id, talk: Talk.Slug, status: Talk.Status): Query.Select[Talk] =
+    table.select[Talk].where(fr0"t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk AND t.status=$status").one
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] =
-    table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Talk] =
+    table.selectPage[Talk](params, adapt(ctx)).where(fr0"t.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectAll(user: User.Id, status: Talk.Status): Select[Talk] =
-    table.select[Talk](fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
+  private[sql] def selectAll(user: User.Id, status: Talk.Status): Query.Select[Talk] =
+    table.select[Talk].where(fr0"t.speakers LIKE ${"%" + user.value + "%"} AND t.status=$status")
 
-  private[sql] def selectAllPublicSlugs(): Select[(Talk.Slug, NonEmptyList[User.Id])] =
-    table.select[(Talk.Slug, NonEmptyList[User.Id])](Seq(Field("slug", "t"), Field("speakers", "t")), fr0"WHERE t.status=${Talk.Status.Public: Talk.Status}")
+  private[sql] def selectAllPublicSlugs(): Query.Select[(Talk.Slug, NonEmptyList[User.Id])] =
+    table.select[(Talk.Slug, NonEmptyList[User.Id])].fields(Field("slug", "t"), Field("speakers", "t")).where(fr0"t.status=${Talk.Status.Public: Talk.Status}")
 
-  private[sql] def selectPage(status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] =
-    table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
+  private[sql] def selectPage(status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Talk] =
+    table.selectPage[Talk](params, adapt(ctx)).where(fr0"t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND " ++ Fragments.in(fr"t.status", status))
 
-  private[sql] def selectPage(cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): SelectPage[Talk, UserCtx] = {
-    val cfpTalks = Tables.proposals.select[Talk.Id](Seq(Field("talk_id", "p")), fr0"WHERE p.cfp_id=$cfp").fr
-    table.selectPage[Talk, UserCtx](params, fr0"WHERE t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
+  private[sql] def selectPage(cfp: Cfp.Id, status: NonEmptyList[Talk.Status], params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Talk] = {
+    val cfpTalks = Tables.proposals.select[Talk.Id].fields(Field("talk_id", "p")).where(fr0"p.cfp_id=$cfp").fr
+    table.selectPage[Talk](params, adapt(ctx)).where(fr0"t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
   }
 
-  private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "t")))
+  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
+    table.select[Seq[Tag]].fields(Field("tags", "t"))
 
   private def where(user: User.Id, talk: Talk.Slug): Fragment =
-    fr0"WHERE t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk"
+    fr0"t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk"
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

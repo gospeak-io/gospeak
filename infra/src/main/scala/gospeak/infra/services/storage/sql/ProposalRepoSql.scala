@@ -8,14 +8,14 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain._
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ProposalRepo
 import gospeak.infra.services.storage.sql.ProposalRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils._
-import gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
+import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
+import gospeak.libs.sql.doobie.{CustomField, DbCtx, Field, Query, Table}
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal] =
@@ -175,28 +175,28 @@ object ProposalRepoSql {
     .addField(CustomField(fr0"(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", "score"))
     .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Like: Proposal.Rating.Grade})", "likes"))
     .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Dislike: Proposal.Rating.Grade})", "dislikes"))
-    .copy(filters = Seq(
-      Filter.Enum.fromEnum("status", "Status", "p.status", Seq(
+    .copy(filters = List(
+      Table.Filter.Enum.fromEnum("status", "Status", "p.status", Seq(
         "pending" -> Proposal.Status.Pending.value,
         "accepted" -> Proposal.Status.Accepted.value,
         "declined" -> Proposal.Status.Declined.value)),
-      Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
-      Filter.Bool.fromNullable("video", "With video", "p.video"),
-      Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)"),
-      Filter.Value.fromField("tags", "With tag", "p.tags"),
-      Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags")))
+      Table.Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
+      Table.Filter.Bool.fromNullable("video", "With video", "p.video"),
+      Table.Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)"),
+      Table.Filter.Value.fromField("tags", "With tag", "p.tags"),
+      Table.Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags")))
     .setSorts(
-      Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", ""), Field("-created_at", "p")),
-      Sort("title", Field("LOWER(p.title)", "")),
-      Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
-      Sort("created", Field("-created_at", "p")),
-      Sort("updated", Field("-updated_at", "p")))
+      Table.Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", ""), Field("-created_at", "p")),
+      Table.Sort("title", Field("LOWER(p.title)", "")),
+      Table.Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
+      Table.Sort("created", Field("-created_at", "p")),
+      Table.Sort("updated", Field("-updated_at", "p")))
 
   private def userGrade(user: User) = fr0"(SELECT grade FROM proposal_ratings WHERE created_by=${user.id} AND proposal_id=p.id)"
 
-  private def tableFull(user: Option[User]): DoobieUtils.Table = tableFullBase.addField(CustomField(user.map(userGrade).getOrElse(fr0"null"), "user_grade"))
+  private def tableFull(user: Option[User]): Table = tableFullBase.addField(CustomField(user.map(userGrade).getOrElse(fr0"null"), "user_grade"))
 
-  private def tableFull(user: User): DoobieUtils.Table = tableFull(Some(user))
+  private def tableFull(user: User): Table = tableFull(Some(user))
 
   private val ratingTableFull = ratingTable
     .join(Tables.users, _.created_by -> _.id).get
@@ -207,143 +207,145 @@ object ProposalRepoSql {
     .dropFields(_.prefix == table.prefix)
     .dropFields(_.prefix == Tables.cfps.prefix)
 
-  private[sql] def insert(e: Proposal): Insert[Proposal] = {
+  private[sql] def insert(e: Proposal): Query.Insert[Proposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.orgaTags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Proposal](e, _ => values)
   }
 
-  private[sql] def insert(e: Proposal.Rating): Insert[Proposal.Rating] =
+  private[sql] def insert(e: Proposal.Rating): Query.Insert[Proposal.Rating] =
     ratingTable.insert[Proposal.Rating](e, _ => fr0"${e.proposal}, ${e.grade.value}, ${e.createdAt}, ${e.createdBy}")
 
-  private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.DataOrga, now: Instant): Update = {
+  private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.DataOrga, now: Instant): Query.Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, orga_tags=${data.orgaTags}, updated_at=$now, updated_by=$orga"
-    table.update(fields, where(orga, group, cfp, proposal))
+    table.update(fields).where(where(orga, group, cfp, proposal))
   }
 
-  private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Update = {
+  private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Query.Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, message=${data.message}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$speaker"
-    table.update(fields, where(speaker, talk, cfp))
+    table.update(fields).where(where(speaker, talk, cfp))
   }
 
-  private[sql] def update(e: Proposal.Rating): Update =
-    ratingTable.update(fr"grade=${e.grade.value}, created_at=${e.createdAt}", fr0"WHERE pr.proposal_id=${e.proposal} AND pr.created_by=${e.createdBy}")
+  private[sql] def update(e: Proposal.Rating): Query.Update =
+    ratingTable.update(fr"grade=${e.grade.value}, created_at=${e.createdAt}").where(fr0"pr.proposal_id=${e.proposal} AND pr.created_by=${e.createdBy}")
 
-  private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Update =
-    table.update(fr0"status=$status, event_id=$event", where(cfp, id))
+  private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Query.Update =
+    table.update(fr0"status=$status, event_id=$event").where(where(cfp, id))
 
-  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(cfp, id))
+  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(cfp, id))
 
-  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Update =
-    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
+  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
 
-  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Url.Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(cfp, id))
+  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Url.Video, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(cfp, id))
 
-  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Url.Video, by: User.Id, now: Instant): Update =
-    table.update(fr0"video=$video, updated_at=$now, updated_by=$by", where(speaker, talk, cfp))
+  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Url.Video, by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
 
-  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: Seq[Tag], by: User.Id, now: Instant): Update =
-    table.update(fr0"orga_tags=$orgaTags", where(cfp, id))
+  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: Seq[Tag], by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"orga_tags=$orgaTags").where(where(cfp, id))
 
-  private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by", fr0"WHERE p.id=$id")
+  private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by").where(fr0"p.id=$id")
 
-  private[sql] def selectOne(id: Proposal.Id): Select[Proposal] =
-    table.select[Proposal](where(id))
+  private[sql] def selectOne(id: Proposal.Id): Query.Select[Proposal] =
+    table.select[Proposal].where(where(id))
 
-  private[sql] def selectOne(cfp: Cfp.Slug, id: Proposal.Id): Select[Proposal] =
-    table.select[Proposal](where(cfp, id))
+  private[sql] def selectOne(cfp: Cfp.Slug, id: Proposal.Id): Query.Select[Proposal] =
+    table.select[Proposal].where(where(cfp, id))
 
-  private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Select[Proposal] =
-    table.select[Proposal](where(speaker, talk, cfp))
+  private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Query.Select[Proposal] =
+    table.select[Proposal].where(where(speaker, talk, cfp))
 
-  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](where(cfp, id))
+  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(where(cfp, id))
 
-  private[sql] def selectOneFull(id: Proposal.Id)(implicit ctx: UserCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE p.id=$id")
+  private[sql] def selectOneFull(id: Proposal.Id)(implicit ctx: UserCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(fr0"p.id=$id")
 
-  private[sql] def selectOneFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+  private[sql] def selectOneFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(fr0"t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id)(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE c.group_id=$group AND p.id=$id AND e.published IS NOT NULL")
+  private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id)(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(fr0"c.group_id=$group AND p.id=$id AND e.published IS NOT NULL")
 
-  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full, OrgaCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, OrgaCtx](params, fr0"WHERE c.slug=$cfp")
+  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.slug=$cfp")
 
-  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full, OrgaCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, OrgaCtx](params, fr0"WHERE c.slug=$cfp AND p.status=$status")
+  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.slug=$cfp AND p.status=$status")
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full, OrgaCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, OrgaCtx](params, fr0"WHERE c.group_id=${ctx.group.id}")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.group_id=${ctx.group.id}")
 
-  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Proposal.Full, OrgaCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, OrgaCtx](params, fr0"WHERE c.group_id=${ctx.group.id} AND p.speakers LIKE ${"%" + speaker.value + "%"}")
+  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.group_id=${ctx.group.id} AND p.speakers LIKE ${"%" + speaker.value + "%"}")
 
-  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full, UserCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, UserCtx](params, fr0"WHERE p.talk_id=$talk")
+  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"p.talk_id=$talk")
 
-  private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Proposal.Full, UserCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, UserCtx](params, fr0"WHERE p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+  private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectAllPublicIds()(implicit ctx: UserAwareCtx): Select[(Group.Id, Proposal.Id)] =
-    tableWithEvent.select[(Group.Id, Proposal.Id)](Seq(Field("group_id", "e"), Field("id", "p")), fr0"WHERE e.published IS NOT NULL")
+  private[sql] def selectAllPublicIds()(implicit ctx: UserAwareCtx): Query.Select[(Group.Id, Proposal.Id)] =
+    tableWithEvent.select[(Group.Id, Proposal.Id)].fields(Field("group_id", "e"), Field("id", "p")).where(fr0"e.published IS NOT NULL")
 
-  private[sql] def selectAllFullPublic(speaker: User.Id)(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL", Sort("created", Field("-created_at", "p")))
+  private[sql] def selectAllFullPublic(speaker: User.Id)(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(fr0"p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL").sort(Table.Sort("created", Field("-created_at", "p")))
 
-  private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Proposal.Full, UserAwareCtx] =
-    tableFull(ctx.user).selectPage[Proposal.Full, UserAwareCtx](params, fr0"WHERE e.group_id=$group AND e.published IS NOT NULL")
+  private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Proposal.Full] =
+    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"e.group_id=$group AND e.published IS NOT NULL")
 
-  private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
-    table.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Query.Select[Proposal] =
+    table.select[Proposal].where(Fragments.in(fr"id", ids))
 
-  private[sql] def selectAllFull(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids))
+  private[sql] def selectAllFull(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids))
 
-  private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Select[Proposal] =
-    tableWithEvent.select[Proposal](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+  private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Query.Select[Proposal] =
+    tableWithEvent.select[Proposal].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
-  private[sql] def selectAllFullPublic(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full](fr0"WHERE " ++ Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+  private[sql] def selectAllFullPublic(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
+    tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
-  private[sql] def selectTags(): Select[Seq[Tag]] =
-    table.select[Seq[Tag]](Seq(Field("tags", "p")))
+  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
+    table.select[Seq[Tag]].fields(Field("tags", "p"))
 
-  private[sql] def selectOrgaTags(group: Group.Id): Select[Seq[Tag]] =
-    tableWithCfp.select[Seq[Tag]](Seq(Field("orga_tags", "p")), fr0"WHERE c.group_id=$group")
+  private[sql] def selectOrgaTags(group: Group.Id): Query.Select[Seq[Tag]] =
+    tableWithCfp.select[Seq[Tag]].fields(Field("orga_tags", "p")).where(fr0"c.group_id=$group")
 
-  private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Select[Proposal.Rating] =
-    ratingTable.select[Proposal.Rating](fr0"WHERE pr.proposal_id=$id AND pr.created_by=$user")
+  private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Query.Select[Proposal.Rating] =
+    ratingTable.select[Proposal.Rating].where(fr0"pr.proposal_id=$id AND pr.created_by=$user")
 
-  private[sql] def selectAllRatings(id: Proposal.Id): Select[Proposal.Rating.Full] =
-    ratingTableFull.select[Proposal.Rating.Full](fr0"WHERE pr.proposal_id=$id")
+  private[sql] def selectAllRatings(id: Proposal.Id): Query.Select[Proposal.Rating.Full] =
+    ratingTableFull.select[Proposal.Rating.Full].where(fr0"pr.proposal_id=$id")
 
-  private[sql] def selectAllRatings(cfp: Cfp.Slug, user: User.Id): Select[Proposal.Rating] =
-    ratingTableWithProposalCfp.select[Proposal.Rating](fr0"WHERE c.slug=$cfp AND pr.created_by=$user")
+  private[sql] def selectAllRatings(cfp: Cfp.Slug, user: User.Id): Query.Select[Proposal.Rating] =
+    ratingTableWithProposalCfp.select[Proposal.Rating].where(fr0"c.slug=$cfp AND pr.created_by=$user")
 
-  private[sql] def selectAllRatings(user: User.Id, proposals: NonEmptyList[Proposal.Id]): Select[Proposal.Rating] =
-    ratingTable.select[Proposal.Rating](fr0"WHERE " ++ Fragments.in(fr"pr.proposal_id", proposals) ++ fr0"AND pr.created_by=$user")
+  private[sql] def selectAllRatings(user: User.Id, proposals: NonEmptyList[Proposal.Id]): Query.Select[Proposal.Rating] =
+    ratingTable.select[Proposal.Rating].where(Fragments.in(fr"pr.proposal_id", proposals) ++ fr0"AND pr.created_by=$user")
 
   private def where(id: Proposal.Id): Fragment =
-    fr0"WHERE p.id=$id"
+    fr0"p.id=$id"
 
   private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
-    fr0"WHERE p.id=(SELECT p.id FROM " ++ table.value ++
+    fr0"p.id=(SELECT p.id FROM " ++ table.value ++
       fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
-    fr0"WHERE p.id=(SELECT p.id FROM " ++ table.value ++
+    fr0"p.id=(SELECT p.id FROM " ++ table.value ++
       fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" INNER JOIN " ++ Tables.groups.value ++ fr0" ON c.group_id=g.id" ++
       fr0" WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
-    fr0"WHERE p.id=(SELECT p.id FROM " ++ table.value ++
+    fr0"p.id=(SELECT p.id FROM " ++ table.value ++
       fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" INNER JOIN " ++ Tables.talks.value ++ fr0" ON p.talk_id=t.id" ++
       fr0" WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }
