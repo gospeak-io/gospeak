@@ -12,10 +12,10 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils._
 import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.storage.sql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Delete, Insert, Select, SelectPage, Update}
 import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Page, Tag, Url}
+import gospeak.libs.sql.doobie.Query
 import org.scalatest.BeforeAndAfterEach
 
 class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
@@ -118,27 +118,27 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
 
   protected def mapFields(fields: String, f: String => String): String = RepoSpec.mapFields(fields, f)
 
-  protected def check[A](q: Insert[A], req: String): Unit = {
+  protected def check[A](q: Query.Insert[A], req: String): Unit = {
     q.fr.update.sql shouldBe req
     check(q.fr.update)
   }
 
-  protected def check(q: Update, req: String): Unit = {
+  protected def check(q: Query.Update, req: String): Unit = {
     q.fr.update.sql shouldBe req
     check(q.fr.update)
   }
 
-  protected def check(q: Delete, req: String): Unit = {
+  protected def check(q: Query.Delete, req: String): Unit = {
     q.fr.update.sql shouldBe req
     check(q.fr.update)
   }
 
-  protected def check[A](q: Select[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+  protected def check[A](q: Query.Select[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     q.fr.query.sql shouldBe req
     check(q.query)
   }
 
-  protected def check[A, C <: BasicCtx](q: SelectPage[A, C], req: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+  protected def check[A](q: Query.SelectPage[A], req: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     q.fr.query.sql shouldBe req
     check(q.query)
     if (checkCount) {

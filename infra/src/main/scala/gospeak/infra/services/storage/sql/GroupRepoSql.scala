@@ -6,15 +6,15 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
 import doobie.implicits._
-import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.GroupRepo
 import gospeak.infra.services.storage.sql.GroupRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils._
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Done, Page, Tag}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Query}
 import org.slf4j.LoggerFactory
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
@@ -132,82 +132,84 @@ object GroupRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT gm.user_id), 0)", "memberCount")
     .aggregate("COALESCE(COUNT(DISTINCT p.id), 0)", "proposalCount")
     .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
-    .copy(fields = Seq("id", "slug", "name").map(Field(_, "g")))
+    .copy(fields = List("id", "slug", "name").map(Field(_, "g")))
 
-  private[sql] def insert(e: Group): Insert[Group] = {
+  private[sql] def insert(e: Group): Query.Insert[Group] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.name}, ${e.logo}, ${e.banner}, ${e.contact}, ${e.website}, ${e.description}, ${e.location}, ${e.location.map(_.id)}, ${e.location.map(_.geo.lat)}, ${e.location.map(_.geo.lng)}, ${e.location.flatMap(_.locality)}, ${e.location.map(_.country)}, ${e.owners}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.tags}, ${e.status}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Group](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Slug)(d: Group.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Slug)(d: Group.Data, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"slug=${d.slug}, name=${d.name}, logo=${d.logo}, banner=${d.banner}, contact=${d.contact}, website=${d.website}, description=${d.description}, location=${d.location}, location_id=${d.location.map(_.id)}, location_lat=${d.location.map(_.geo.lat)}, location_lng=${d.location.map(_.geo.lng)}, location_locality=${d.location.flatMap(_.locality)}, location_country=${d.location.map(_.country)}, " ++
       fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
       fr0"tags=${d.tags}, updated_at=$now, updated_by=$by"
-    table.update(fields, fr0"WHERE g.slug=$group")
+    table.update(fields).where(fr0"g.slug=$group")
   }
 
-  private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Update =
-    table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by", fr0"WHERE g.id=$group")
+  private[sql] def updateOwners(group: Group.Id)(owners: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update =
+    table.update(fr0"owners=$owners, updated_at=$now, updated_by=$by").where(fr0"g.id=$group")
 
-  private[sql] def selectAllSlugs()(implicit ctx: UserAwareCtx): Select[(Group.Id, Group.Slug)] =
-    table.select[(Group.Id, Group.Slug)](Seq(Field("id", "g"), Field("slug", "g")))
+  private[sql] def selectAllSlugs()(implicit ctx: UserAwareCtx): Query.Select[(Group.Id, Group.Slug)] =
+    table.select[(Group.Id, Group.Slug)].fields(Field("id", "g"), Field("slug", "g"))
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: AdminCtx): SelectPage[Group, AdminCtx] =
-    tableSelect.selectPage[Group, AdminCtx](params)
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: AdminCtx): Query.SelectPage[Group] =
+    tableSelect.selectPage[Group](params, adapt(ctx))
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Full, UserAwareCtx] =
-    tableFull.selectPage[Group.Full, UserAwareCtx](params)
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Group.Full] =
+    tableFull.selectPage[Group.Full](params, adapt(ctx))
 
-  private[sql] def selectPageJoinable(params: Page.Params)(implicit ctx: UserCtx): SelectPage[Group, UserCtx] =
-    tableSelect.selectPage[Group, UserCtx](params, fr0"WHERE g.owners NOT LIKE ${"%" + ctx.user.id.value + "%"}")
+  private[sql] def selectPageJoinable(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Group] =
+    tableSelect.selectPage[Group](params, adapt(ctx)).where(fr0"g.owners NOT LIKE ${"%" + ctx.user.id.value + "%"}")
 
-  private[sql] def selectPageJoined(params: Page.Params)(implicit ctx: UserCtx): SelectPage[(Group, Group.Member), UserCtx] =
-    tableWithMember.selectPage[(Group, Group.Member), UserCtx](params, fr0"WHERE gm.user_id=${ctx.user.id}")
+  private[sql] def selectPageJoined(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[(Group, Group.Member)] =
+    tableWithMember.selectPage[(Group, Group.Member)](params, adapt(ctx)).where(fr0"gm.user_id=${ctx.user.id}")
 
-  private[sql] def selectAll(user: User.Id): Select[Group] =
-    tableSelect.select[Group](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
+  private[sql] def selectAll(user: User.Id): Query.Select[Group] =
+    tableSelect.select[Group].where(fr0"g.owners LIKE ${"%" + user.value + "%"}")
 
-  private[sql] def selectAllFull(user: User.Id): Select[Group.Full] =
-    tableFull.select[Group.Full](fr0"WHERE g.owners LIKE ${"%" + user.value + "%"}")
+  private[sql] def selectAllFull(user: User.Id): Query.Select[Group.Full] =
+    tableFull.select[Group.Full].where(fr0"g.owners LIKE ${"%" + user.value + "%"}")
 
-  private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Select[Group] =
-    tableSelect.select[Group](fr0"WHERE " ++ Fragments.in(fr"g.id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[Group.Id]): Query.Select[Group] =
+    tableSelect.select[Group].where(Fragments.in(fr"g.id", ids))
 
-  private[sql] def selectOne(group: Group.Id): Select[Group] =
-    tableSelect.select[Group](fr0"WHERE g.id=$group")
+  private[sql] def selectOne(group: Group.Id): Query.Select[Group] =
+    tableSelect.select[Group].where(fr0"g.id=$group")
 
-  private[sql] def selectOne(group: Group.Slug): Select[Group] =
-    tableSelect.select[Group](fr0"WHERE g.slug=$group")
+  private[sql] def selectOne(group: Group.Slug): Query.Select[Group] =
+    tableSelect.select[Group].where(fr0"g.slug=$group")
 
-  private[sql] def selectOneFull(group: Group.Slug): Select[Group.Full] =
-    tableFull.select[Group.Full](fr0"WHERE g.slug=$group")
+  private[sql] def selectOneFull(group: Group.Slug): Query.Select[Group.Full] =
+    tableFull.select[Group.Full].where(fr0"g.slug=$group")
 
-  private[sql] def selectStats(group: Group.Slug): Select[Group.Stats] =
-    statTable.select[Group.Stats](fr0"WHERE g.slug=$group")
+  private[sql] def selectStats(group: Group.Slug): Query.Select[Group.Stats] =
+    statTable.select[Group.Stats].where(fr0"g.slug=$group")
 
-  private[sql] def selectTags(): Select[Seq[Tag]] =
-    tableSelect.select[Seq[Tag]](Seq(Field("tags", "g")))
+  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
+    tableSelect.select[Seq[Tag]].fields(Field("tags", "g"))
 
-  private[sql] def insertMember(m: Group.Member): Insert[Group.Member] =
+  private[sql] def insertMember(m: Group.Member): Query.Insert[Group.Member] =
     memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")
 
-  private[sql] def disableMember(m: Group.Member, now: Instant): Update =
-    memberTable.update(fr0"leaved_at=$now", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+  private[sql] def disableMember(m: Group.Member, now: Instant): Query.Update =
+    memberTable.update(fr0"leaved_at=$now").where(fr0"gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
 
-  private[sql] def enableMember(m: Group.Member, now: Instant): Update =
-    memberTable.update(fr0"joined_at=$now, leaved_at=${Option.empty[Instant]}", fr0"WHERE gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
+  private[sql] def enableMember(m: Group.Member, now: Instant): Query.Update =
+    memberTable.update(fr0"joined_at=$now, leaved_at=${Option.empty[Instant]}").where(fr0"gm.group_id=${m.group} AND gm.user_id=${m.user.id}")
 
-  private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): SelectPage[Group.Member, UserAwareCtx] =
-    memberTableWithUser.selectPage[Group.Member, UserAwareCtx](params, fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
+  private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Group.Member] =
+    memberTableWithUser.selectPage[Group.Member](params, adapt(ctx)).where(fr0"gm.group_id=$group AND gm.leaved_at IS NULL")
 
-  private[sql] def selectAllActiveMembers(group: Group.Id): Select[Group.Member] =
-    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.leaved_at IS NULL")
+  private[sql] def selectAllActiveMembers(group: Group.Id): Query.Select[Group.Member] =
+    memberTableWithUser.select[Group.Member].where(fr0"gm.group_id=$group AND gm.leaved_at IS NULL")
 
-  private[sql] def selectOneMember(group: Group.Id, user: User.Id): Select[Group.Member] =
-    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user")
+  private[sql] def selectOneMember(group: Group.Id, user: User.Id): Query.Select[Group.Member] =
+    memberTableWithUser.select[Group.Member].where(fr0"gm.group_id=$group AND gm.user_id=$user")
 
-  private[sql] def selectOneActiveMember(group: Group.Id, user: User.Id): Select[Group.Member] =
-    memberTableWithUser.select(fr0"WHERE gm.group_id=$group AND gm.user_id=$user AND gm.leaved_at IS NULL")
+  private[sql] def selectOneActiveMember(group: Group.Id, user: User.Id): Query.Select[Group.Member] =
+    memberTableWithUser.select[Group.Member].where(fr0"gm.group_id=$group AND gm.user_id=$user AND gm.leaved_at IS NULL")
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

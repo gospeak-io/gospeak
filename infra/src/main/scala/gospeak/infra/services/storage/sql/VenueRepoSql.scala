@@ -8,14 +8,14 @@ import doobie.Fragments
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain._
-import gospeak.core.domain.utils.OrgaCtx
+import gospeak.core.domain.utils.{BasicCtx, OrgaCtx}
 import gospeak.core.services.storage.VenueRepo
 import gospeak.infra.services.storage.sql.VenueRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils._
-import gospeak.infra.services.storage.sql.utils.{DoobieUtils, GenericRepo}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
+import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Markdown, Page}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                    partnerRepo: PartnerRepoSql,
@@ -83,77 +83,78 @@ object VenueRepoSql {
   private val tableFull = tableWithPartner
     .joinOpt(Tables.contacts, _.contact_id -> _.id).get
 
-  private def publicTableFull(group: Group.Id): DoobieUtils.Table = tableSelect
+  private def publicTableFull(group: Group.Id): Table = tableSelect
     .join(Tables.partners, _.partner_id -> _.id).get
     .join(Tables.groups, fr0"g.id != $group", _.group_id("pa") -> _.id).get.dropFields(_.name.startsWith("location_"))
     .join(Tables.events, fr0"e.venue=v.id AND e.published IS NOT NULL", _.id("g") -> _.group_id).get
     .aggregate("MAX(v.id)", "id")
     .aggregate("COALESCE(COUNT(e.id), 0)", "events")
-    .copy(fields = Seq(Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))
-    .setSorts(Sort("name", "pa"))
+    .copy(fields = List(Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v")))
+    .setSorts(Table.Sort("name", "pa"))
 
-  private[sql] def insert(e: Venue): Insert[Venue] = {
+  private[sql] def insert(e: Venue): Query.Insert[Venue] = {
     val values = fr0"${e.id}, ${e.partner}, ${e.contact}, ${e.address}, ${e.address.id}, ${e.address.geo.lat}, ${e.address.geo.lng}, ${e.address.locality}, ${e.address.country}, ${e.notes}, ${e.roomSize}, ${e.refs.meetup.map(_.group)}, ${e.refs.meetup.map(_.venue)}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     table.insert[Venue](e, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, venue: Venue.Id)(data: Venue.Data, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"contact_id=${data.contact}, address=${data.address}, address_id=${data.address.id}, address_lat=${data.address.geo.lat}, address_lng=${data.address.geo.lng}, address_locality=${data.address.locality}, address_country=${data.address.country}, notes=${data.notes}, room_size=${data.roomSize}, meetupGroup=${data.refs.meetup.map(_.group)}, meetupVenue=${data.refs.meetup.map(_.venue)}, updated_at=$now, updated_by=$by"
-    table.update(fields, where(group, venue))
+    table.update(fields).where(where(group, venue))
   }
 
-  private[sql] def delete(group: Group.Id, venue: Venue.Id): Delete =
-    table.delete(where(group, venue))
+  private[sql] def delete(group: Group.Id, venue: Venue.Id): Query.Delete =
+    table.delete.where(where(group, venue))
 
-  private[sql] def selectOneFull(id: Venue.Id): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr0"WHERE v.id=$id")
+  private[sql] def selectOneFull(id: Venue.Id): Query.Select[Venue.Full] =
+    tableFull.select[Venue.Full].where(fr0"v.id=$id")
 
-  private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group AND v.id=$id")
+  private[sql] def selectOneFull(group: Group.Id, id: Venue.Id): Query.Select[Venue.Full] =
+    tableFull.select[Venue.Full].where(fr0"pa.group_id=$group AND v.id=$id")
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Full, OrgaCtx] =
-    tableFull.selectPage[Venue.Full, OrgaCtx](params, fr0"WHERE pa.group_id=${ctx.group.id}")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Venue.Full] =
+    tableFull.selectPage[Venue.Full](params, adapt(ctx)).where(fr0"pa.group_id=${ctx.group.id}")
 
-  private[sql] def selectAllFull(group: Group.Id): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group")
+  private[sql] def selectAllFull(group: Group.Id): Query.Select[Venue.Full] =
+    tableFull.select[Venue.Full].where(fr0"pa.group_id=$group")
 
-  private[sql] def selectAllFull(partner: Partner.Id): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr0"WHERE v.partner_id=$partner")
+  private[sql] def selectAllFull(partner: Partner.Id): Query.Select[Venue.Full] =
+    tableFull.select[Venue.Full].where(fr0"v.partner_id=$partner")
 
-  private[sql] def selectAllFull(group: Group.Id, ids: NonEmptyList[Venue.Id]): Select[Venue.Full] =
-    tableFull.select[Venue.Full](fr0"WHERE pa.group_id=$group AND " ++ Fragments.in(fr"v.id", ids))
+  private[sql] def selectAllFull(group: Group.Id, ids: NonEmptyList[Venue.Id]): Query.Select[Venue.Full] =
+    tableFull.select[Venue.Full].where(fr0"pa.group_id=$group AND " ++ Fragments.in(fr"v.id", ids))
 
-  private[sql] def selectAll(group: Group.Id, contact: Contact.Id): Select[Venue] =
-    tableSelect.select[Venue](fr0"WHERE v.contact_id=$contact")
+  private[sql] def selectAll(group: Group.Id, contact: Contact.Id): Query.Select[Venue] =
+    tableSelect.select[Venue].where(fr0"v.contact_id=$contact")
 
-  private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Public, OrgaCtx] =
-    publicTableFull(ctx.group.id).selectPage[Venue.Public, OrgaCtx](params)
+  private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Venue.Public] =
+    publicTableFull(ctx.group.id).selectPage[Venue.Public](params, adapt(ctx))
 
-  private[sql] def selectOnePublic(group: Group.Id, id: Venue.Id): Select[Venue.Public] =
-    publicTableFull(group).select[Venue.Public](fr0"WHERE v.id=$id")
+  private[sql] def selectOnePublic(group: Group.Id, id: Venue.Id): Query.Select[Venue.Public] =
+    publicTableFull(group).select[Venue.Public].where(fr0"v.id=$id")
 
-  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: OrgaCtx): SelectPage[Venue.Common, OrgaCtx] = {
-    val g = tableWithPartner.select[Venue.Full](
-      fields = Seq(Field("false", "", "public"), Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events")),
-      where = fr0"WHERE pa.group_id=${ctx.group.id}")
-    val p = publicTableFull(ctx.group.id).select[Venue.Public](
-      fields = Seq(Field("true", "", "public")) ++ publicTableFull(ctx.group.id).fields)
+  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Venue.Common] = {
+    val g = tableWithPartner.select[Venue.Full]
+      .fields(Field("false", "", "public"), Field("slug", "pa"), Field("name", "pa"), Field("logo", "pa"), Field("address", "v"), Field("id", "v"), Field("0", "", "events"))
+      .where(fr0"pa.group_id=${ctx.group.id}")
+    val p = publicTableFull(ctx.group.id).select[Venue.Public].fields(List(Field("true", "", "public")) ++ publicTableFull(ctx.group.id).fields)
 
-    SelectPage[Venue.Common, OrgaCtx](
+    Query.SelectPage[Venue.Common](
       table = fr0"((" ++ g.fr ++ fr0") UNION (" ++ p.fr ++ fr0")) v",
       prefix = "v",
-      fields = Seq("id", "slug", "name", "logo", "address", "events", "public").map(Field(_, "v")),
-      aggFields = Seq(),
-      customFields = Seq(),
+      fields = List("id", "slug", "name", "logo", "address", "events", "public").map(Field(_, "v")),
+      aggFields = List(),
+      customFields = List(),
       whereOpt = None,
       havingOpt = None,
       params = params,
-      sorts = Sorts("name", Field("public", "v"), Field("name", "v"), Field("-events", "v")),
-      searchFields = Seq(Field("name", "v"), Field("address", "v")),
-      filters = Seq(),
-      ctx = ctx)
+      sorts = Table.Sorts("name", Field("public", "v"), Field("name", "v"), Field("-events", "v")),
+      searchFields = List(Field("name", "v"), Field("address", "v")),
+      filters = List(),
+      ctx = adapt(ctx))
   }
 
   private def where(group: Group.Id, id: Venue.Id): Fragment =
-    fr0"WHERE v.id=(" ++ tableFull.select[Venue.Id](Seq(Field("id", "v")), fr0"WHERE pa.group_id=$group AND v.id=$id").fr ++ fr0")"
+    fr0"v.id=(" ++ tableFull.select[Venue.Id].fields(Field("id", "v")).where(fr0"pa.group_id=$group AND v.id=$id").fr ++ fr0")"
+
+  private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

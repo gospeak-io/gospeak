@@ -3,7 +3,8 @@ package gospeak.infra.services.storage.sql
 import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.NonEmptyList
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
+import doobie.util.transactor.Transactor
 import gospeak.core.domain.Contact.{FirstName, LastName}
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
@@ -13,19 +14,24 @@ import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage.{DbConf, GsRepo}
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.infra.services.AvatarSrv
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.{DoobieUtils, FlywayUtils}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
+import gospeak.infra.services.storage.sql.utils.FlywayUtils
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.TimePeriod._
 import gospeak.libs.scala.domain._
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
+  private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+  private[sql] val xa: doobie.Transactor[IO] = dbConf match {
+    case c: DbConf.H2 => Transactor.fromDriverManager[IO]("org.h2.Driver", c.url, "", "")
+    case c: DbConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
+  }
   private val flyway = FlywayUtils.build(dbConf)
-  private[sql] val xa: doobie.Transactor[IO] = DoobieUtils.transactor(dbConf)
 
   def checkEnv(appEnv: ApplicationConf.Env): IO[Int] = {
     import doobie.implicits._

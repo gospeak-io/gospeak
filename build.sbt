@@ -102,9 +102,9 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
+val libsDependencies = cats ++ doobie ++ flyway ++ hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ youtubeApi ++ playJson ++ scalaTest ++ scalaCheck ++ doobieTest
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 

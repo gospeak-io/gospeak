@@ -1,5 +1,5 @@
-@import gospeak.infra.services.storage.sql.utils.DoobieUtils.Filter
 @import gospeak.libs.scala.domain.Page
+@import gospeak.libs.sql.doobie.Table.Filter
 @import gospeak.web.pages.partials.display.html.{filterBool, filterEnum, filterValue}
 
 @(page: Page[_], link: Page.Params => Call, filters: Seq[Filter])

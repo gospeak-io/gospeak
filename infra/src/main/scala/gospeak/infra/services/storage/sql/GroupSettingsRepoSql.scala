@@ -16,10 +16,10 @@ import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.core.services.storage.GroupSettingsRepo
 import gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{Done, Liquid, LiquidMarkdown}
+import gospeak.libs.sql.doobie.{Field, Query}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
   override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] = setSettings(ctx.group.id, settings)
@@ -74,10 +74,10 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
 object GroupSettingsRepoSql {
   private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
   private val table = Tables.groupSettings
-  private val meetupFields = Seq("meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name").map(n => Field(n, table.prefix))
-  private val slackFields = Seq("slack_token", "slack_bot_name", "slack_bot_avatar").map(n => Field(n, table.prefix))
+  private val meetupFields = List("meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name").map(n => Field(n, table.prefix))
+  private val slackFields = List("slack_token", "slack_bot_name", "slack_bot_avatar").map(n => Field(n, table.prefix))
 
-  private[sql] def insert(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Insert[Group.Settings] = {
+  private[sql] def insert(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Insert[Group.Settings] = {
     val values = fr0"$group, " ++
       fr0"${settings.accounts.meetup.map(_.accessToken)}, ${settings.accounts.meetup.map(_.refreshToken)}, ${settings.accounts.meetup.map(_.group)}, ${settings.accounts.meetup.map(_.loggedUserId)}, ${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"${settings.accounts.slack.map(_.token)}, ${settings.accounts.slack.map(_.name)}, ${settings.accounts.slack.flatMap(_.avatar)}, " ++
@@ -85,40 +85,40 @@ object GroupSettingsRepoSql {
     table.insert(settings, _ => values)
   }
 
-  private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Update = {
+  private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Update = {
     val fields = fr0"meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, meetup_group_slug=${settings.accounts.meetup.map(_.group)}, meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"slack_token=${settings.accounts.slack.map(_.token)}, slack_bot_name=${settings.accounts.slack.map(_.name)}, slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
       fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, proposal_tweet=${settings.proposal.tweet}, " ++
       fr0"actions=${settings.actions}, updated_at=$now, updated_by=$by"
-    table.update(fields, where(group))
+    table.update(fields).where(where(group))
   }
 
-  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Select[(Group.Id, Group.Settings)] =
-    table.select[(Group.Id, Group.Settings)](table.fields.dropRight(2), fr0"WHERE " ++ Fragments.in(fr"gs.group_id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Query.Select[(Group.Id, Group.Settings)] =
+    table.select[(Group.Id, Group.Settings)].fields(table.fields.dropRight(2)).where(Fragments.in(fr"gs.group_id", ids))
 
-  private[sql] def selectOne(group: Group.Id): Select[Group.Settings] =
-    table.select[Group.Settings](table.fields.drop(1).dropRight(2), where(group))
+  private[sql] def selectOne(group: Group.Id): Query.Select[Group.Settings] =
+    table.select[Group.Settings].fields(table.fields.drop(1).dropRight(2)).where(where(group))
 
-  private[sql] def selectOneAccounts(group: Group.Id): Select[Settings.Accounts] =
-    table.select[Group.Settings.Accounts](meetupFields ++ slackFields, where(group))
+  private[sql] def selectOneAccounts(group: Group.Id): Query.Select[Settings.Accounts] =
+    table.select[Group.Settings.Accounts].fields(meetupFields ++ slackFields).where(where(group))
 
-  private[sql] def selectOneMeetup(group: Group.Id): Select[Option[MeetupCredentials]] =
-    table.select[Option[MeetupCredentials]](meetupFields, where(group))
+  private[sql] def selectOneMeetup(group: Group.Id): Query.Select[Option[MeetupCredentials]] =
+    table.select[Option[MeetupCredentials]].fields(meetupFields).where(where(group))
 
-  private[sql] def selectOneSlack(group: Group.Id): Select[Option[SlackCredentials]] =
-    table.select[Option[SlackCredentials]](slackFields, where(group))
+  private[sql] def selectOneSlack(group: Group.Id): Query.Select[Option[SlackCredentials]] =
+    table.select[Option[SlackCredentials]].fields(slackFields).where(where(group))
 
-  private[sql] def selectOneEventDescription(group: Group.Id): Select[LiquidMarkdown[Message.EventInfo]] =
-    table.select[LiquidMarkdown[Message.EventInfo]](Seq(Field("event_description", "gs")), where(group))
+  private[sql] def selectOneEventDescription(group: Group.Id): Query.Select[LiquidMarkdown[Message.EventInfo]] =
+    table.select[LiquidMarkdown[Message.EventInfo]].fields(Field("event_description", "gs")).where(where(group))
 
-  private[sql] def selectOneEventTemplates(group: Group.Id): Select[Map[String, Liquid[Message.EventInfo]]] =
-    table.select[Map[String, Liquid[Message.EventInfo]]](Seq(Field("event_templates", "gs")), where(group))
+  private[sql] def selectOneEventTemplates(group: Group.Id): Query.Select[Map[String, Liquid[Message.EventInfo]]] =
+    table.select[Map[String, Liquid[Message.EventInfo]]].fields(Field("event_templates", "gs")).where(where(group))
 
-  private[sql] def selectOneProposalTweet(group: Group.Id): Select[Liquid[Message.ProposalInfo]] =
-    table.select[Liquid[Message.ProposalInfo]](Seq(Field("proposal_tweet", "gs")), where(group))
+  private[sql] def selectOneProposalTweet(group: Group.Id): Query.Select[Liquid[Message.ProposalInfo]] =
+    table.select[Liquid[Message.ProposalInfo]].fields(Field("proposal_tweet", "gs")).where(where(group))
 
-  private[sql] def selectOneActions(group: Group.Id): Select[Map[Action.Trigger, Seq[Settings.Action]]] =
-    table.select[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](Seq(Field("actions", "gs")), where(group))
+  private[sql] def selectOneActions(group: Group.Id): Query.Select[Map[Action.Trigger, Seq[Settings.Action]]] =
+    table.select[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]].fields(Field("actions", "gs")).where(where(group))
 
-  private def where(group: Group.Id) = fr0"WHERE gs.group_id=$group"
+  private def where(group: Group.Id) = fr0"gs.group_id=$group"
 }
