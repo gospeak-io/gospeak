@@ -33,8 +33,8 @@ class JooqUtilsSpec extends SqlSpec {
       JooqUtils.generateTables(
         driver = dbDriver,
         url = dbUrl,
-        directory = "libs/src/main/scala",
-        packageName = "gospeak.libs.sql.jooqdb")
+        directory = "libs/src/test/scala",
+        packageName = "gospeak.libs.sql.testingutils.jooqdb")
     }
   }
 }

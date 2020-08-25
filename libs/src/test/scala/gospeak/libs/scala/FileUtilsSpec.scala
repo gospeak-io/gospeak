@@ -40,11 +40,11 @@ class FileUtilsSpec extends BaseSpec {
       FileUtils.write(path + "/src/main/scala/test/main.scala", "aaa").get
       FileUtils.write(path + "/test/main/readme.md", "aaa").get
       FileUtils.listFiles(path, recursively = false).get shouldBe List(
-        "libs/target/test/readme.md")
-      FileUtils.listFiles(path, recursively = true).get shouldBe List(
-        "libs/target/test/readme.md",
-        "libs/target/test/src/main/scala/test/main.scala",
-        "libs/target/test/test/main/readme.md")
+        path + "/readme.md")
+      FileUtils.listFiles(path).get shouldBe List(
+        path + "/readme.md",
+        path + "/src/main/scala/test/main.scala",
+        path + "/test/main/readme.md")
     }
   }
 }
