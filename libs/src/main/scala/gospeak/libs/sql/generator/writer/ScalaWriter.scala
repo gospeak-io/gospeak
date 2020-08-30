@@ -71,10 +71,11 @@ class ScalaWriter(directory: String,
 
   protected def tableFieldAttr(t: Table, f: Field): String = {
     val (tableName, fieldName) = (idf(t.name), idf(f.name))
-    val fieldType = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
+    val fieldKind = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
       .orElse(config.field(f).customType)
       .getOrElse(scalaType(f))
-    // TODO val fieldType = if (f.nullable) s"Option[$fieldKind]" else fieldKind // not possible yet because of FieldRef that require same type (I don't know to to link to A or Option[A]...)
+    // TODO put Option for nullable fields only when having no references (references MUST have same type right now, this should be fixed)
+    val fieldType = if (f.nullable && f.ref.isEmpty) s"Option[$fieldKind]" else fieldKind
     f.ref.map(r => s"""val $fieldName: FieldRef[$fieldType, $tableName, ${idf(r.table)}] = new FieldRef[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", ${idf(r.table)}.table.${idf(r.field)}) // ${f.`type`}""")
       .getOrElse(s"""val $fieldName: Field[$fieldType, $tableName] = new Field[$fieldType, $tableName](this, "${f.name}") // ${f.`type`}""")
   }

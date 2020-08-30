@@ -1,16 +1,19 @@
 package gospeak.libs.sql.dsl
 
 import doobie.implicits._
+import doobie.util.Put
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.testingutils.Entities.{Post, User}
 import gospeak.libs.sql.testingutils.SqlSpec
 import gospeak.libs.sql.testingutils.database.Tables._
 
 class DslSpec extends SqlSpec {
+  private implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // I don't know why it's needed and Doobie can't build a Put[Option[String]] :(
+
   describe("Table") {
     it("should build CRUD operations") {
-      val u = User(User.Id(4), "Lou", "lou@mail.com")
-      val u2 = u.copy(name = "Test", email = "test@mail.com")
+      val u = User(User.Id(4), "Lou", Some("lou@mail.com"))
+      val u2 = u.copy(name = "Test", email = Some("test@mail.com"))
       val select = USERS.select.where(_.ID eq u.id).build[User]
       val insert = USERS.insert.values(u.id, u.name, u.email)
       val update = USERS.update.set(_.NAME, u2.name).set(_.EMAIL, u2.email).where(_.ID eq u.id)
