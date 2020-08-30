@@ -15,7 +15,7 @@ import gospeak.core.services.storage.{DbConf, GsRepo}
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.infra.services.AvatarSrv
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
-import gospeak.infra.services.storage.sql.utils.FlywayUtils
+import gospeak.infra.services.storage.sql.utils.DbConnection
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.TimePeriod._
@@ -26,12 +26,7 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
-  private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-  private[sql] val xa: doobie.Transactor[IO] = dbConf match {
-    case c: DbConf.H2 => Transactor.fromDriverManager[IO]("org.h2.Driver", c.url, "", "")
-    case c: DbConf.PostgreSQL => Transactor.fromDriverManager[IO]("org.postgresql.Driver", c.url, c.user, c.pass.decode)
-  }
-  private val flyway = FlywayUtils.build(dbConf)
+  private[sql] val (xa, flyway) = DbConnection.create(dbConf)
 
   def checkEnv(appEnv: ApplicationConf.Env): IO[Int] = {
     import doobie.implicits._

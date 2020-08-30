@@ -2,17 +2,14 @@ package gospeak.web
 
 import java.util.UUID
 
-import cats.effect.{ContextShift, IO}
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import doobie.util.transactor.Transactor
+import gospeak.core.services.storage.DbConf
+import gospeak.infra.services.storage.sql.utils.DbConnection
 import gospeak.libs.scala.FileUtils
 import gospeak.libs.sql.generator.Generator
 import gospeak.libs.sql.generator.reader.H2Reader
 import gospeak.libs.sql.generator.writer.ScalaWriter.DatabaseConfig
 import gospeak.libs.sql.generator.writer.{ScalaWriter, Writer}
-import org.flywaydb.core.Flyway
 
-import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**
@@ -24,19 +21,8 @@ object GsCLI {
   }
 
   def generateSchemas(): Try[Unit] = {
-    val dbDriver = "org.h2.Driver"
-    val dbUrl = s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
-    implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-    val xa: doobie.Transactor[IO] = Transactor.fromDriverManager[IO](dbDriver, dbUrl, "", "")
-    val flyway = {
-      val config = new HikariConfig()
-      config.setDriverClassName(dbDriver)
-      config.setJdbcUrl(dbUrl)
-      Flyway.configure()
-        .dataSource(new HikariDataSource(config))
-        .locations("classpath:sql")
-        .load()
-    }
+    val dbConf = DbConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
+    val (xa, flyway) = DbConnection.create(dbConf)
     val reader = new H2Reader(
       schema = Some("PUBLIC"),
       excludes = Some(".*flyway.*"))
