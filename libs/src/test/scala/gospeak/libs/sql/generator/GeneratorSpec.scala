@@ -15,11 +15,11 @@ class GeneratorSpec extends SqlSpec {
     packageName = "gospeak.libs.sql.testingutils.database",
     identifierStrategy = Writer.IdentifierStrategy.upperCase,
     config = DatabaseConfig(schemas = Map("PUBLIC" -> SchemaConfig(tables = Map(
-      "users" -> TableConfig(fields = Map(
+      "users" -> TableConfig(alias = Some("u"), fields = Map(
         "id" -> FieldConfig(customType = Some("gospeak.libs.sql.testingutils.Entities.User.Id")))),
-      "categories" -> TableConfig(fields = Map(
+      "categories" -> TableConfig(alias = Some("c"), fields = Map(
         "id" -> FieldConfig(customType = Some("gospeak.libs.sql.testingutils.Entities.Category.Id")))),
-      "posts" -> TableConfig(fields = Map(
+      "posts" -> TableConfig(alias = Some("p"), fields = Map(
         "id" -> FieldConfig(customType = Some("gospeak.libs.sql.testingutils.Entities.Post.Id"))))
     )))))
 
