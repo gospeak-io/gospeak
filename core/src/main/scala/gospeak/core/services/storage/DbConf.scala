@@ -14,8 +14,12 @@ object DbConf {
     case _ => Left(s"Unknown db url: $url")
   }
 
-  final case class H2(url: String) extends DbConf
+  final case class H2(url: String) extends DbConf {
+    val driver = "org.h2.Driver"
+  }
 
-  final case class PostgreSQL(url: String, user: String, pass: Secret) extends DbConf
+  final case class PostgreSQL(url: String, user: String, pass: Secret) extends DbConf {
+    val driver = "org.postgresql.Driver"
+  }
 
 }
