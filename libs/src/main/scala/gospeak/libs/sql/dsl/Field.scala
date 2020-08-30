@@ -16,8 +16,8 @@ class Field[A, T <: Table.SqlTable](val table: T,
   private def value = s"${table.getName}.$field"
 }
 
-class LinkField[A, T1 <: Table.SqlTable, T2 <: Table.SqlTable](table: T1,
-                                                               field: String,
-                                                               linked: Field[A, T2]) extends Field[A, T1](table, field) {
+class FieldRef[A, T1 <: Table.SqlTable, T2 <: Table.SqlTable](table: T1,
+                                                              field: String,
+                                                              linked: Field[A, T2]) extends Field[A, T1](table, field) {
   def join: Table.JoinTable = table.join(linked.table, this.is(linked))
 }
