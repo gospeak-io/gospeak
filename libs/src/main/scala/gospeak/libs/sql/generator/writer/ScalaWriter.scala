@@ -74,6 +74,7 @@ class ScalaWriter(directory: String,
     val fieldType = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
       .orElse(config.field(f).customType)
       .getOrElse(scalaType(f))
+    // TODO val fieldType = if (f.nullable) s"Option[$fieldKind]" else fieldKind // not possible yet because of FieldRef that require same type (I don't know to to link to A or Option[A]...)
     f.ref.map(r => s"""val $fieldName: FieldRef[$fieldType, $tableName, ${idf(r.table)}] = new FieldRef[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", ${idf(r.table)}.table.${idf(r.field)}) // ${f.`type`}""")
       .getOrElse(s"""val $fieldName: Field[$fieldType, $tableName] = new Field[$fieldType, $tableName](this, "${f.name}") // ${f.`type`}""")
   }

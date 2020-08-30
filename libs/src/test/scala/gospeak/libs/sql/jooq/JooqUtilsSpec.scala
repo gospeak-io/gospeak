@@ -3,6 +3,7 @@ package gospeak.libs.sql.jooq
 import doobie.implicits._
 import gospeak.libs.sql.testingutils.Entities.Kind
 import gospeak.libs.sql.testingutils.SqlSpec
+import gospeak.libs.sql.testingutils.jooqdb.Tables._
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL._
 
@@ -10,6 +11,13 @@ class JooqUtilsSpec extends SqlSpec {
   private val jooqCtx = using(SQLDialect.H2)
 
   describe("JooqUtils") {
+    ignore("should generate classes for the database") {
+      JooqUtils.generateTables(
+        driver = dbDriver,
+        url = dbUrl,
+        directory = "libs/src/test/scala",
+        packageName = "gospeak.libs.sql.testingutils.jooqdb")
+    }
     it("should convert a jOOQ query to Doobie fragment") {
       val query = jooqCtx
         .select(field("char"), field("varchar"), field("timestamp"), field("date"), field("boolean"), field("int"), field("bigint"), field("double"), field("a_long_name"))
@@ -41,12 +49,12 @@ class JooqUtilsSpec extends SqlSpec {
         .unsafeRunSync()
       res shouldBe Some(Kind.one)
     }
-    ignore("should generate classes for the database") {
-      JooqUtils.generateTables(
-        driver = dbDriver,
-        url = dbUrl,
-        directory = "libs/src/test/scala",
-        packageName = "gospeak.libs.sql.testingutils.jooqdb")
+    it("should generate insert") {
+      val query = jooqCtx.insertInto(USERS).columns(USERS.ID, USERS.NAME, USERS.EMAIL).values(4, "Lou", "lou@mail.com")
+      val fr = JooqUtils.queryToFragment(query)
+      fr.query.sql shouldBe "insert into \"PUBLIC\".\"users\" (\"id\", \"name\", \"email\") values (cast(? as int), cast(? as varchar), cast(? as varchar))"
+      val res = fr.update.run.transact(xa).unsafeRunSync()
+      res shouldBe 1
     }
   }
 }
