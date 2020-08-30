@@ -1,6 +1,6 @@
 @import gospeak.web.pages.partials.form.Utils
 
-@(field: Field, options: Seq[(String, String)], args: Seq[(String, String)] = Seq())
+@(field: Field, options: List[(String, String)], args: List[(String, String)] = List())
 <select
     @Utils.idAttr(field, args)
     @Utils.nameAttr(field, args)

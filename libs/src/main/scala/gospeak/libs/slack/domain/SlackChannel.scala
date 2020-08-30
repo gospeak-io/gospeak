@@ -16,11 +16,11 @@ final case class SlackChannel(id: SlackChannel.Id,
                               is_member: Boolean,
                               is_private: Boolean,
                               is_mpim: Boolean,
-                              members: Seq[SlackUser.Id],
+                              members: scala.List[SlackUser.Id],
                               topic: SlackChannel.Topic,
                               purpose: SlackChannel.Purpose,
                               num_members: Option[Int],
-                              previous_names: Seq[String])
+                              previous_names: scala.List[String])
 
 object SlackChannel {
 
@@ -40,7 +40,7 @@ object SlackChannel {
                            creator: SlackUser.Id,
                            last_set: Instant)
 
-  final case class List(channels: Seq[SlackChannel],
+  final case class List(channels: scala.List[SlackChannel],
                         ok: Boolean)
 
   final case class Single(channel: SlackChannel,

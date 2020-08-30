@@ -112,7 +112,7 @@ class MeetupSrvImpl(client: MeetupClient) extends MeetupSrv {
       repinned = false,
       visibility = "public")
 
-  private def toLib(event: Event, tz: ZoneId, venue: Option[Venue.Full], venueId: Option[Long], orgaIds: Seq[Long], description: Markdown, isDraft: Boolean): MeetupEvent.Create =
+  private def toLib(event: Event, tz: ZoneId, venue: Option[Venue.Full], venueId: Option[Long], orgaIds: List[Long], description: Markdown, isDraft: Boolean): MeetupEvent.Create =
     MeetupEvent.Create(
       name = event.name.value,
       description = toSimpleHtml(description),

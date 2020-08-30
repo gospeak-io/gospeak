@@ -46,19 +46,19 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def availableFor(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
 
-  override def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]] = runNel(selectAll, ids)
+  override def list(ids: List[Cfp.Id]): IO[List[Cfp]] = runNel(selectAll, ids)
 
-  override def list(group: Group.Id): IO[Seq[Cfp]] = selectAll(group).runList(xa)
+  override def list(group: Group.Id): IO[List[Cfp]] = selectAll(group).runList(xa)
 
-  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[Cfp.Slug]] = selectAllPublicSlugs().runList(xa)
+  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[Cfp.Slug]] = selectAllPublicSlugs().runList(xa)
 
-  override def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Seq[Cfp]] = selectAllIncoming(group, ctx.now).runList(xa)
+  override def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[List[Cfp]] = selectAllIncoming(group, ctx.now).runList(xa)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
 object CfpRepoSql {
-  private val _ = cfpIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = cfpIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.cfps
   private val tableWithEvent = table.join(Tables.events, _.id -> _.cfp_id).get
 
@@ -107,8 +107,8 @@ object CfpRepoSql {
   private[sql] def selectAllIncoming(group: Group.Id, now: Instant): Query.Select[Cfp] =
     table.select[Cfp].where(where(group, now))
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    table.select[Seq[Tag]].fields(Field("tags", "c"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    table.select[List[Tag]].fields(Field("tags", "c"))
 
   private def where(group: Group.Id, slug: Cfp.Slug): Fragment =
     fr0"c.group_id=$group AND c.slug=$slug"

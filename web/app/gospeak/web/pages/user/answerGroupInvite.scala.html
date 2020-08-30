@@ -12,8 +12,8 @@
         <h1>Nice!!! You have been invited to join a group <i class="far fa-thumbs-up"></i></h1>
         <h3>@group.name.value</h3>
         @group.description.render
-        @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) {Do not join}
-        @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) {Join <b>@orga.name.value</b> in the <b>@group.name.value</b> group}
+        @formBtn(UserCtrl.rejectRequest(invite.id), List("class" -> "btn-danger")) {Do not join}
+        @formBtn(UserCtrl.acceptRequest(invite.id), List("class" -> "btn-success")) {Join <b>@orga.name.value</b> in the <b>@group.name.value</b> group}
     } else {
         <h1>Invitation to the @group.name.value group by @orga.name.value</h1>
         <h3 class="text-danger">Oups, this invite is expired</h3>

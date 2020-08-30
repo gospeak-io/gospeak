@@ -1,4 +1,4 @@
 @import gospeak.web.pages.partials.form.Utils
 
-@(field: Field, args: Seq[(String, String)] = Seq())
-@inputText(field, Seq("type" -> "number") ++ args)
+@(field: Field, args: List[(String, String)] = List())
+@inputText(field, List("type" -> "number") ++ args)

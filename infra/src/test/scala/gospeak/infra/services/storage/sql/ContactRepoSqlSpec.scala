@@ -28,7 +28,7 @@ class ContactRepoSqlSpec extends RepoSpec {
       val partner = partnerRepo.create(partnerData1)(ctx).unsafeRunSync()
       val contact1 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact1")))(ctx).unsafeRunSync
       val contact2 = contactRepo.create(contactData1.copy(partner = partner.id, lastName = LastName("contact2")))(ctx).unsafeRunSync
-      contactRepo.list(partner.id).unsafeRunSync() shouldBe Seq(contact1, contact2)
+      contactRepo.list(partner.id).unsafeRunSync() shouldBe List(contact1, contact2)
     }
     it("should find by mail") {
       val (user, group, ctx) = createUserAndGroup().unsafeRunSync()

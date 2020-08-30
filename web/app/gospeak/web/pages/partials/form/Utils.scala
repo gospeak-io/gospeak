@@ -11,28 +11,28 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 object Utils {
-  type Args = Seq[(String, String)]
+  type Args = List[(String, String)]
   type Constraint = (String, Seq[Any])
 
   case class ArgsWrapper(args: Args) extends AnyVal {
     def replace(key: String, value: String): ArgsWrapper =
-      ArgsWrapper(args.filter(_._1 != key) ++ Seq(key -> value))
+      ArgsWrapper(args.filter(_._1 != key) ++ List(key -> value))
 
     def remove(key: String): ArgsWrapper =
       ArgsWrapper(args.filter(_._1 != key))
 
     def extend(key: String, value: String): ArgsWrapper =
       if (args.exists(_._1 == key)) ArgsWrapper(args.map { case (k, v) => if (k == key) k -> (v + value) else k -> v })
-      else ArgsWrapper(args ++ Seq(key -> value))
+      else ArgsWrapper(args ++ List(key -> value))
 
     def addIfNotExists(key: String, value: String): ArgsWrapper =
       if (args.exists(_._1 == key)) ArgsWrapper(args)
-      else ArgsWrapper(args ++ Seq(key -> value))
+      else ArgsWrapper(args ++ List(key -> value))
 
     def toArgs: Args = args
   }
 
-  val timeUnits: Seq[TimeUnit] = Seq(TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS)
+  val timeUnits: List[TimeUnit] = List(TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS)
 
   def typeAttr(value: String): Html =
     attr("type", value)
@@ -67,8 +67,8 @@ object Utils {
   def hasErrors(field: Field): Boolean =
     getErrors(field).nonEmpty
 
-  def getErrors(field: Field): Seq[FormError] =
-    field.errors ++ field.indexes.flatMap(i => field(s"[$i]").errors)
+  def getErrors(field: Field): List[FormError] =
+    field.errors.toList ++ field.indexes.flatMap(i => field(s"[$i]").errors)
 
   def requiredAttr(field: Field, args: Args): Html =
     field.constraints
@@ -89,7 +89,7 @@ object Utils {
   def multipleAttr(): Html =
     Html(attr("multiple", "multiple").body + " " + attr("size", "1").body)
 
-  def otherAttrs(args: Args): Seq[Html] = {
+  def otherAttrs(args: Args): List[Html] = {
     val ignored = Set("type", "class", "id", "name", "value", "placeholder", "required", "optional", "pattern", "autofocus", "help", "emptyOption")
     args.collect { case (key, value) if !ignored.contains(key) => Html(s""" $key="$value"""") }
   }

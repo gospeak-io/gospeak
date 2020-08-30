@@ -19,7 +19,7 @@ class ApiEventCtrl(cc: ControllerComponents,
                    val groupRepo: OrgaGroupRepo,
                    eventRepo: OrgaEventRepo,
                    proposalRepo: OrgaProposalRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[Seq[ApiEvent.Orga]](group) { implicit req =>
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[List[ApiEvent.Orga]](group) { implicit req =>
     for {
       events <- eventRepo.listFull(params)
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))

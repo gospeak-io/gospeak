@@ -21,13 +21,13 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
   override def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done] =
     update(cfp)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def listAllIds(): IO[Seq[ExternalCfp.Id]] = selectAllIds().runList(xa)
+  override def listAllIds(): IO[List[ExternalCfp.Id]] = selectAllIds().runList(xa)
 
-  override def listAll(event: ExternalEvent.Id): IO[Seq[ExternalCfp]] = selectAll(event).runList(xa)
+  override def listAll(event: ExternalEvent.Id): IO[List[ExternalCfp]] = selectAll(event).runList(xa)
 
   override def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]] = selectCommonPageIncoming(params).run(xa)
 
-  override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp.Full]] = selectDuplicatesFull(p).runList(xa)
+  override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[List[ExternalCfp.Full]] = selectDuplicatesFull(p).runList(xa)
 
   override def findFull(cfp: ExternalCfp.Id): IO[Option[ExternalCfp.Full]] = selectOneFull(cfp).runOption(xa)
 
@@ -37,7 +37,7 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 }
 
 object ExternalCfpRepoSql {
-  private val _ = externalCfpIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = externalCfpIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.externalCfps
   private val tableFull = table
     .join(Tables.externalEvents.dropFields(_.name.startsWith("location_")), _.event_id -> _.id).get
@@ -85,7 +85,7 @@ object ExternalCfpRepoSql {
     commonTable.selectPage[CommonCfp](params, adapt(ctx)).where(fr0"c.close IS NULL OR c.close >= ${ctx.now}")
 
   private[sql] def selectDuplicatesFull(p: ExternalCfp.DuplicateParams): Query.Select[ExternalCfp.Full] = {
-    val filters = Seq(
+    val filters = List(
       p.cfpUrl.map(v => fr0"ec.url LIKE ${"%" + v + "%"}"),
       p.cfpEndDate.map(v => fr0"ec.close=$v")
     ).flatten

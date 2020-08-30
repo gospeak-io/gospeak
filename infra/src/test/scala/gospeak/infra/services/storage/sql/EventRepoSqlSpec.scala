@@ -20,10 +20,10 @@ class EventRepoSqlSpec extends RepoSpec {
       val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
       val (partner, venue, contact) = createPartnerAndVenue(user, group)(ctx).unsafeRunSync()
       val eventData = eventData1.copy(venue = eventData1.venue.map(_ => venue.id))
-      eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
+      eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       eventRepo.find(eventData.slug)(ctx).unsafeRunSync() shouldBe None
       val event = eventRepo.create(eventData)(ctx).unsafeRunSync()
-      eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq(event)
+      eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(event)
       eventRepo.find(eventData.slug)(ctx).unsafeRunSync() shouldBe Some(event)
     }
     it("should fail to create an event when the group does not exists") {
@@ -60,7 +60,7 @@ class EventRepoSqlSpec extends RepoSpec {
         check(q, s"UPDATE $table SET cfp_id=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updateTalks") {
-        val q = EventRepoSql.updateTalks(group.id, event.slug)(Seq(), user.id, now)
+        val q = EventRepoSql.updateTalks(group.id, event.slug)(List(), user.id, now)
         check(q, s"UPDATE $table SET talks=?, updated_at=?, updated_by=? WHERE e.group_id=? AND e.slug=?")
       }
       it("should build updatePublished") {

@@ -7,7 +7,7 @@ import cats.effect.IO
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
-import gospeak.libs.scala.domain.{Done, Liquid, LiquidMarkdown, Page, Tag}
+import gospeak.libs.scala.domain.{Done, LiquidMarkdown, Page, Tag}
 
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with AdminEventRepo with SuggestEventRepo
 
@@ -20,7 +20,7 @@ trait OrgaEventRepo {
 
   def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Done]
 
-  def editTalks(event: Event.Slug, talks: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done]
+  def editTalks(event: Event.Slug, talks: List[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done]
 
   def publish(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Done]
 
@@ -28,11 +28,11 @@ trait OrgaEventRepo {
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]]
 
-  def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]]
+  def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[List[Event]]
 
-  def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]]
+  def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[List[(Event, Venue)]]
 
-  def list(ids: Seq[Event.Id]): IO[Seq[Event]]
+  def list(ids: List[Event.Id]): IO[List[Event]]
 
   def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]]
 
@@ -40,13 +40,13 @@ trait OrgaEventRepo {
 
   def findFull(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Option[Event.Full]]
 
-  def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
+  def listRsvps(event: Event.Id): IO[List[Event.Rsvp]]
 
-  def listRsvps(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): IO[Seq[Event.Rsvp]]
+  def listRsvps(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): IO[List[Event.Rsvp]]
 }
 
 trait SpeakerEventRepo {
-  def list(ids: Seq[Event.Id]): IO[Seq[Event]]
+  def list(ids: List[Event.Id]): IO[List[Event]]
 }
 
 trait UserEventRepo {
@@ -56,7 +56,7 @@ trait UserEventRepo {
 trait AuthEventRepo
 
 trait PublicEventRepo {
-  def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Event.Slug)]]
+  def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Event.Slug)]]
 
   def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]]
 
@@ -74,11 +74,11 @@ trait PublicEventRepo {
 
   def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
 
-  def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]]
+  def listRsvps(event: Event.Id): IO[List[Event.Rsvp]]
 }
 
 trait AdminEventRepo {
-  def listAllFromGroups(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]]
+  def listAllFromGroups(groups: List[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]]
 
   def find(event: Event.Id)(implicit ctx: AdminCtx): IO[Option[Event]]
 
@@ -86,7 +86,7 @@ trait AdminEventRepo {
 }
 
 trait SuggestEventRepo {
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 }

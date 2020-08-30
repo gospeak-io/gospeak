@@ -18,7 +18,7 @@ class ApiCfpCtrl(cc: ControllerComponents,
                  userRepo: OrgaUserRepo,
                  val groupRepo: OrgaGroupRepo,
                  cfpRepo: OrgaCfpRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
-  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[Seq[ApiCfp.Orga]](group) { implicit req =>
+  def list(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[List[ApiCfp.Orga]](group) { implicit req =>
     for {
       cfps <- cfpRepo.list(params)
       users <- userRepo.list(cfps.items.flatMap(_.users))

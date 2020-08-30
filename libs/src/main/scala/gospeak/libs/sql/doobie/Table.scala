@@ -32,8 +32,8 @@ final case class Table(name: String,
 
   def field(name: String): Either[CustomException, Field] =
     fields.filter(_.name == name) match {
-      case Seq() => Left(CustomException(s"Unable to find field '$name' in table '${value.query.sql}'"))
-      case Seq(f) => Right(f)
+      case List() => Left(CustomException(s"Unable to find field '$name' in table '${value.query.sql}'"))
+      case List(f) => Right(f)
       case l => Left(CustomException(s"Ambiguous field '$name' (possible values: ${l.map(f => s"'${f.value}'").mkString(", ")}) in table '${value.query.sql}'"))
     }
 
@@ -69,7 +69,7 @@ final case class Table(name: String,
     res <- Table.from(
       name = name,
       prefix = prefix,
-      joins = joins ++ Seq(Table.Join(kind, rightTable.name, rightTable.prefix, joinFields, where)) ++ rightTable.joins,
+      joins = joins ++ List(Table.Join(kind, rightTable.name, rightTable.prefix, joinFields, where)) ++ rightTable.joins,
       fields = fields ++ rightTable.fields,
       aggFields = aggFields ++ rightTable.aggFields,
       customFields = customFields ++ rightTable.customFields,
@@ -114,7 +114,7 @@ object Table {
     val duplicateFields = fields.diff(fields.distinct).distinct
     // val invalidSort = sorts.all.flatten.map(s => s.copy(name = s.name.stripPrefix("-")).value).diff(fields.map(_.value) ++ aggFields.map(_.formula))
     val invalidSearch = search.diff(fields)
-    val errors = Seq(
+    val errors = List(
       duplicateFields.headOption.map(_ => s"fields ${duplicateFields.map(s"'" + _.value + "'").mkString(", ")} are duplicated"),
       // invalidSort.headOption.map(_ => s"sorts ${invalidSort.map(s"'" + _ + "'").mkString(", ")} do not exist in fields"),
       invalidSearch.headOption.map(_ => s"searches ${invalidSearch.map(s"'" + _.value + "'").mkString(", ")} do not exist in fields")
@@ -220,12 +220,12 @@ object Table {
         new Filter.Bool(key, label, aggregation, onTrue = ctx => const0(startField) ++ fr0" < ${ctx.now} AND ${ctx.now} < " ++ const0(endField), onFalse = ctx => fr0"${ctx.now}" ++ const0(s" < $startField OR $endField < ") ++ fr0"${ctx.now}")
     }
 
-    final case class Enum(key: String, label: String, aggregation: Boolean, values: Seq[(String, DbCtx => Fragment)]) extends Filter {
+    final case class Enum(key: String, label: String, aggregation: Boolean, values: List[(String, DbCtx => Fragment)]) extends Filter {
       override def filter(value: String)(implicit ctx: DbCtx): Option[Fragment] = values.find(_._1 == value).map(_._2(ctx))
     }
 
     object Enum {
-      def fromEnum(key: String, label: String, field: String, values: Seq[(String, String)], aggregation: Boolean = false): Enum =
+      def fromEnum(key: String, label: String, field: String, values: List[(String, String)], aggregation: Boolean = false): Enum =
         new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: DbCtx) => const0(s"$field='$fieldValue'")) })
     }
 

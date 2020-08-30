@@ -27,8 +27,8 @@ class JsonUtilsSpec extends BaseSpec {
   describe("JsonUtils") {
     describe("diff") {
       it("should perform a diff") {
-        JsonUtils.diff(json1, json1) shouldBe Seq()
-        JsonUtils.diff(json1, json2) shouldBe Seq(
+        JsonUtils.diff(json1, json1) shouldBe List()
+        JsonUtils.diff(json1, json2) shouldBe List(
           (JsPath \ "admin", Some(JsBoolean(true)), None),
           (JsPath \ "id", Some(JsNumber(1)), Some(JsNumber(2))),
           (JsPath \ "name", Some(JsString("Loïc")), Some(JsNumber(5))),

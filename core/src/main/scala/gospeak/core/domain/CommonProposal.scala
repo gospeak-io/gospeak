@@ -15,7 +15,7 @@ final case class CommonProposal(title: Talk.Title,
                                 speakers: NonEmptyList[User.Id],
                                 slides: Option[Url.Slides],
                                 video: Option[Url.Video],
-                                tags: Seq[Tag],
+                                tags: List[Tag],
                                 talk: CommonProposal.EmbedTalk,
                                 extra: Either[CommonProposal.External, CommonProposal.Internal],
                                 info: Info) {

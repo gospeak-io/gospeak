@@ -20,7 +20,7 @@ class CloudinaryUploadSrv(client: CloudinaryClient) extends UploadSrv {
       publicId = UploadSrv.userAvatarFile
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
-      .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Avatar)
+      .map(_.transform(List("ar_1", "c_crop")).toUrl).map(Avatar)
   }
 
   override def uploadGroupLogo(group: Group, logo: Logo): IO[Logo] = {
@@ -30,7 +30,7 @@ class CloudinaryUploadSrv(client: CloudinaryClient) extends UploadSrv {
       publicId = UploadSrv.groupLogoFile
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
-      .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
+      .map(_.transform(List("ar_1", "c_crop")).toUrl).map(Logo)
   }
 
   override def uploadGroupBanner(group: Group, banner: Banner): IO[Banner] = {
@@ -40,7 +40,7 @@ class CloudinaryUploadSrv(client: CloudinaryClient) extends UploadSrv {
       publicId = UploadSrv.groupBannerFile
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
-      .map(_.transform(Seq("ar_3", "c_crop")).toUrl).map(Banner)
+      .map(_.transform(List("ar_3", "c_crop")).toUrl).map(Banner)
   }
 
   override def uploadPartnerLogo(group: Group, partner: Partner): IO[Logo] = {
@@ -50,7 +50,7 @@ class CloudinaryUploadSrv(client: CloudinaryClient) extends UploadSrv {
       publicId = UploadSrv.groupPartnerFile(Some(partner.slug.value))
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
-      .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
+      .map(_.transform(List("ar_1", "c_crop")).toUrl).map(Logo)
   }
 
   override def uploadExternalEventLogo(event: ExternalEvent, logo: Logo): IO[Logo] = {
@@ -60,7 +60,7 @@ class CloudinaryUploadSrv(client: CloudinaryClient) extends UploadSrv {
       publicId = UploadSrv.extEventLogoFile(Some(event.name.value))
     )).flatMap(_.toIO(new IllegalStateException(_)))
       .flatMap(_.toUrl.toIO)
-      .map(_.transform(Seq("ar_1", "c_crop")).toUrl).map(Logo)
+      .map(_.transform(List("ar_1", "c_crop")).toUrl).map(Logo)
   }
 }
 

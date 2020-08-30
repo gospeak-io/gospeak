@@ -89,7 +89,7 @@ class MessageSrv(groupRepo: OrgaGroupRepo,
     users <- userRepo.list(group.users ++ proposals.flatMap(_.users))
   } yield (msg(group, sponsors, users), msg(group, event, cfps, venues, proposals, users))
 
-  private def eventData(event: Event)(implicit req: UserAwareReq[AnyContent]): IO[(Seq[Cfp], Seq[Venue.Full], Seq[Proposal.Full])] = for {
+  private def eventData(event: Event)(implicit req: UserAwareReq[AnyContent]): IO[(List[Cfp], List[Venue.Full], List[Proposal.Full])] = for {
     cfps <- cfpRepo.list(event.cfp.toList)
     venues <- venueRepo.listAllFull(event.group, event.venue.toList)
     proposals <- proposalRepo.listFull(event.talks)
@@ -250,7 +250,7 @@ object MessageSrv {
       owners = NonEmptyList.of(user.id),
       social = SocialAccounts.fromUrls(
         twitter = Some(Url.Twitter.from("https://twitter.com/HumanTalksParis").get)),
-      tags = Seq(Tag("tech"), Tag("meetup")),
+      tags = List(Tag("tech"), Tag("meetup")),
       status = Group.Status.Active,
       info = Info(user.id, now))
     private val cfp: Cfp = Cfp(
@@ -261,7 +261,7 @@ object MessageSrv {
       begin = Some(nowLDT.minusDays(1)),
       close = Some(nowLDT.plusDays(1)),
       description = Markdown("Submit a talk you are **passionated** about!"),
-      tags = Seq(Tag("tech")),
+      tags = List(Tag("tech")),
       info = Info(user.id, now))
     private val partner: Partner = Partner(
       id = Partner.Id.generate(),
@@ -302,7 +302,7 @@ object MessageSrv {
       speakers = NonEmptyList.of(user.id),
       slides = Some(Url.Slides.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
       video = Some(Url.Video.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
-      tags = Seq(Tag("FP")),
+      tags = List(Tag("FP")),
       info = Info(user.id, now))
     private val eventId: Event.Id = Event.Id.generate()
     private val proposal: Proposal = Proposal(
@@ -318,8 +318,8 @@ object MessageSrv {
       speakers = NonEmptyList.of(user.id),
       slides = Some(Url.Slides.from("https://www.slideshare.net/loicknuchel/comprendre-la-programmation-fonctionnelle-blend-web-mix-le-02112016").get),
       video = Some(Url.Video.from("https://www.youtube.com/watch?v=PH93yIhsG7k").get),
-      tags = Seq(Tag("FP")),
-      orgaTags = Seq(Tag("selected")),
+      tags = List(Tag("FP")),
+      orgaTags = List(Tag("selected")),
       info = Info(user.id, now))
     private val event: Event = Event(
       id = eventId,
@@ -334,8 +334,8 @@ object MessageSrv {
       description = LiquidMarkdown[Message.EventInfo]("Thanks to **{{venue.name}}** for hosting"),
       orgaNotes = Event.Notes("We should add *more* talks", now, user.id),
       venue = Some(venue.id),
-      talks = Seq(proposal.id),
-      tags = Seq(Tag("culture")),
+      talks = List(proposal.id),
+      tags = List(Tag("culture")),
       published = Some(now),
       refs = Event.ExtRefs(meetup = Some(MeetupEvent.Ref(group = MeetupGroup.Slug.from("HumanTalks-Paris").get, event = MeetupEvent.Id(456)))),
       info = Info(user.id, now))
@@ -374,7 +374,7 @@ object MessageSrv {
       videos = Some(Url.Videos.from("https://www.youtube.com/playlist?list=PLuZ_sYdawLiXq_8YaaROhaUazHQVPiELa").get),
       twitterAccount = Some(TwitterAccount(Url.Twitter.from("https://twitter.com/sunnytech_mtp").get)),
       twitterHashtag = Some(TwitterHashtag.from("#SunnyTech2019").get),
-      tags = Seq(Tag("tech")),
+      tags = List(Tag("tech")),
       info = Info(user.id, now))
     private val externalCfp = ExternalCfp(
       id = ExternalCfp.Id.generate(),
@@ -389,11 +389,11 @@ object MessageSrv {
     private val proposalFull: Proposal.Full = Proposal.Full(proposal, cfp, group, talk, Some(event), Some(venueFull), 0, None, 0, None, 0, 0, 0, None)
     private val sponsorFull: Sponsor.Full = Sponsor.Full(sponsor, sponsorPack, partner, Some(contact))
 
-    private val users = Seq(user)
-    private val cfps = Seq(cfp)
-    private val venues = Seq(venueFull)
-    private val proposals = Seq(proposalFull)
-    private val sponsors = Seq(sponsorFull)
+    private val users = List(user)
+    private val cfps = List(cfp)
+    private val venues = List(venueFull)
+    private val proposals = List(proposalFull)
+    private val sponsors = List(sponsorFull)
 
     val msgUser: MsgUser.Embed = embed(user)
 
@@ -410,7 +410,7 @@ object MessageSrv {
     def msgExternalCfp(implicit req: BasicReq[AnyContent]): MsgExternalCfp = msg(externalCfp)
   }
 
-  private def msg(g: Group, sponsors: Seq[Sponsor.Full], users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgGroup =
+  private def msg(g: Group, sponsors: List[Sponsor.Full], users: List[User])(implicit req: BasicReq[AnyContent]): MsgGroup =
     MsgGroup(
       slug = g.slug,
       name = g.name,
@@ -434,7 +434,7 @@ object MessageSrv {
       publicLink = req.toAbsolute(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
       orgaLink = req.toAbsolute(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
 
-  private def msg(g: Group, e: Event, cfps: Seq[Cfp], venues: Seq[Venue.Full], proposals: Seq[Proposal.Full], users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgEvent =
+  private def msg(g: Group, e: Event, cfps: List[Cfp], venues: List[Venue.Full], proposals: List[Proposal.Full], users: List[User])(implicit req: BasicReq[AnyContent]): MsgEvent =
     MsgEvent(
       slug = e.slug,
       name = e.name,
@@ -452,7 +452,7 @@ object MessageSrv {
       orgaLink = req.toAbsolute(gospeak.web.pages.orga.events.routes.EventCtrl.detail(g.slug, e.slug)),
       meetupLink = e.refs.meetup.map(_.link))
 
-  private def msg(g: Group, c: Cfp, p: Proposal, users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgProposal =
+  private def msg(g: Group, c: Cfp, p: Proposal, users: List[User])(implicit req: BasicReq[AnyContent]): MsgProposal =
     MsgProposal(
       id = p.id,
       title = p.title,
@@ -500,7 +500,7 @@ object MessageSrv {
       publicLink = req.toAbsolute(gospeak.web.pages.published.cfps.routes.CfpCtrl.detail(c.slug)),
       orgaLink = req.toAbsolute(gospeak.web.pages.orga.cfps.routes.CfpCtrl.detail(g.slug, c.slug)))
 
-  private def embed(g: Group, e: Event, venues: Seq[Venue.Full])(implicit req: BasicReq[AnyContent]): MsgEvent.Embed =
+  private def embed(g: Group, e: Event, venues: List[Venue.Full])(implicit req: BasicReq[AnyContent]): MsgEvent.Embed =
     MsgEvent.Embed(
       slug = e.slug,
       name = e.name,
@@ -524,7 +524,7 @@ object MessageSrv {
       description = v.partner.description,
       links = v.partner.social)
 
-  private def embed(p: Proposal.Full, users: Seq[User])(implicit req: BasicReq[AnyContent]): MsgProposal.Embed =
+  private def embed(p: Proposal.Full, users: List[User])(implicit req: BasicReq[AnyContent]): MsgProposal.Embed =
     MsgProposal.Embed(
       id = p.id,
       title = p.title,

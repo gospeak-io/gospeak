@@ -15,7 +15,7 @@
                 <span>@id</span>
                 <span class="d-flex">
                     @if(!isDefault) {
-                        @formBtn(SettingsCtrl.doRemoveEventTemplate(req.group.slug, id), Seq(
+                        @formBtn(SettingsCtrl.doRemoveEventTemplate(req.group.slug, id), List(
                             "class" -> "btn btn-danger btn-xs",
                             "title" -> "Delete this template",
                             "confirm" -> s"Delete template '$id'?")) {Delete}

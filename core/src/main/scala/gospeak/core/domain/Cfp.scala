@@ -12,7 +12,7 @@ final case class Cfp(id: Cfp.Id,
                      begin: Option[LocalDateTime],
                      close: Option[LocalDateTime],
                      description: Markdown,
-                     tags: Seq[Tag],
+                     tags: List[Tag],
                      info: Info) {
   def data: Cfp.Data = Cfp.Data(this)
 
@@ -44,7 +44,7 @@ object Cfp {
                         begin: Option[LocalDateTime],
                         close: Option[LocalDateTime],
                         description: Markdown,
-                        tags: Seq[Tag])
+                        tags: List[Tag])
 
   object Data {
     def apply(cfp: Cfp): Data = new Data(cfp.slug, cfp.name, cfp.begin, cfp.close, cfp.description, cfp.tags)

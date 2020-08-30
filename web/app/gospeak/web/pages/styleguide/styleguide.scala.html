@@ -164,15 +164,15 @@
 
         @section("global-display", "Global display components", "@import gospeak.web.pages.partials.display.html._") { _ =>
             @component("info", "@info(talk.info, users, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.info(talk.info, Seq(user)) }
-                @example(s"$name not found") { _ => @display.info(talk.info, Seq()) }
-                @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updatedAt = talk.info.updatedAt.plusSeconds(60)), Seq(user)) }
+                @example(s"$name") { _ => @display.info(talk.info, List(user), Some(_ => StyleguideCtrl.index(params))) }
+                @example(s"$name without link") { _ => @display.info(talk.info, List(user)) }
+                @example(s"$name not found") { _ => @display.info(talk.info, List()) }
+                @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updatedAt = talk.info.updatedAt.plusSeconds(60)), List(user)) }
             }
             @component("avatar", "@avatars(NonEmptyList.of(user.id), users, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.avatars(talk.speakers, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.avatars(talk.speakers, Seq(user)) }
-                @example(s"$name not found") { _ => @display.avatars(talk.speakers, Seq()) }
+                @example(s"$name") { _ => @display.avatars(talk.speakers, List(user), Some(_ => StyleguideCtrl.index(params))) }
+                @example(s"$name without link") { _ => @display.avatars(talk.speakers, List(user)) }
+                @example(s"$name not found") { _ => @display.avatars(talk.speakers, List()) }
             }
         }
 
@@ -203,7 +203,7 @@
 
         @section("published", "Published components", "@import gospeak.web.pages.published.partials.html._") { _ =>
             @component("groupItem", "@groupItem(group)") { name =>
-                @example(s"$name") { _ => @published.groupItem(groupFull, Seq())(userAwareReq) }
+                @example(s"$name") { _ => @published.groupItem(groupFull, List())(userAwareReq) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
                 @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp)) }
@@ -229,19 +229,19 @@
                 @example(s"$name") { _ => @orga.cfpItem(cfp) }
             }
             @component("eventItem", "@eventItem(group, event, proposals, speakers)") { name =>
-                @example(s"$name in the future") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(3))), Seq(), Seq(user)) }
-                @example(s"$name in the past") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(-3))), Seq(), Seq(user)) }
-                @example(s"$name with a talk") { _ => @orga.eventItem(eventFull.copy(event = event.copy(talks = Seq(proposal.id))), Seq(proposal), Seq(user)) }
+                @example(s"$name in the future") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(3))), List(), List(user)) }
+                @example(s"$name in the past") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(-3))), List(), List(user)) }
+                @example(s"$name with a talk") { _ => @orga.eventItem(eventFull.copy(event = event.copy(talks = List(proposal.id))), List(proposal), List(user)) }
             }
             @component("proposalItem", "@proposalItem(group, proposalFull, speakers)") { name =>
-                @example(s"$name pending") { _ => @orga.proposalItem(proposalFull.copy(event = None), Seq(user), Seq(), params, StyleguideCtrl.index) }
-                @example(s"$name accepted with an event") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id))), Seq(user), Seq(), params, StyleguideCtrl.index) }
-                @example(s"$name declined") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined)), Seq(user), Seq(), params, StyleguideCtrl.index) }
+                @example(s"$name pending") { _ => @orga.proposalItem(proposalFull.copy(event = None), List(user), List(), params, StyleguideCtrl.index) }
+                @example(s"$name accepted with an event") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id))), List(user), List(), params, StyleguideCtrl.index) }
+                @example(s"$name declined") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined)), List(user), List(), params, StyleguideCtrl.index) }
             }
             @component("proposalItem1", "@proposalItem1(group, cfp, proposal, speakers, events)") { name =>
-                @example(s"$name pending") { _ => @orga.proposalItem1(cfp, proposal, Seq(user), Seq()) }
-                @example(s"$name accepted with an event") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(user), Seq(event)) }
-                @example(s"$name declined") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Declined), Seq(user), Seq()) }
+                @example(s"$name pending") { _ => @orga.proposalItem1(cfp, proposal, List(user), List()) }
+                @example(s"$name accepted with an event") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), List(user), List(event)) }
+                @example(s"$name declined") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Declined), List(user), List()) }
             }
             @component("speakerItem", "@speakerItem(group, speaker)") { name =>
                 @example(s"$name") { _ => @orga.speakerItem(userFull) }

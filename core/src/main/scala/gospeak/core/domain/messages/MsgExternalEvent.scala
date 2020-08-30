@@ -11,5 +11,5 @@ final case class MsgExternalEvent(name: Event.Name,
                                   location: Option[GMapPlace],
                                   twitterAccount: Option[TwitterAccount],
                                   twitterHashtag: Option[TwitterHashtag],
-                                  tags: Seq[Tag],
+                                  tags: List[Tag],
                                   publicLink: String)

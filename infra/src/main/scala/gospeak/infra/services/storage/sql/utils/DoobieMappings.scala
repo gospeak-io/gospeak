@@ -59,7 +59,7 @@ object DoobieMappings {
   implicit def liquidMarkdownMeta[A: TypeTag]: Meta[LiquidMarkdown[A]] = Meta[String].timap(LiquidMarkdown[A])(_.value)
 
   // "take(150)": I prefer truncated tags than failing request
-  implicit val tagsMeta: Meta[Seq[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toSeq)(_.map(_.value).mkString(",").take(150))
+  implicit val tagsMeta: Meta[List[Tag]] = Meta[String].timap(_.split(",").filter(_.nonEmpty).map(Tag(_)).toList)(_.map(_.value).mkString(",").take(150))
   implicit val gMapPlaceMeta: Meta[GMapPlace] = {
     implicit val geoDecoder: Decoder[Geo] = deriveDecoder[Geo]
     implicit val geoEncoder: Encoder[Geo] = deriveEncoder[Geo]
@@ -72,7 +72,7 @@ object DoobieMappings {
     implicit val liquidEncoder: Encoder[Liquid[Message.EventInfo]] = deriveEncoder[Liquid[Message.EventInfo]]
     Meta[String].timap(fromJson[Map[String, Liquid[Message.EventInfo]]](_).get)(toJson)
   }
-  implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] = {
+  implicit val groupSettingsActionsMeta: Meta[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]] = {
     implicit val liquidDecoder: Decoder[Liquid[Any]] = deriveDecoder[Liquid[Any]]
     implicit val liquidEncoder: Encoder[Liquid[Any]] = deriveEncoder[Liquid[Any]]
     implicit val liquidMarkdownDecoder: Decoder[LiquidMarkdown[Any]] = deriveDecoder[LiquidMarkdown[Any]]
@@ -89,11 +89,11 @@ object DoobieMappings {
     implicit val groupSettingsActionEncoder: Encoder[Group.Settings.Action] = deriveEncoder[Group.Settings.Action]
     implicit val groupSettingsActionTriggerDecoder: KeyDecoder[Group.Settings.Action.Trigger] = (key: String) => Group.Settings.Action.Trigger.from(key).toOption
     implicit val groupSettingsActionTriggerEncoder: KeyEncoder[Group.Settings.Action.Trigger] = (e: Group.Settings.Action.Trigger) => e.toString
-    Meta[String].timap(fromJson[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](_).get)(toJson)
+    Meta[String].timap(fromJson[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]](_).get)(toJson)
   }
 
-  // TODO build Meta[Seq[A]] and Meta[NonEmptyList[A]]
-  // implicit def seqMeta[A](implicit m: Meta[A]): Meta[Seq[A]] = ???
+  // TODO build Meta[List[A]] and Meta[NonEmptyList[A]]
+  // implicit def listMeta[A](implicit m: Meta[A]): Meta[List[A]] = ???
   // implicit def nelMeta[A](implicit m: Meta[A]): Meta[NonEmptyList[A]] = ???
 
   implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)
@@ -140,8 +140,8 @@ object DoobieMappings {
   implicit val userIdNelMeta: Meta[NonEmptyList[User.Id]] = Meta[String].timap(
     _.split(",").filter(_.nonEmpty).map(User.Id.from(_).get).toNelUnsafe)(
     _.map(_.value).toList.mkString(","))
-  implicit val proposalIdSeqMeta: Meta[Seq[Proposal.Id]] = Meta[String].timap(
-    _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toSeq)(
+  implicit val proposalIdListMeta: Meta[List[Proposal.Id]] = Meta[String].timap(
+    _.split(",").filter(_.nonEmpty).map(Proposal.Id.from(_).get).toList)(
     _.map(_.value).mkString(","))
 
   implicit def eitherRead[A, B](implicit r: Read[(Option[A], Option[B])]): Read[Either[A, B]] = Read[(Option[A], Option[B])].map {

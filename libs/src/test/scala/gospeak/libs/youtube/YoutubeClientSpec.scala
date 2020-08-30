@@ -90,12 +90,12 @@ class YoutubeClientSpec extends BaseSpec {
     }
     describe("getVideoDetails") {
       it("should get video details for ids") {
-        val videos = client.getVideoDetails(Seq("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g").map(Url.Video.Id)).unsafeRunSync().get
+        val videos = client.getVideoDetails(List("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g").map(Url.Video.Id)).unsafeRunSync().get
         videos.length shouldBe 4
         videos.map(_.id.value) shouldBe List("7wf3NDUq1jw", "9J9ouo-VNao", "r3xdCYP9mVs", "AoVFq4rqv5g")
       }
       it("should ignore bad ids") {
-        val videos = client.getVideoDetails(Seq("7wf3NDUq1jw", "abc").map(Url.Video.Id)).unsafeRunSync().get
+        val videos = client.getVideoDetails(List("7wf3NDUq1jw", "abc").map(Url.Video.Id)).unsafeRunSync().get
         videos.length shouldBe 1
         videos.map(_.id.value) shouldBe List("7wf3NDUq1jw")
       }

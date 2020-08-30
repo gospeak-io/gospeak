@@ -2,7 +2,7 @@
 @import gospeak.web.pages.orga.cfps.proposals.routes.ProposalCtrl
 @import gospeak.web.utils._
 
-@(cfp: Cfp, proposal: Proposal, speakers: Seq[User], events: Seq[Event])(implicit req: OrgaReq[AnyContent])
+@(cfp: Cfp, proposal: Proposal, speakers: List[User], events: List[Event])(implicit req: OrgaReq[AnyContent])
 <a class="list-group-item list-group-item-action" href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">
     <div class="d-flex w-100 justify-content-between align-items-center">
         <h5 class="mb-1">@proposal.title.value</h5>

@@ -13,9 +13,9 @@
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import gospeak.web.utils._
 
-@(stats: Group.Stats, events: Page[Event.Full], proposals: Seq[Proposal], speakers: Seq[User], currentSponsors: Seq[(Partner, (Sponsor, Int))], pastSponsors: Seq[(Partner, Seq[Sponsor])], packs: Seq[SponsorPack], requests: Seq[UserRequest], requestUsers: Seq[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(stats: Group.Stats, events: Page[Event.Full], proposals: List[Proposal], speakers: List[User], currentSponsors: List[(Partner, (Sponsor, Int))], pastSponsors: List[(Partner, List[Sponsor])], packs: List[SponsorPack], requests: List[UserRequest], requestUsers: List[User])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @addSponsorBtn() = {
-@defining(packs.filter(_.active)) { activePacks: Seq[SponsorPack] =>
+@defining(packs.filter(_.active)) { activePacks: List[SponsorPack] =>
     @if(activePacks.nonEmpty) {
         <span class="btn-group">
             <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -39,8 +39,8 @@
             <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
                 <p class="mb-0"><b>@requestUser(r.createdBy)</b> wants to join this group</p>
                 <span>
-                    @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), Seq("class" -> "btn-success btn-sm")){Accept}
-                    @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), Seq("class" -> "btn-danger btn-sm")){Reject}
+                    @formBtn(GroupCtrl.acceptJoin(req.group.slug, r.id), List("class" -> "btn-success btn-sm")){Accept}
+                    @formBtn(GroupCtrl.rejectJoin(req.group.slug, r.id), List("class" -> "btn-danger btn-sm")){Reject}
                 </span>
             </div>
         }
@@ -48,7 +48,7 @@
             <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
                 <p class="mb-0"><b>@r.email.value</b> has been invited by @requestUser(r.createdBy) to join this group</p>
                 <span>
-                    @formBtn(SettingsCtrl.cancelInviteOrga(req.group.slug, r.id), Seq(
+                    @formBtn(SettingsCtrl.cancelInviteOrga(req.group.slug, r.id), List(
                         "class" -> "btn-danger btn-sm",
                         "title" -> "Cancel this invite",
                         "confirm" -> s"Cancel group invite for ${r.email.value}?")) {Cancel}

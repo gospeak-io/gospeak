@@ -15,7 +15,7 @@ object ApiGroup {
                              contact: Option[String],
                              description: String,
                              location: Option[ApiPlace],
-                             tags: Seq[String],
+                             tags: List[String],
                              created: Instant)
 
   object Published {
@@ -38,7 +38,7 @@ object ApiGroup {
                          contact: Option[String],
                          description: String,
                          location: Option[ApiPlace],
-                         tags: Seq[String])
+                         tags: List[String])
 
   object Embed {
     implicit val writes: Writes[Embed] = Json.writes[Embed]

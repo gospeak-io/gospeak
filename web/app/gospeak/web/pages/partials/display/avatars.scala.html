@@ -2,7 +2,7 @@
 @import gospeak.core.domain.User
 @import gospeak.core.domain.utils.Constants.Placeholders
 
-@(ids: NonEmptyList[User.Id], users: Seq[User], call: Option[User => Call] = None, avatarClass: String = "u-sm-avatar")
+@(ids: NonEmptyList[User.Id], users: List[User], call: Option[User => Call] = None, avatarClass: String = "u-sm-avatar")
 <span class="hover-grow">
     @ids.toList.zipWithIndex.map { case (id, i) =>
         @users.find(_.id == id).map { u =>

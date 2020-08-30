@@ -14,13 +14,13 @@ class CfpRepoSqlSpec extends RepoSpec {
       val (user, group, ctx) = createUserAndGroup().unsafeRunSync()
       val talkId = Talk.Id.generate()
       cfpRepo.findRead(cfpData1.slug).unsafeRunSync() shouldBe None
-      cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
-      cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe Seq()
+      cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
+      cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe List()
       val cfp = cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
       cfpRepo.find(cfp.id).unsafeRunSync().get shouldBe cfp
       cfpRepo.findRead(cfpData1.slug).unsafeRunSync().get shouldBe cfp
-      cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq(cfp)
-      cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe Seq(cfp)
+      cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(cfp)
+      cfpRepo.availableFor(talkId, params).unsafeRunSync().items shouldBe List(cfp)
     }
     it("should fail to create a cfp when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()

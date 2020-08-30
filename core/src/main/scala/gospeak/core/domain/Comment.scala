@@ -33,7 +33,7 @@ object Comment {
 
     case object ProposalOrga extends Kind
 
-    override val all: Seq[Kind] = Seq(Event, Proposal, ProposalOrga)
+    override val all: List[Kind] = List(Event, Proposal, ProposalOrga)
   }
 
   final case class Full(comment: Comment, createdBy: User) {

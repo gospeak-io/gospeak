@@ -14,7 +14,7 @@ final case class MsgProposal(id: Proposal.Id,
                              speakers: NonEmptyList[MsgUser.Embed],
                              slides: Option[Url.Slides],
                              video: Option[Url.Video],
-                             tags: Seq[Tag],
+                             tags: List[Tag],
                              publicLink: String,
                              orgaLink: String)
 
@@ -27,7 +27,7 @@ object MsgProposal {
                          speakers: NonEmptyList[MsgUser.Embed],
                          slides: Option[Url.Slides],
                          video: Option[Url.Video],
-                         tags: Seq[Tag],
+                         tags: List[Tag],
                          publicLink: String,
                          orgaLink: String)
 
@@ -40,7 +40,7 @@ object MsgProposal {
       speakers = NonEmptyList.of(MsgUser.Embed.unknown(User.Id.from("00000000-0000-0000-0000-000000000000").get)),
       slides = None,
       video = None,
-      tags = Seq(),
+      tags = List(),
       publicLink = "",
       orgaLink = "")
   }

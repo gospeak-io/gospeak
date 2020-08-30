@@ -26,7 +26,7 @@ class VideoSrvImplSpec extends BaseSpec {
         val url = Url.Videos.from("https://www.youtube.com/user/BreizhCamp").get
         val videos = srv.listVideos(url).unsafeRunSync()
         videos.length shouldBe 228
-        videos.map(_.url) should contain allElementsOf Seq(
+        videos.map(_.url) should contain allElementsOf List(
           "https://www.youtube.com/watch?v=NkH9WNE0OJc",
           "https://www.youtube.com/watch?v=s-7vdEXhxes").map(Url.Video.from(_).get)
       }
@@ -34,7 +34,7 @@ class VideoSrvImplSpec extends BaseSpec {
         val url = Url.Videos.from("https://www.youtube.com/HumanTalksParis").get
         val videos = srv.listVideos(url).unsafeRunSync()
         videos.length shouldBe 154
-        videos.map(_.url) should contain allElementsOf Seq(
+        videos.map(_.url) should contain allElementsOf List(
           "https://www.youtube.com/watch?v=JyNq_-OJ3dA",
           "https://www.youtube.com/watch?v=VVgdEBfFoF8").map(Url.Video.from(_).get)
       }
@@ -42,14 +42,14 @@ class VideoSrvImplSpec extends BaseSpec {
         val url = Url.Videos.from("https://www.youtube.com/channel/UCVelKVoLQIhwx9C2LWf-CDA").get
         val videos = srv.listVideos(url).unsafeRunSync()
         videos.length shouldBe 228
-        videos.map(_.url) should contain allElementsOf Seq(
+        videos.map(_.url) should contain allElementsOf List(
           "https://www.youtube.com/watch?v=NkH9WNE0OJc",
           "https://www.youtube.com/watch?v=s-7vdEXhxes").map(Url.Video.from(_).get)
       }
       it("should list videos for YouTube playlist id") {
         val url = Url.Videos.from("https://www.youtube.com/playlist?list=PLv7xGPH0RMUTbzjcYSIMxGXA8RrQWdYGh").get
         val videos = srv.listVideos(url).unsafeRunSync()
-        videos.map(_.url) shouldBe Seq(
+        videos.map(_.url) shouldBe List(
           "https://www.youtube.com/watch?v=NkH9WNE0OJc",
           "https://www.youtube.com/watch?v=R60eYvVZ1q8",
           "https://www.youtube.com/watch?v=s-7vdEXhxes").map(Url.Video.from(_).get)
@@ -57,14 +57,14 @@ class VideoSrvImplSpec extends BaseSpec {
       ignore("should list videos for Vimeo channel") {
         val url = Url.Videos.from("https://vimeo.com/parisweb").get
         val videos = srv.listVideos(url).unsafeRunSync()
-        // videos.map(_.url) shouldBe Seq().map(Url.Video.from(_).get)
-        videos.map(_.url) shouldBe Seq.empty[Url.Video]
+        // videos.map(_.url) shouldBe List().map(Url.Video.from(_).get)
+        videos.map(_.url) shouldBe List.empty[Url.Video]
       }
       ignore("should list videos for Vimeo showcase") {
         val url = Url.Videos.from("https://vimeo.com/showcase/6597308").get
         val videos = srv.listVideos(url).unsafeRunSync()
-        // videos.map(_.url) shouldBe Seq().map(Url.Video.from(_).get)
-        videos.map(_.url) shouldBe Seq.empty[Url.Video]
+        // videos.map(_.url) shouldBe List().map(Url.Video.from(_).get)
+        videos.map(_.url) shouldBe List.empty[Url.Video]
       }
     }
   }

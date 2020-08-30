@@ -35,9 +35,9 @@ class SlackSrvImpl(client: SlackClient) extends SlackSrv {
           (for {
             createdChannel <- EitherT(client.createChannel(token, channel))
             invitedUsers <- EitherT.liftF(if (action.inviteEverybody) {
-              client.listUsers(token).flatMap(_.getOrElse(Seq()).map(_.id).map(client.inviteToChannel(token, createdChannel.id, _)).sequence)
+              client.listUsers(token).flatMap(_.getOrElse(List()).map(_.id).map(client.inviteToChannel(token, createdChannel.id, _)).sequence)
             } else {
-              IO.pure(Seq())
+              IO.pure(List())
             })
             attempt2 <- EitherT(client.postMessage(token, sender, createdChannel.id, message))
           } yield attempt2).value

@@ -57,7 +57,7 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 }
 
 object VideoRepoSql {
-  private val _ = urlMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = urlMeta // for intellij not remove DoobieMappings import
   private val tableSources = Tables.videoSources
   private val table = Tables.videos
   private val tableSelect = table.dropField(_.platform).get.dropField(_.id).get

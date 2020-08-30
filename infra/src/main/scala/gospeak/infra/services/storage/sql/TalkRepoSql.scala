@@ -73,9 +73,9 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(params).run(xa)
 
-  override def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]] = selectAll(user, status).runList(xa)
+  override def listAll(user: User.Id, status: Talk.Status): IO[List[Talk]] = selectAll(user, status).runList(xa)
 
-  override def listAllPublicSlugs(): IO[Seq[(Talk.Slug, NonEmptyList[User.Id])]] = selectAllPublicSlugs().runList(xa)
+  override def listAllPublicSlugs(): IO[List[(Talk.Slug, NonEmptyList[User.Id])]] = selectAllPublicSlugs().runList(xa)
 
   override def listCurrent(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]] = selectPage(Talk.Status.current, params).run(xa)
 
@@ -87,11 +87,11 @@ class TalkRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def exists(talk: Talk.Slug): IO[Boolean] = selectOne(talk).runExists(xa)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
 object TalkRepoSql {
-  private val _ = talkIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = talkIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.talks
 
   private[sql] def insert(e: Talk): Query.Insert[Talk] = {
@@ -145,8 +145,8 @@ object TalkRepoSql {
     table.selectPage[Talk](params, adapt(ctx)).where(fr0"t.speakers LIKE ${"%" + ctx.user.id.value + "%"} AND t.id NOT IN (" ++ cfpTalks ++ fr0") AND " ++ Fragments.in(fr"t.status", status))
   }
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    table.select[Seq[Tag]].fields(Field("tags", "t"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    table.select[List[Tag]].fields(Field("tags", "t"))
 
   private def where(user: User.Id, talk: Talk.Slug): Fragment =
     fr0"t.speakers LIKE ${"%" + user.value + "%"} AND t.slug=$talk"

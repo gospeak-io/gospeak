@@ -11,10 +11,10 @@ import gospeak.libs.scala.domain.{Done, EmailAddress}
 trait UserRequestRepo extends OrgaUserRequestRepo with SpeakerUserRequestRepo with UserUserRequestRepo with AuthUserRequestRepo
 
 trait OrgaUserRequestRepo {
-  def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[Seq[UserRequest]]
+  def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[List[UserRequest]]
 
 
-  def listPendingUserToJoinAGroupRequests(implicit ctx: UserCtx): IO[Seq[UserAskToJoinAGroupRequest]]
+  def listPendingUserToJoinAGroupRequests(implicit ctx: UserCtx): IO[List[UserAskToJoinAGroupRequest]]
 
   def findPendingUserToJoinAGroup(req: UserRequest.Id)(implicit ctx: OrgaCtx): IO[Option[UserAskToJoinAGroupRequest]]
 
@@ -29,14 +29,14 @@ trait OrgaUserRequestRepo {
 
   def cancelGroupInvite(id: UserRequest.Id)(implicit ctx: OrgaCtx): IO[GroupInvite]
 
-  def listPendingInvites(implicit ctx: OrgaCtx): IO[Seq[GroupInvite]]
+  def listPendingInvites(implicit ctx: OrgaCtx): IO[List[GroupInvite]]
 
 
   def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: OrgaCtx): IO[ProposalInvite]
 
   def cancelProposalInvite(id: UserRequest.Id)(implicit ctx: OrgaCtx): IO[ProposalInvite]
 
-  def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
+  def listPendingInvites(proposal: Proposal.Id): IO[List[ProposalInvite]]
 }
 
 trait SpeakerUserRequestRepo {
@@ -44,21 +44,21 @@ trait SpeakerUserRequestRepo {
 
   def cancelTalkInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[TalkInvite]
 
-  def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]]
+  def listPendingInvites(talk: Talk.Id): IO[List[TalkInvite]]
 
 
   def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite]
 
   def cancelProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ProposalInvite]
 
-  def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]]
+  def listPendingInvites(proposal: Proposal.Id): IO[List[ProposalInvite]]
 
 
   def invite(proposal: ExternalProposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ExternalProposalInvite]
 
   def cancelExternalProposalInvite(id: UserRequest.Id)(implicit ctx: UserCtx): IO[ExternalProposalInvite]
 
-  def listPendingInvites(proposal: ExternalProposal.Id): IO[Seq[ExternalProposalInvite]]
+  def listPendingInvites(proposal: ExternalProposal.Id): IO[List[ExternalProposalInvite]]
 }
 
 trait UserUserRequestRepo {

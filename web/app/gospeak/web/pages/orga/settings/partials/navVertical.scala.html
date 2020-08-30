@@ -1,4 +1,4 @@
-@(field: Field, tabs: Field => Seq[(Field, String, String, Field => Html)], size: Int = 3)
+@(field: Field, tabs: Field => List[(Field, String, String, Field => Html)], size: Int = 3)
 <div class="row">
     <div class="col-@size">
         <div class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">

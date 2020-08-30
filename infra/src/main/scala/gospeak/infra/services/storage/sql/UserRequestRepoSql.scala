@@ -23,7 +23,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                          externalProposalRepo: ExternalProposalRepoSql) extends GenericRepo with UserRequestRepo {
   override def find(id: UserRequest.Id): IO[Option[UserRequest]] = selectOne(id).runOption(xa)
 
-  override def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[Seq[UserRequest]] = selectAllPending(ctx.group.id, ctx.now).runList(xa)
+  override def listPendingGroupRequests(implicit ctx: OrgaCtx): IO[List[UserRequest]] = selectAllPending(ctx.group.id, ctx.now).runList(xa)
 
   // override def findPending(group: Group.Id, req: UserRequest.Id, now: Instant): IO[Option[UserRequest]] = selectOnePending(group, req, now).runOption(xa)
 
@@ -73,7 +73,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def rejectUserToJoinAGroup(req: UserAskToJoinAGroupRequest)(implicit ctx: OrgaCtx): IO[Done] = UserAskToJoinAGroup.reject(req.id, ctx.user.id, ctx.now).run(xa)
 
-  override def listPendingUserToJoinAGroupRequests(implicit ctx: UserCtx): IO[Seq[UserAskToJoinAGroupRequest]] = UserAskToJoinAGroup.selectAllPending(ctx.user.id).runList(xa)
+  override def listPendingUserToJoinAGroupRequests(implicit ctx: UserCtx): IO[List[UserAskToJoinAGroupRequest]] = UserAskToJoinAGroup.selectAllPending(ctx.user.id).runList(xa)
 
 
   override def invite(email: EmailAddress)(implicit ctx: OrgaCtx): IO[GroupInvite] =
@@ -89,7 +89,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def reject(invite: UserRequest.GroupInvite)(implicit ctx: UserCtx): IO[Done] = GroupInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
-  override def listPendingInvites(implicit ctx: OrgaCtx): IO[Seq[GroupInvite]] = GroupInviteQueries.selectAllPending(ctx.group.id).runList(xa)
+  override def listPendingInvites(implicit ctx: OrgaCtx): IO[List[GroupInvite]] = GroupInviteQueries.selectAllPending(ctx.group.id).runList(xa)
 
 
   override def invite(talk: Talk.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[TalkInvite] =
@@ -105,7 +105,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def reject(invite: UserRequest.TalkInvite)(implicit ctx: UserCtx): IO[Done] = TalkInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
-  override def listPendingInvites(talk: Talk.Id): IO[Seq[TalkInvite]] = TalkInviteQueries.selectAllPending(talk).runList(xa)
+  override def listPendingInvites(talk: Talk.Id): IO[List[TalkInvite]] = TalkInviteQueries.selectAllPending(talk).runList(xa)
 
 
   override def invite(proposal: Proposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ProposalInvite] = invite(proposal, email, ctx.user.id, ctx.now)
@@ -129,7 +129,7 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def reject(invite: UserRequest.ProposalInvite)(implicit ctx: UserCtx): IO[Done] = ProposalInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
-  override def listPendingInvites(proposal: Proposal.Id): IO[Seq[ProposalInvite]] = ProposalInviteQueries.selectAllPending(proposal).runList(xa)
+  override def listPendingInvites(proposal: Proposal.Id): IO[List[ProposalInvite]] = ProposalInviteQueries.selectAllPending(proposal).runList(xa)
 
 
   override def invite(proposal: ExternalProposal.Id, email: EmailAddress)(implicit ctx: UserCtx): IO[ExternalProposalInvite] =
@@ -145,11 +145,11 @@ class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def reject(invite: UserRequest.ExternalProposalInvite)(implicit ctx: UserCtx): IO[Done] = ExternalProposalInviteQueries.reject(invite.id, ctx.user.id, ctx.now).run(xa)
 
-  override def listPendingInvites(proposal: ExternalProposal.Id): IO[Seq[ExternalProposalInvite]] = ExternalProposalInviteQueries.selectAllPending(proposal).runList(xa)
+  override def listPendingInvites(proposal: ExternalProposal.Id): IO[List[ExternalProposalInvite]] = ExternalProposalInviteQueries.selectAllPending(proposal).runList(xa)
 }
 
 object UserRequestRepoSql {
-  private val _ = userRequestIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = userRequestIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.userRequests
   private val andIsPending = fr0" AND ur.accepted_at IS NULL AND ur.rejected_at IS NULL AND ur.canceled_at IS NULL"
 

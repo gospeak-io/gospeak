@@ -40,7 +40,7 @@ class BasicMessageBus[A] extends MessageBus[A] {
     eventHandlers
       .collect { case (clazz, handlers) if classes.contains(clazz) => handlers }
       .flatMap(_.map(_.asInstanceOf[B => IO[Unit]](msg)))
-      .toSeq.sequence.map(_.length)
+      .toList.sequence.map(_.length)
   }
 
   /* override def publishLazy[B <: A : ClassTag](msg: => B): IO[Int] = {

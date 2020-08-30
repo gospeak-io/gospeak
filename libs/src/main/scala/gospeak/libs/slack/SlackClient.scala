@@ -34,12 +34,12 @@ class SlackClient(http: HttpClient) {
     )).flatMap(parse[SlackChannel.Single]).map(_.map(_.channel))
 
   // cf https://api.slack.com/methods/channels.list
-  def listChannels(token: SlackToken): IO[Either[SlackError, Seq[SlackChannel]]] =
+  def listChannels(token: SlackToken): IO[Either[SlackError, List[SlackChannel]]] =
     http.get(s"$baseUrl/channels.list", query = Map("token" -> token.value))
       .flatMap(parse[SlackChannel.List]).map(_.map(_.channels))
 
   // cf https://api.slack.com/methods/users.list
-  def listUsers(token: SlackToken): IO[Either[SlackError, Seq[SlackUser]]] =
+  def listUsers(token: SlackToken): IO[Either[SlackError, List[SlackUser]]] =
     http.get(s"$baseUrl/users.list", query = Map("token" -> token.value))
       .flatMap(parse[SlackUser.List]).map(_.map(_.members))
 

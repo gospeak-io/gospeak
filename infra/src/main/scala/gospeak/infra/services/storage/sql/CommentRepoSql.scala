@@ -21,15 +21,15 @@ class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
   override def addOrgaComment(proposal: Proposal.Id, data: Comment.Data)(implicit ctx: OrgaCtx): IO[Comment] =
     insert(proposal, Comment.create(data, Comment.Kind.ProposalOrga, ctx.user.id, ctx.now)).run(xa)
 
-  override def getComments(event: Event.Id): IO[Seq[Comment.Full]] = selectAll(event, Comment.Kind.Event).runList(xa)
+  override def getComments(event: Event.Id): IO[List[Comment.Full]] = selectAll(event, Comment.Kind.Event).runList(xa)
 
-  override def getComments(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.Proposal).runList(xa)
+  override def getComments(proposal: Proposal.Id)(implicit ctx: UserCtx): IO[List[Comment.Full]] = selectAll(proposal, Comment.Kind.Proposal).runList(xa)
 
-  override def getOrgaComments(proposal: Proposal.Id)(implicit ctx: OrgaCtx): IO[Seq[Comment.Full]] = selectAll(proposal, Comment.Kind.ProposalOrga).runList(xa)
+  override def getOrgaComments(proposal: Proposal.Id)(implicit ctx: OrgaCtx): IO[List[Comment.Full]] = selectAll(proposal, Comment.Kind.ProposalOrga).runList(xa)
 }
 
 object CommentRepoSql {
-  private val _ = commentIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = commentIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.comments
   private val tableFull = table
     .join(Tables.users, _.created_by -> _.id)

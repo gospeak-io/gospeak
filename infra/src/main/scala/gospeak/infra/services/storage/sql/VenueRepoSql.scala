@@ -53,7 +53,7 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(params).run(xa)
 
-  override def listAllFull()(implicit ctx: OrgaCtx): IO[Seq[Venue.Full]] = selectAllFull(ctx.group.id).runList(xa)
+  override def listAllFull()(implicit ctx: OrgaCtx): IO[List[Venue.Full]] = selectAllFull(ctx.group.id).runList(xa)
 
   override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(params).run(xa)
 
@@ -61,21 +61,21 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]] = selectOnePublic(ctx.group.id, venue).runOption(xa)
 
-  override def listFull(group: Group.Id): IO[Seq[Venue.Full]] = selectAllFull(group).runList(xa)
+  override def listFull(group: Group.Id): IO[List[Venue.Full]] = selectAllFull(group).runList(xa)
 
-  override def listAllFull(partner: Partner.Id): IO[Seq[Venue.Full]] = selectAllFull(partner).runList(xa)
+  override def listAllFull(partner: Partner.Id): IO[List[Venue.Full]] = selectAllFull(partner).runList(xa)
 
-  override def listFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
+  override def listFull(group: Group.Id, venues: List[Venue.Id]): IO[List[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
 
-  override def listAllFull(group: Group.Id, venues: Seq[Venue.Id]): IO[Seq[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
+  override def listAllFull(group: Group.Id, venues: List[Venue.Id]): IO[List[Venue.Full]] = runNel[Venue.Id, Venue.Full](selectAllFull(group, _), venues)
 
   override def findFull(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Full]] = selectOneFull(ctx.group.id, venue).runOption(xa)
 
-  override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Venue]] = selectAll(ctx.group.id, contact).runList(xa)
+  override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[List[Venue]] = selectAll(ctx.group.id, contact).runList(xa)
 }
 
 object VenueRepoSql {
-  private val _ = venueIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = venueIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.venues
   private val tableSelect = table.dropFields(_.name.startsWith("address_"))
   private val tableWithPartner = tableSelect

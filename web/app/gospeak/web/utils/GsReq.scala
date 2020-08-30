@@ -5,8 +5,8 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
-import gospeak.core.domain.utils._
 import gospeak.core.domain._
+import gospeak.core.domain.utils._
 import gospeak.libs.scala.domain.EmailAddress
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.{AuthUser, CookieEnv}
@@ -15,7 +15,6 @@ import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.JsonValidationError
 import play.api.mvc._
 
-import scala.collection.Seq
 import scala.util.matching.Regex
 
 sealed abstract class BasicReq[A] protected(protected val request: Request[A],
@@ -25,7 +24,7 @@ sealed abstract class BasicReq[A] protected(protected val request: Request[A],
                                             val conf: AppConf) extends WrappedRequest[A](request) with BasicCtx {
   def userOpt: Option[User]
 
-  def groupsOpt: Option[Seq[Group]]
+  def groupsOpt: Option[List[Group]]
 
   def isLogged(u: User.Id): Boolean = userOpt.exists(_.id == u)
 
@@ -103,7 +102,7 @@ final class UserAwareReq[A] protected(override val request: Request[A],
                                       override val conf: AppConf,
                                       val underlying: UserAwareRequest[CookieEnv, A],
                                       val user: Option[User],
-                                      val groups: Option[Seq[Group]]) extends BasicReq[A](request, messages, customId, now, conf) with UserAwareCtx {
+                                      val groups: Option[List[Group]]) extends BasicReq[A](request, messages, customId, now, conf) with UserAwareCtx {
   override def withBody[B](body: B): UserAwareReq[B] = new UserAwareReq(
     request = request.withBody(body),
     messages = messages,
@@ -116,7 +115,7 @@ final class UserAwareReq[A] protected(override val request: Request[A],
 
   override def userOpt: Option[User] = user
 
-  override def groupsOpt: Option[Seq[Group]] = groups
+  override def groupsOpt: Option[List[Group]] = groups
 
   def secured: Option[UserReq[A]] = for {
     identity <- underlying.identity
@@ -158,7 +157,7 @@ sealed class UserReq[A] protected(override val request: Request[A],
                                   override val conf: AppConf,
                                   val underlying: SecuredRequest[CookieEnv, A],
                                   val user: User,
-                                  val groups: Seq[Group]) extends BasicReq[A](request, messages, customId, now, conf) with UserCtx {
+                                  val groups: List[Group]) extends BasicReq[A](request, messages, customId, now, conf) with UserCtx {
   override def withBody[B](body: B): UserReq[B] = new UserReq(
     request = request.withBody(body),
     messages = messages,
@@ -171,7 +170,7 @@ sealed class UserReq[A] protected(override val request: Request[A],
 
   override def userOpt: Option[User] = Some(user)
 
-  override def groupsOpt: Option[Seq[Group]] = Some(groups)
+  override def groupsOpt: Option[List[Group]] = Some(groups)
 
   def isAdmin: Boolean = conf.app.admins.exists(_ == user.email)
 
@@ -214,7 +213,7 @@ final class OrgaReq[A] protected(override val request: Request[A],
                                  override val conf: AppConf,
                                  override val underlying: SecuredRequest[CookieEnv, A],
                                  override val user: User,
-                                 override val groups: Seq[Group],
+                                 override val groups: List[Group],
                                  val group: Group) extends UserReq[A](request, messages, customId, now, conf, underlying, user, groups) with OrgaCtx {
   override def withBody[B](body: B): OrgaReq[B] = new OrgaReq(
     request = request.withBody(body),
@@ -227,7 +226,7 @@ final class OrgaReq[A] protected(override val request: Request[A],
     groups = groups,
     group = group)
 
-  def senders: Seq[EmailAddress.Contact] = group.senders(user)
+  def senders: List[EmailAddress.Contact] = group.senders(user)
 }
 
 object OrgaReq {
@@ -243,7 +242,7 @@ final class AdminReq[A] protected(override val request: Request[A],
                                   override val conf: AppConf,
                                   override val underlying: SecuredRequest[CookieEnv, A],
                                   override val user: User,
-                                  override val groups: Seq[Group]) extends UserReq[A](request, messages, customId, now, conf, underlying, user, groups) with AdminCtx
+                                  override val groups: List[Group]) extends UserReq[A](request, messages, customId, now, conf, underlying, user, groups) with AdminCtx
 
 object AdminReq {
   def from[A](r: UserReq[A]): AdminReq[A] =

@@ -112,7 +112,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
 
     _ <- eventRepo.editTalks(event.slug, event.add(proposal.id).talks)(ctx)
     _ <- proposalRepo.accept(cfp.slug, proposal.id, event.id)
-    eventWithProposal = event.copy(talks = Seq(proposal.id))
+    eventWithProposal = event.copy(talks = List(proposal.id))
     proposalWithEvent = proposal.copy(event = Some(event.id), status = Proposal.Status.Accepted)
   } yield (user, group, cfp, partner, venue, contact, eventWithProposal, talk, proposalWithEvent, ctx)
 

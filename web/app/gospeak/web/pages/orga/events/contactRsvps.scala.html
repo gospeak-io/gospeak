@@ -7,12 +7,12 @@
 @import gospeak.web.utils.GsForms
 @import gospeak.web.utils.OrgaReq
 
-@(event: Event, senders: Seq[EmailAddress.Contact], form: Form[GsForms.EventContact])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, senders: List[EmailAddress.Contact], form: Form[GsForms.EventContact])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Contact ${req.group.name.value} RSVPs", b)() {
     <h1>Contact attendees of @event.name.value</h1>
 
     @formElt(form, EventCtrl.doContactRsvps(req.group.slug, event.slug)) {
-        @fieldHorizontal(form("from"), Seq("label" -> "Sender")) { (field, args) =>
+        @fieldHorizontal(form("from"), List("label" -> "Sender")) { (field, args) =>
             @senders.zipWithIndex.map { case (contact, i) =>
                 <div class="custom-control custom-radio">
                     <input type="radio" class="custom-control-input" id="@field.id-@i" name="@field.name" value="@contact.address.value"@if(i == 0){ checked} required>
@@ -20,7 +20,7 @@
                 </div>
             }
         }
-        @fieldHorizontal(form("to"), Seq("label" -> "Recipients")) { (field, args) =>
+        @fieldHorizontal(form("to"), List("label" -> "Recipients")) { (field, args) =>
             @GsForms.EventContact.Recipient.all.zipWithIndex.map { case (to, i) =>
                 <div class="custom-control custom-radio">
                     <input type="radio" class="custom-control-input" id="@field.id-@i" name="@field.name" value="@to.value"@if(i == 0){ checked} required>
@@ -28,10 +28,10 @@
                 </div>
             }
         }
-        @fieldHorizontal(form("subject"), Seq("label" -> "Subject")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "ex: Hey, what's up friends?", "autofocus" -> "true") ++ args)
+        @fieldHorizontal(form("subject"), List("label" -> "Subject")) { (field, args) =>
+            @inputText(field, List("placeholder" -> "ex: Hey, what's up friends?", "autofocus" -> "true") ++ args)
         }
-        @fieldHorizontal(form("content"), Seq("label" -> "Message")) { (field, args) =>
+        @fieldHorizontal(form("content"), List("label" -> "Message")) { (field, args) =>
             @inputMarkdown(field, args)
         }
         @actionsHorizontal() {

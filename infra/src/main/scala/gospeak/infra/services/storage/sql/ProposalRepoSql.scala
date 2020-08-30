@@ -39,7 +39,7 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Done] =
     updateVideo(ctx.user.id, talk, cfp)(video, ctx.user.id, ctx.now).run(xa)
 
-  override def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: Seq[Tag])(implicit ctx: OrgaCtx): IO[Done] =
+  override def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: List[Tag])(implicit ctx: OrgaCtx): IO[Done] =
     updateOrgaTags(cfp, id)(orgaTags, ctx.user.id, ctx.now).run(xa)
 
   override def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
@@ -129,28 +129,28 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPageFullPublic(group, params).run(xa)
 
-  override def list(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAll, ids)
+  override def list(ids: List[Proposal.Id]): IO[List[Proposal]] = runNel(selectAll, ids)
 
-  override def listFull(ids: Seq[Proposal.Id])(implicit ctx: UserAwareCtx): IO[Seq[Proposal.Full]] = runNel(selectAllFull, ids)
+  override def listFull(ids: List[Proposal.Id])(implicit ctx: UserAwareCtx): IO[List[Proposal.Full]] = runNel(selectAllFull, ids)
 
-  override def listPublic(ids: Seq[Proposal.Id]): IO[Seq[Proposal]] = runNel(selectAllPublic, ids)
+  override def listPublic(ids: List[Proposal.Id]): IO[List[Proposal]] = runNel(selectAllPublic, ids)
 
-  override def listPublicFull(ids: Seq[Proposal.Id])(implicit ctx: UserAwareCtx): IO[Seq[Proposal.Full]] = runNel[Proposal.Id, Proposal.Full](selectAllFullPublic(_), ids)
+  override def listPublicFull(ids: List[Proposal.Id])(implicit ctx: UserAwareCtx): IO[List[Proposal.Full]] = runNel[Proposal.Id, Proposal.Full](selectAllFullPublic(_), ids)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
-  override def listOrgaTags()(implicit ctx: OrgaCtx): IO[Seq[Tag]] = selectOrgaTags(ctx.group.id).runList(xa).map(_.flatten.distinct)
+  override def listOrgaTags()(implicit ctx: OrgaCtx): IO[List[Tag]] = selectOrgaTags(ctx.group.id).runList(xa).map(_.flatten.distinct)
 
-  override def listRatings(id: Proposal.Id): IO[Seq[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
+  override def listRatings(id: Proposal.Id): IO[List[Proposal.Rating.Full]] = selectAllRatings(id).runList(xa)
 
-  override def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] = selectAllRatings(cfp, ctx.user.id).runList(xa)
+  override def listRatings(cfp: Cfp.Slug)(implicit ctx: OrgaCtx): IO[List[Proposal.Rating]] = selectAllRatings(cfp, ctx.user.id).runList(xa)
 
-  override def listRatings(proposals: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Seq[Proposal.Rating]] =
-    proposals.toNel.map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(Seq()))
+  override def listRatings(proposals: List[Proposal.Id])(implicit ctx: OrgaCtx): IO[List[Proposal.Rating]] =
+    proposals.toNel.map(selectAllRatings(ctx.user.id, _).runList(xa)).getOrElse(IO.pure(List()))
 }
 
 object ProposalRepoSql {
-  private val _ = proposalIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = proposalIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.proposals
   private val ratingTable = Tables.proposalRatings
   private val tableWithCfp = table
@@ -176,7 +176,7 @@ object ProposalRepoSql {
     .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Like: Proposal.Rating.Grade})", "likes"))
     .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Dislike: Proposal.Rating.Grade})", "dislikes"))
     .copy(filters = List(
-      Table.Filter.Enum.fromEnum("status", "Status", "p.status", Seq(
+      Table.Filter.Enum.fromEnum("status", "Status", "p.status", List(
         "pending" -> Proposal.Status.Pending.value,
         "accepted" -> Proposal.Status.Accepted.value,
         "declined" -> Proposal.Status.Declined.value)),
@@ -243,7 +243,7 @@ object ProposalRepoSql {
   private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Url.Video, by: User.Id, now: Instant): Query.Update =
     table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
 
-  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: Seq[Tag], by: User.Id, now: Instant): Query.Update =
+  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: List[Tag], by: User.Id, now: Instant): Query.Update =
     table.update(fr0"orga_tags=$orgaTags").where(where(cfp, id))
 
   private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update =
@@ -309,11 +309,11 @@ object ProposalRepoSql {
   private[sql] def selectAllFullPublic(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
     tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    table.select[Seq[Tag]].fields(Field("tags", "p"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    table.select[List[Tag]].fields(Field("tags", "p"))
 
-  private[sql] def selectOrgaTags(group: Group.Id): Query.Select[Seq[Tag]] =
-    tableWithCfp.select[Seq[Tag]].fields(Field("orga_tags", "p")).where(fr0"c.group_id=$group")
+  private[sql] def selectOrgaTags(group: Group.Id): Query.Select[List[Tag]] =
+    tableWithCfp.select[List[Tag]].fields(Field("orga_tags", "p")).where(fr0"c.group_id=$group")
 
   private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Query.Select[Proposal.Rating] =
     ratingTable.select[Proposal.Rating].where(fr0"pr.proposal_id=$id AND pr.created_by=$user")

@@ -12,7 +12,7 @@ class SwaggerCtrlSpec extends BaseSpec {
       val json = OpenApiUtils.loadSpec().get.transform((__ \ "X-vars").json.prune).get
       val spec = OpenApiFactory.parseJson(json).toTry.get
       val serialized = OpenApiFactory.toJson(spec)
-      JsonUtils.diff(json, serialized) shouldBe Seq()
+      JsonUtils.diff(json, serialized) shouldBe List()
       serialized shouldBe json
     }
     it("should document every /api route") {

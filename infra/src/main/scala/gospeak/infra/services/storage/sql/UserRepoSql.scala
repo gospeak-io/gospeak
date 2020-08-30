@@ -75,15 +75,15 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
   }
 
-  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(User.Id, User.Slug)]] = selectAllPublicSlugs().runList(xa)
+  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[(User.Id, User.Slug)]] = selectAllPublicSlugs().runList(xa)
 
   override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
 
-  override def list(ids: Seq[User.Id]): IO[Seq[User]] = runNel(selectAll, ids)
+  override def list(ids: List[User.Id]): IO[List[User]] = runNel(selectAll, ids)
 }
 
 object UserRepoSql {
-  private val _ = userIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = userIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.users
   private val credentialsTable = Tables.credentials
   private val loginsTable = Tables.logins

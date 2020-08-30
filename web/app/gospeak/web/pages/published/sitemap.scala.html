@@ -10,14 +10,14 @@
 
 @(
     users: Map[User.Id, User.Slug],
-    talks: Seq[(Talk.Slug, NonEmptyList[User.Id])],
+    talks: List[(Talk.Slug, NonEmptyList[User.Id])],
     groups: Map[Group.Id, Group.Slug],
-    events: Seq[(Group.Id, Event.Slug)],
-    proposals: Seq[(Group.Id, Proposal.Id)],
-    cfps: Seq[Cfp.Slug],
-    extCfps: Seq[ExternalCfp.Id],
-    extEvents: Seq[ExternalEvent.Id],
-    extProposals: Seq[(ExternalEvent.Id, ExternalProposal.Id)]
+    events: List[(Group.Id, Event.Slug)],
+    proposals: List[(Group.Id, Proposal.Id)],
+    cfps: List[Cfp.Slug],
+    extCfps: List[ExternalCfp.Id],
+    extEvents: List[ExternalEvent.Id],
+    extProposals: List[(ExternalEvent.Id, ExternalProposal.Id)]
 )(implicit req: UserAwareReq[AnyContent])
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

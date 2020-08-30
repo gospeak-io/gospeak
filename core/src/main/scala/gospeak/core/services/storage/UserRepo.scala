@@ -16,7 +16,7 @@ trait OrgaUserRepo {
 
   def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 }
 
 trait SpeakerUserRepo {
@@ -24,7 +24,7 @@ trait SpeakerUserRepo {
 
   def find(slug: User.Slug): IO[Option[User]]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 }
 
 trait UserUserRepo {
@@ -34,7 +34,7 @@ trait UserUserRepo {
 
   def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Done]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 }
 
 trait AuthUserRepo {
@@ -66,11 +66,11 @@ trait PublicUserRepo {
 
   def speakerCountPublic(group: Group.Id): IO[Long]
 
-  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(User.Id, User.Slug)]]
+  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[(User.Id, User.Slug)]]
 
   def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 
   def findPublic(user: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]]
 }

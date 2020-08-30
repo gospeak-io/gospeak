@@ -9,7 +9,7 @@
 @import gospeak.web.pages.partials.html._
 @import gospeak.web.utils._
 
-@(proposal: Proposal.Full, speakers: Seq[User], ratings: Seq[Proposal.Rating.Full], comments: Seq[Comment.Full], orgaComments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite], events: Seq[Event])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(proposal: Proposal.Full, speakers: List[User], ratings: List[Proposal.Rating.Full], comments: List[Comment.Full], orgaComments: List[Comment.Full], invites: List[UserRequest.ProposalInvite], events: List[Event])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(proposal.title.value, b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@proposal.title.value</h1>
@@ -20,13 +20,13 @@
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@ProposalCtrl.edit(req.group.slug, proposal.cfp.slug, proposal.id)">Edit</a>
                 @if(proposal.status != Proposal.Status.Declined) {
-                    @formBtn(ProposalCtrl.reject(req.group.slug, proposal.cfp.slug, proposal.id), Seq(
+                    @formBtn(ProposalCtrl.reject(req.group.slug, proposal.cfp.slug, proposal.id), List(
                         "class" -> "dropdown-item",
                         "title" -> Proposal.Status.Declined.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "left")) {Reject this proposal}
                 } else {
-                    @formBtn(ProposalCtrl.cancelRejection(req.group.slug, proposal.cfp.slug, proposal.id), Seq("class" -> "dropdown-item")) {Cancel proposal rejection}
+                    @formBtn(ProposalCtrl.cancelRejection(req.group.slug, proposal.cfp.slug, proposal.id), List("class" -> "dropdown-item")) {Cancel proposal rejection}
                 }
             </span>
         </span>
@@ -48,7 +48,7 @@
                                 @speaker.name.value
                             </a>
                             @if(speaker.id != proposal.info.createdBy) {
-                                @formBtn(ProposalCtrl.removeSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                                @formBtn(ProposalCtrl.removeSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, speaker.slug), List("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                             }
                         </span>
                     }
@@ -57,7 +57,7 @@
                 @invites.map { i =>
                     <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
                         @i.email.value
-                        @formBtn(ProposalCtrl.cancelInviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+                        @formBtn(ProposalCtrl.cancelInviteSpeaker(req.group.slug, proposal.cfp.slug, proposal.id, i.id), List("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
                     </span>
                 }
                 <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>

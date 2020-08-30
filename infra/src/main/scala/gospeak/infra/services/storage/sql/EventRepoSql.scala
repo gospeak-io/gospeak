@@ -44,7 +44,7 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
   override def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Done] =
     updateCfp(ctx.group.id, event)(cfp, ctx.user.id, ctx.now).run(xa)
 
-  override def editTalks(event: Event.Slug, talks: Seq[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done] =
+  override def editTalks(event: Event.Slug, talks: List[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done] =
     updateTalks(ctx.group.id, event)(talks, ctx.user.id, ctx.now).run(xa)
 
   override def publish(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Done] =
@@ -64,17 +64,17 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(params).run(xa)
 
-  override def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Seq[Event]] = selectAll(ctx.group.id, venue).runList(xa)
+  override def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[List[Event]] = selectAll(ctx.group.id, venue).runList(xa)
 
-  override def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[(Event, Venue)]] = selectAll(ctx.group.id, partner).runList(xa)
+  override def list(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[List[(Event, Venue)]] = selectAll(ctx.group.id, partner).runList(xa)
 
-  override def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Event.Slug)]] = selectAllPublishedSlugs().runList(xa)
+  override def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Event.Slug)]] = selectAllPublishedSlugs().runList(xa)
 
   override def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
 
-  override def list(ids: Seq[Event.Id]): IO[Seq[Event]] = runNel(selectAll, ids)
+  override def list(ids: List[Event.Id]): IO[List[Event]] = runNel(selectAll, ids)
 
-  override def listAllFromGroups(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]] = runNel[Group.Id, Event](selectAllFromGroups(_), groups)
+  override def listAllFromGroups(groups: List[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]] = runNel[Group.Id, Event](selectAllFromGroups(_), groups)
 
   override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(params).run(xa)
 
@@ -82,9 +82,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def countYesRsvp(event: Event.Id): IO[Long] = countRsvp(event, Event.Rsvp.Answer.Yes).runOption(xa).map(_.getOrElse(0))
 
-  override def listRsvps(event: Event.Id): IO[Seq[Event.Rsvp]] = selectAllRsvp(event).runList(xa)
+  override def listRsvps(event: Event.Id): IO[List[Event.Rsvp]] = selectAllRsvp(event).runList(xa)
 
-  override def listRsvps(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): IO[Seq[Event.Rsvp]] = selectAllRsvp(event, answers).runList(xa)
+  override def listRsvps(event: Event.Id, answers: NonEmptyList[Event.Rsvp.Answer]): IO[List[Event.Rsvp]] = selectAllRsvp(event, answers).runList(xa)
 
   override def findRsvp(event: Event.Id, user: User.Id): IO[Option[Event.Rsvp]] = selectOneRsvp(event, user).runOption(xa)
 
@@ -95,11 +95,11 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done] = updateRsvp(event, user.id, answer, now).run(xa)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
 object EventRepoSql {
-  private val _ = eventIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = eventIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.events
   private val tableWithVenue = table
     .joinOpt(Tables.venues, _.venue -> _.id).get
@@ -140,7 +140,7 @@ object EventRepoSql {
   private[sql] def updateCfp(group: Group.Id, event: Event.Slug)(cfp: Cfp.Id, by: User.Id, now: Instant): Query.Update =
     table.update(fr0"cfp_id=$cfp, updated_at=$now, updated_by=$by").where(where(group, event))
 
-  private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: Seq[Proposal.Id], by: User.Id, now: Instant): Query.Update =
+  private[sql] def updateTalks(group: Group.Id, event: Event.Slug)(talks: List[Proposal.Id], by: User.Id, now: Instant): Query.Update =
     table.update(fr0"talks=$talks, updated_at=$now, updated_by=$by").where(where(group, event))
 
   private[sql] def updatePublished(group: Group.Id, event: Event.Slug)(by: User.Id, now: Instant): Query.Update =
@@ -191,8 +191,8 @@ object EventRepoSql {
   private[sql] def selectPageIncoming(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[(Event.Full, Option[Event.Rsvp])] =
     tableFullWithMemberAndRsvp.selectPage[(Event.Full, Option[Event.Rsvp])](params, adapt(ctx)).where(fr0"e.start > ${ctx.now} AND e.published IS NOT NULL AND gm.user_id=${ctx.user.id}")
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    table.select[Seq[Tag]].fields(Field("tags", "e"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    table.select[List[Tag]].fields(Field("tags", "e"))
 
   private def where(group: Group.Id, event: Event.Slug): Fragment = fr0"e.group_id=$group AND e.slug=$event"
 

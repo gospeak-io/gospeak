@@ -2,7 +2,7 @@
 @import gospeak.web.pages.partials.form.Utils
 @import gospeak.web.utils.BasicReq
 
-@(form: Form[_], call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: BasicReq[AnyContent])
+@(form: Form[_], call: Call, args: List[(String, String)] = List())(content: Html)(implicit req: BasicReq[AnyContent])
 <form method="@call.method" action="@CSRF(call).url" @Utils.getArg(args, "class").map { c => class="@c" }>
     @displayGlobalErrors(form)
     @content

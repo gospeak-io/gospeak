@@ -11,8 +11,8 @@ object OpenApiErrors {
   def apply(head: OpenApiError, tail: OpenApiError*): OpenApiErrors =
     new OpenApiErrors(head, tail.toList)
 
-  def apply(errors: Seq[OpenApiError]): OpenApiErrors =
-    errors.toList match {
+  def apply(errors: List[OpenApiError]): OpenApiErrors =
+    errors match {
       case head :: tail => new OpenApiErrors(head, tail)
       case Nil => new OpenApiErrors(OpenApiError.noMessage(), Nil)
     }

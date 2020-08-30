@@ -53,11 +53,11 @@ trait PublicTalkRepo {
 
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
 
-  def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]]
+  def listAll(user: User.Id, status: Talk.Status): IO[List[Talk]]
 
-  def listAllPublicSlugs(): IO[Seq[(Talk.Slug, NonEmptyList[User.Id])]]
+  def listAllPublicSlugs(): IO[List[(Talk.Slug, NonEmptyList[User.Id])]]
 }
 
 trait SuggestTalkRepo {
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 }

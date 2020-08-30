@@ -88,7 +88,7 @@ class AdminCtrl(cc: ControllerComponents,
           List(t, i, _, attr) = ref.split('/').toList
           trigger <- Group.Settings.Action.Trigger.from(t).toIO
           index <- Try(i.toInt).mapFailure(e => CustomException(s"Invalid index: ${e.getMessage}")).toIO
-          tmpl = settings.actions.getOrElse(trigger, Seq())(index) match {
+          tmpl = settings.actions.getOrElse(trigger, List())(index) match {
             case Group.Settings.Action.Email(to, _, _) if attr == "to" => Some(to.as[Nothing])
             case Group.Settings.Action.Email(_, subject, _) if attr == "subject" => Some(subject.as[Nothing])
             case Group.Settings.Action.Email(_, _, content) if attr == "content" => Some(content.asText.as[Nothing])

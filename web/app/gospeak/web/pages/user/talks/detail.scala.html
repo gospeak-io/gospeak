@@ -11,7 +11,7 @@
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils._
 
-@(talk: Talk, speakers: Seq[User], invites: Seq[UserRequest.TalkInvite], proposals: Seq[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(talk: Talk, speakers: List[User], invites: List[UserRequest.TalkInvite], proposals: List[CommonProposal])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(talk.title.value, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@talk.title.value</span>
@@ -22,21 +22,21 @@
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@TalkCtrl.edit(talk.slug)">Edit</a>
                 @if(talk.status != Talk.Status.Public) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), Seq(
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Public), List(
                         "class" -> "dropdown-item",
                         "title" -> Talk.Status.Public.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "left")) {Make it public}
                 }
                 @if(talk.status != Talk.Status.Private) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), Seq(
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Private), List(
                         "class" -> "dropdown-item",
                         "title" -> Talk.Status.Private.description,
                         "data-toggle" -> "tooltip",
                         "data-placement" -> "left")) {Make it private}
                 }
                 @if(talk.status != Talk.Status.Archived) {
-                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), Seq(
+                    @formBtn(TalkCtrl.changeStatus(talk.slug, Talk.Status.Archived), List(
                         "class" -> "dropdown-item",
                         "title" -> Talk.Status.Archived.description,
                         "data-toggle" -> "tooltip",
@@ -55,7 +55,7 @@
                 <span class="badge badge-pill badge-primary" data-hovercard="@UtilsCtrl.hovercardUser(speaker.slug)">
                     @if(speaker.isPublic) { <a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }
                     @if(speaker.id != talk.info.createdBy) {
-                        @formBtn(TalkCtrl.removeSpeaker(talk.slug, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                        @formBtn(TalkCtrl.removeSpeaker(talk.slug, speaker.slug), List("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                     }
                 </span>
             }
@@ -64,7 +64,7 @@
         @invites.map { i =>
             <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
                 @i.email.value
-                @formBtn(TalkCtrl.cancelInviteSpeaker(talk.slug, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+                @formBtn(TalkCtrl.cancelInviteSpeaker(talk.slug, i.id), List("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
             </span>
         }
         <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>

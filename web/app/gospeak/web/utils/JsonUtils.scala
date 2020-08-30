@@ -16,12 +16,12 @@ object JsonUtils {
      * Create a `Format[B]` mapping values from a `Format[A]` but allowing the read part to fail
      */
     def validate[B](f: A => Either[(JsPath, Seq[JsonValidationError]), B])(g: B => A): Format[B] =
-      Format(js => in.reads(js).flatMap(a => f(a).fold(e => JsError(Seq(e)), b => JsSuccess(b))), in.contramap(g))
+      Format(js => in.reads(js).flatMap(a => f(a).fold(e => JsError(List(e)), b => JsSuccess(b))), in.contramap(g))
 
     def validate2[B](f: A => Either[CustomException, B])(g: B => A): Format[B] =
       validate(a => f(a).left.map(toJson))(g)
 
-    private def toJson(ex: CustomException): (JsPath, Seq[JsonValidationError]) =
+    private def toJson(ex: CustomException): (JsPath, List[JsonValidationError]) =
       (JsPath, JsonValidationError(ex.message) +: ex.errors.map(e => JsonValidationError(e.value)))
   }
 
@@ -36,7 +36,7 @@ object JsonUtils {
           a1.drop(a2.length).zipWithIndex.map { case (e1, i) => (path \ (a2.length + i), Some(e1), None) }.toList ++
           a2.drop(a1.length).zipWithIndex.map { case (e2, i) => (path \ (a1.length + i), None, Some(e2)) }.toList
       case (JsObject(o1), JsObject(o2)) =>
-        o1.flatMap { case (k, v1) => o2.get(k).map(v2 => diff(v1, v2, path \ k)).getOrElse(Seq((path \ k, Some(v1), None))) }.toList ++
+        o1.flatMap { case (k, v1) => o2.get(k).map(v2 => diff(v1, v2, path \ k)).getOrElse(List((path \ k, Some(v1), None))) }.toList ++
           o2.filterKeys(!o1.contains(_)).map { case (k, v2) => (path \ k, None, Some(v2)) }.toList
       case (_, _) => List((path, Some(json1), Some(json2)))
     }).sortBy(_._1.toJsonString)

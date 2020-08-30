@@ -35,7 +35,7 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
       }
     }
 
-  override def list(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]] = runNel[Group.Id, (Group.Id, Group.Settings)](selectAll(_), groups)
+  override def list(groups: List[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]] = runNel[Group.Id, (Group.Id, Group.Settings)](selectAll(_), groups)
 
   override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =
     selectOne(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
@@ -67,12 +67,12 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
   override def findProposalTweet(group: Group.Id): IO[Liquid[Message.ProposalInfo]] =
     selectOneProposalTweet(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.proposal.tweet))
 
-  override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
+  override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]] =
     selectOneActions(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.actions))
 }
 
 object GroupSettingsRepoSql {
-  private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = groupIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.groupSettings
   private val meetupFields = List("meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name").map(n => Field(n, table.prefix))
   private val slackFields = List("slack_token", "slack_bot_name", "slack_bot_avatar").map(n => Field(n, table.prefix))
@@ -117,8 +117,8 @@ object GroupSettingsRepoSql {
   private[sql] def selectOneProposalTweet(group: Group.Id): Query.Select[Liquid[Message.ProposalInfo]] =
     table.select[Liquid[Message.ProposalInfo]].fields(Field("proposal_tweet", "gs")).where(where(group))
 
-  private[sql] def selectOneActions(group: Group.Id): Query.Select[Map[Action.Trigger, Seq[Settings.Action]]] =
-    table.select[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]].fields(Field("actions", "gs")).where(where(group))
+  private[sql] def selectOneActions(group: Group.Id): Query.Select[Map[Action.Trigger, List[Settings.Action]]] =
+    table.select[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]].fields(Field("actions", "gs")).where(where(group))
 
   private def where(group: Group.Id) = fr0"gs.group_id=$group"
 }

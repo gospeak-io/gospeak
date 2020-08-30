@@ -76,12 +76,12 @@ class AuthCtrlSpec extends CtrlSpec with BeforeAndAfterEach {
 object AuthCtrlSpec {
   def doSignup(data: SignupData, redirect: Option[String] = None)(req: RequestHeader)(ctrl: AuthCtrl): Future[Result] = {
     ctrl.doSignup(redirect).apply(req.withBody(AnyContentAsFormUrlEncoded(Map(
-      "slug" -> Seq(data.slug.value),
-      "first-name" -> Seq(data.firstName),
-      "last-name" -> Seq(data.lastName),
-      "email" -> Seq(data.email.value),
-      "password" -> Seq(data.password.decode),
-      "rememberMe" -> Seq(data.rememberMe.toString)
+      "slug" -> List(data.slug.value),
+      "first-name" -> List(data.firstName),
+      "last-name" -> List(data.lastName),
+      "email" -> List(data.email.value),
+      "password" -> List(data.password.decode),
+      "rememberMe" -> List(data.rememberMe.toString)
     ))))
   }
 }

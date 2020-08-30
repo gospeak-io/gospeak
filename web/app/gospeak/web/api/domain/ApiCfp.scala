@@ -15,14 +15,14 @@ object ApiCfp {
                         begin: Option[LocalDateTime],
                         close: Option[LocalDateTime],
                         description: String,
-                        tags: Seq[String],
+                        tags: List[String],
                         info: ApiInfo)
 
   object Orga {
     implicit val writes: Writes[Orga] = Json.writes[Orga]
   }
 
-  def orga(cfp: Cfp, users: Seq[User])(implicit ctx: OrgaCtx): Orga =
+  def orga(cfp: Cfp, users: List[User])(implicit ctx: OrgaCtx): Orga =
     new Orga(
       slug = cfp.slug.value,
       name = cfp.name.value,
@@ -49,14 +49,14 @@ object ApiCfp {
                              eventVideos: Option[String],
                              twitterAccount: Option[String],
                              twitterHashtag: Option[String],
-                             tags: Seq[String],
+                             tags: List[String],
                              group: Option[ApiGroup.Embed])
 
   object Published {
     implicit val writes: Writes[Published] = Json.writes[Published]
   }
 
-  def published(cfp: CommonCfp, groups: Seq[Group])(implicit ctx: BasicCtx): Published =
+  def published(cfp: CommonCfp, groups: List[Group])(implicit ctx: BasicCtx): Published =
     new Published(
       kind = cfp.fold(_ => "external")(_ => "internal"),
       ref = cfp.fold(_.id.value)(_.slug.value),

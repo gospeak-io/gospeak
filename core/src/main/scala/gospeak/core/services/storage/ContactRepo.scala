@@ -6,7 +6,7 @@ import gospeak.core.domain.utils.OrgaCtx
 import gospeak.libs.scala.domain.{Done, EmailAddress}
 
 trait ContactRepo extends SuggestContactRepo {
-  def list(partner: Partner.Id): IO[Seq[Contact]]
+  def list(partner: Partner.Id): IO[List[Contact]]
 
   def create(data: Contact.Data)(implicit ctx: OrgaCtx): IO[Contact]
 
@@ -20,5 +20,5 @@ trait ContactRepo extends SuggestContactRepo {
 }
 
 trait SuggestContactRepo {
-  def list(partner: Partner.Id): IO[Seq[Contact]]
+  def list(partner: Partner.Id): IO[List[Contact]]
 }
