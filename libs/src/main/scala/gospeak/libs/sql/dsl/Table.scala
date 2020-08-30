@@ -4,7 +4,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import gospeak.libs.sql.dsl.Query.SelectBuilder
-import gospeak.libs.sql.dsl.Table._
+import gospeak.libs.sql.dsl.Table.Inner._
 
 sealed trait Table {
   def getSchema: String
@@ -15,23 +15,16 @@ sealed trait Table {
 
   def getFields: List[Field[_, _]]
 
-  def getJoins: List[Join]
+  def getJoins: List[Join[_]]
 
   def fr: Fragment
 
   // TODO do not lose previous type (chain predefined joins, still use fields...)
-  def join(table: Table, on: Cond): JoinTable = doJoin("INNER JOIN", table, on)
+  def join[T <: Table](table: T): JoinClause[this.type, T] = JoinClause(this, "INNER JOIN", table)
 
-  def joinOpt(table: Table, on: Cond): JoinTable = doJoin("LEFT OUTER JOIN", table, on)
+  def joinOpt[T <: Table](table: T): JoinClause[this.type, T] = JoinClause(this, "LEFT OUTER JOIN", table)
 
-  private def doJoin(kind: String, table: Table, on: Cond): JoinTable =
-    JoinTable(
-      getSchema = getSchema,
-      getName = getName,
-      getFields = getFields ++ table.getFields,
-      getJoins = getJoins ++ List(Join(kind, table.getSchema, table.getName, on)) ++ table.getJoins)
-
-  def select: SelectBuilder = SelectBuilder(this, getFields, None)
+  def select: SelectBuilder[this.type] = SelectBuilder(this, getFields, None)
 }
 
 object Table {
@@ -43,22 +36,39 @@ object Table {
 
     override def getAlias: Option[String] = alias
 
-    override def getJoins: List[Join] = List()
+    override def getJoins: List[Join[_]] = List()
 
-    override def fr: Fragment = const0(getName)
+    override def fr: Fragment = const0(getName + alias.map(" " + _).getOrElse(""))
   }
 
   case class JoinTable(getSchema: String,
                        getName: String,
+                       getAlias: Option[String],
                        getFields: List[Field[_, _]],
-                       getJoins: List[Join]) extends Table {
-    override def getAlias: Option[String] = None
-
-    override def fr: Fragment = const0(getName) ++ getJoins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
+                       getJoins: List[Join[_]]) extends Table {
+    override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse("")) ++ getJoins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
   }
 
-  case class Join(kind: String, schema: String, table: String, on: Cond) {
-    def fr: Fragment = const0(s"$kind $table ON ") ++ on.fr
+  object Inner {
+
+    case class Join[T <: Table](kind: String, table: T, on: Cond) {
+      def fr: Fragment = const0(s"$kind ") ++ table.fr ++ const0(" ON ") ++ on.fr
+    }
+
+    case class JoinClause[T <: Table, U <: Table](left: T, kind: String, right: U) {
+      def on(cond: Cond): JoinTable =
+        JoinTable(
+          getSchema = left.getSchema,
+          getName = left.getName,
+          getAlias = left.getAlias,
+          getFields = left.getFields ++ right.getFields,
+          getJoins = left.getJoins ++ List(Join(kind, right, cond)) ++ right.getJoins)
+
+      def on(cond: U => Cond): JoinTable = on(cond(right))
+
+      def on(cond: (T, U) => Cond): JoinTable = on(cond(left, right))
+    }
+
   }
 
 }

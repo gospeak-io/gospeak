@@ -11,16 +11,16 @@ import scala.util.control.NonFatal
 
 object Query {
 
-  case class SelectBuilder(table: Table,
-                           fields: List[Field[_, _]],
-                           whereOpt: Option[Cond]) {
-    def fields(fields: Field[_, _]*): SelectBuilder = copy(fields = fields.toList)
+  case class SelectBuilder[T <: Table](table: T,
+                                       fields: List[Field[_, _]],
+                                       whereOpt: Option[Cond]) {
+    def fields(fields: Field[_, _]*): SelectBuilder[T] = copy(fields = fields.toList)
 
-    def fields(fields: List[Field[_, _]]): SelectBuilder = copy(fields = fields)
+    def fields(fields: List[Field[_, _]]): SelectBuilder[T] = copy(fields = fields)
 
-    def where(c: Cond): SelectBuilder = copy(whereOpt = Some(c))
+    def where(cond: Cond): SelectBuilder[T] = copy(whereOpt = Some(cond))
 
-    // def join(right: Table, on: Cond): SelectBuilder = copy(table = JoinTable(table, right, on), fields = fields ++ right.getFields)
+    def where(cond: T => Cond): SelectBuilder[T] = where(cond(table))
 
     def as[A: Read]: Select[A] =
       if (implicitly[Read[A]].length == fields.length) Select[A](table, fields, whereOpt)
