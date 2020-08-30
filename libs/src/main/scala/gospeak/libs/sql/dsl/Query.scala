@@ -6,6 +6,7 @@ import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import doobie.util.{Put, Read}
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.dsl.Query.Inner.WhereClause
 
 import scala.util.control.NonFatal
@@ -137,6 +138,26 @@ object Query {
 
   object Select {
 
+    case class Paginated[A: Read](private val table: Table,
+                                  private val fields: List[Field[_, _]],
+                                  private val where: WhereClause,
+                                  private val params: Page.Params) {
+      def fr: Fragment = {
+        val fieldsFr = fields.tail.map(const0(", ") ++ _.fr).foldLeft(fields.head.fr)(_ ++ _)
+        val pagination = fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
+        fr0"SELECT " ++ fieldsFr ++ fr0" FROM " ++ table.fr ++ where.fr ++ pagination
+      }
+
+      def countFr: Fragment = {
+        fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
+      }
+
+      def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
+        elts <- fr.query[A].to[List]
+        total <- countFr.query[Long].unique
+      } yield Page(elts, params, Page.Total(total)), xa)
+    }
+
     case class Builder[T <: Table](table: T,
                                    fields: List[Field[_, _]],
                                    where: WhereClause = WhereClause(None)) {
@@ -150,6 +171,10 @@ object Query {
 
       def build[A: Read]: Select[A] =
         if (implicitly[Read[A]].length == fields.length) Select[A](table, fields, where)
+        else throw new Exception(s"Expects ${implicitly[Read[A]].length} fields but got ${fields.length}")
+
+      def build[A: Read](params: Page.Params): Select.Paginated[A] =
+        if (implicitly[Read[A]].length == fields.length) Select.Paginated[A](table, fields, where, params)
         else throw new Exception(s"Expects ${implicitly[Read[A]].length} fields but got ${fields.length}")
     }
 
