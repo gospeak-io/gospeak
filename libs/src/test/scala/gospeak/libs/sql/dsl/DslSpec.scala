@@ -1,6 +1,7 @@
 package gospeak.libs.sql.dsl
 
 import doobie.implicits._
+import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.testingutils.Entities.{Post, User}
 import gospeak.libs.sql.testingutils.SqlSpec
 import gospeak.libs.sql.testingutils.database.Tables._
@@ -42,6 +43,18 @@ class DslSpec extends SqlSpec {
       val join = POSTS.join(USERS).on(_.AUTHOR eq _.ID)
       val autoJoin = POSTS.AUTHOR.join
       autoJoin shouldBe join
+    }
+    it("should build paginated select") {
+      val params = Page.Params.defaults.copy(pageSize = Page.Size(1))
+
+      val select = USERS.select.build[User](params)
+      select.fr.query.sql shouldBe "SELECT u.id, u.name, u.email FROM users u LIMIT 1 OFFSET 0"
+      select.countFr.query.sql shouldBe "SELECT COUNT(*) FROM (SELECT u.id FROM users u) as cnt"
+
+      val userPage = select.run(xa).unsafeRunSync()
+      userPage.items shouldBe List(User.loic)
+      userPage.params shouldBe params
+      userPage.total.value shouldBe 3
     }
   }
 }

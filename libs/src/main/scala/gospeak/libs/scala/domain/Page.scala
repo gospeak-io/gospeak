@@ -3,7 +3,7 @@ package gospeak.libs.scala.domain
 import cats.data.NonEmptyList
 import gospeak.libs.scala.Extensions._
 
-final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total) {
+final case class Page[+A](items: List[A], params: Page.Params, total: Page.Total) {
   assert(items.length <= params.pageSize.value, s"Page can't have more items (${items.length}) than its size (${params.pageSize.value})")
   private val last: Int = math.ceil(total.value.toDouble / params.pageSize.value).toInt
 
@@ -41,9 +41,9 @@ final case class Page[+A](items: Seq[A], params: Page.Params, total: Page.Total)
 }
 
 object Page {
-  def empty[A]: Page[A] = Page[A](Seq(), Params.defaults, Total(0))
+  def empty[A]: Page[A] = Page[A](List(), Params.defaults, Total(0))
 
-  def empty[A](params: Params): Page[A] = Page[A](Seq(), params, Total(0))
+  def empty[A](params: Params): Page[A] = Page[A](List(), params, Total(0))
 
   final case class Search(value: String) extends AnyVal {
     def key: String = Search.key
