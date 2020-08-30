@@ -13,10 +13,10 @@ class GroupRepoSqlSpec extends RepoSpec {
     it("should create and retrieve a group") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val ctx = FakeCtx(now, user)
-      groupRepo.list(ctx).unsafeRunSync() shouldBe Seq()
+      groupRepo.list(ctx).unsafeRunSync() shouldBe List()
       groupRepo.find(groupData1.slug).unsafeRunSync() shouldBe None
       val group = groupRepo.create(groupData1)(ctx).unsafeRunSync()
-      groupRepo.list(ctx).unsafeRunSync() shouldBe Seq(group)
+      groupRepo.list(ctx).unsafeRunSync() shouldBe List(group)
       groupRepo.find(groupData1.slug).unsafeRunSync() shouldBe Some(group)
     }
     it("should fail on duplicate slug") {

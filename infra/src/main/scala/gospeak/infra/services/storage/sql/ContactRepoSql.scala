@@ -23,13 +23,13 @@ class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def find(id: Contact.Id): IO[Option[Contact]] = selectOne(id).runOption(xa)
 
-  override def list(partner: Partner.Id): IO[Seq[Contact]] = selectAll(partner).runList(xa)
+  override def list(partner: Partner.Id): IO[List[Contact]] = selectAll(partner).runList(xa)
 
   override def exists(partner: Partner.Id, email: EmailAddress): IO[Boolean] = selectOne(partner, email).runExists(xa)
 }
 
 object ContactRepoSql {
-  private val _ = contactIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = contactIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.contacts
 
   private[sql] def insert(e: Contact): Query.Insert[Contact] = {

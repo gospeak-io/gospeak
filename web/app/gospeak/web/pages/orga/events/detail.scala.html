@@ -15,7 +15,7 @@
 @import gospeak.web.pages.published.groups.routes.{GroupCtrl => PublicGroupCtrl}
 @import gospeak.web.utils._
 
-@(event: Event, venueOpt: Option[Venue.Full], talks: Seq[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating], eventTemplates: Map[String, Liquid[Message.EventInfo]], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, venueOpt: Option[Venue.Full], talks: List[Proposal], description: Markdown, cfpOpt: Option[Cfp], proposals: Page[Proposal.Full], speakers: List[User], userRatings: List[Proposal.Rating], eventTemplates: Map[String, Liquid[Message.EventInfo]], notesForm: Form[String])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(event.name.value, b)() {
     @if(!event.isPublic) {
         <div class="alert alert-info" role="alert">
@@ -92,7 +92,7 @@
                 <span class="lead">Orga notes:</span>
                 @btnSubmit("Save notes", "btn btn-outline-primary btn-sm")
             </label>
-            @inputTextarea(notesForm("notes"), Seq("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
+            @inputTextarea(notesForm("notes"), List("placeholder" -> "Notes and reminders about your event...", "optional" -> ""))
             <small class="form-text text-muted d-flex justify-content-between align-items-center">
                 <span>Use theses not as a reminder between orgas</span>
                 <span>Last update: @event.orgaNotes.updatedAt.asTimeAgo</span>
@@ -114,9 +114,9 @@
                 <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
                     @talks.find(_.id == tId).map { proposal =>
                         <div>
-                            @formBtn(EventCtrl.cancelTalk(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
-                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, true, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
-                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, false, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
+                            @formBtn(EventCtrl.cancelTalk(req.group.slug, event.slug, proposal.id, proposals.params), List("class" -> "btn-link badge", "title" -> "Remove this talk from the event")) { <i class="fas fa-minus"></i> }
+                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, true, proposals.params), List("class" -> "btn-link badge", "title" -> "Move this talk up")) { <i class="fas fa-arrow-up"></i> }
+                            @formBtn(EventCtrl.moveTalk(req.group.slug, event.slug, proposal.id, false, proposals.params), List("class" -> "btn-link badge", "title" -> "Move this talk down")) { <i class="fas fa-arrow-down"></i> }
                             @proposal.duration.asBadge
                             @proposal.slides.asIconLink
                             @proposal.video.asIconLink
@@ -150,8 +150,8 @@
                 @proposals.items.map { proposal =>
                     <div class="list-group-item p-1 d-flex justify-content-between align-items-center">
                         <div>
-                            @formBtn(EventCtrl.addToTalks(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge", "title" -> "Add this proposal to the event", "data-toggle" -> "tooltip")){<i class="fas fa-plus"></i>}
-                            @formBtn(EventCtrl.rejectProposal(req.group.slug, event.slug, proposal.id, proposals.params), Seq("class" -> "btn-link badge text-danger", "title" -> "Reject this proposal", "data-toggle" -> "tooltip", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
+                            @formBtn(EventCtrl.addToTalks(req.group.slug, event.slug, proposal.id, proposals.params), List("class" -> "btn-link badge", "title" -> "Add this proposal to the event", "data-toggle" -> "tooltip")){<i class="fas fa-plus"></i>}
+                            @formBtn(EventCtrl.rejectProposal(req.group.slug, event.slug, proposal.id, proposals.params), List("class" -> "btn-link badge text-danger", "title" -> "Reject this proposal", "data-toggle" -> "tooltip", "confirm" -> s"Reject proposal: ${proposal.title.value}?")){<i class="fas fa-comment-slash"></i>}
                             @proposal.duration.asBadge
                             @proposal.slides.asIconLink
                             @proposal.video.asIconLink
@@ -175,8 +175,8 @@
             <h5 class="card-header">No attached CFP</h5>
             <div class="card-body mx-auto text-center">
                 <p class="card-text">Your event has no attached CFP, so you will not be able to add talk proposals</p>
-                @formElt(GsForms.eventCfp, EventCtrl.attachCfp(req.group.slug, event.slug), Seq("class" -> "form-inline")) {
-                    @inputSelect(GsForms.eventCfp("cfp"), Seq(), Seq(
+                @formElt(GsForms.eventCfp, EventCtrl.attachCfp(req.group.slug, event.slug), List("class" -> "form-inline")) {
+                    @inputSelect(GsForms.eventCfp("cfp"), List(), List(
                         "placeholder" -> "-- Attach a CFP to this event",
                         "remote" -> SuggestCtrl.suggestCfps(req.group.slug).toString,
                         "style" -> "width: 500px",

@@ -7,7 +7,7 @@ import gospeak.libs.openapi.models.Path._
  * @see "https://spec.openapis.org/oas/v3.0.2#paths-object"
  */
 final case class Path(value: String) extends AnyVal {
-  def variables: Seq[String] =
+  def variables: List[String] =
     variableRegex.findAllIn(value).toList.map(_.stripPrefix("{").stripSuffix("}"))
 
   def mapVariables(f: String => String): Path =

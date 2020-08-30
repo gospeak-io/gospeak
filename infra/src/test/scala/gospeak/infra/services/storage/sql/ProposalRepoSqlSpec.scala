@@ -19,11 +19,11 @@ class ProposalRepoSqlSpec extends RepoSpec {
   describe("ProposalRepoSql") {
     it("should create and retrieve a proposal for a group and talk") {
       val (user, group, cfp, talk, ctx) = createUserGroupCfpAndTalk().unsafeRunSync()
-      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq()
-      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq()
+      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe List()
+      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe List()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, speakers)(ctx).unsafeRunSync()
-      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
-      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe Seq(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
+      proposalRepo.listFull(talk.id, params).unsafeRunSync().items shouldBe List(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
+      proposalRepo.listFull(cfp.slug, params).unsafeRunSync().items shouldBe List(Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None))
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
     }
     it("should compute score and comments") {
@@ -112,7 +112,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
         check(q, s"UPDATE $table SET video=?, updated_at=?, updated_by=? WHERE p.id=$whereCfpAndTalk")
       }
       it("should build updateOrgaTags by cfp and proposal") {
-        val q = ProposalRepoSql.updateOrgaTags(cfp.slug, proposal.id)(Seq(tag), user.id, now)
+        val q = ProposalRepoSql.updateOrgaTags(cfp.slug, proposal.id)(List(tag), user.id, now)
         check(q, s"UPDATE $table SET orga_tags=? WHERE p.id=$whereCfp")
       }
       it("should build updateSpeakers by id") {

@@ -12,7 +12,7 @@ trait PublicExternalEventRepo {
 
   def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Done]
 
-  def listAllIds()(implicit ctx: UserAwareCtx): IO[Seq[ExternalEvent.Id]]
+  def listAllIds()(implicit ctx: UserAwareCtx): IO[List[ExternalEvent.Id]]
 
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]]
 
@@ -36,7 +36,7 @@ trait AdminExternalEventRepo {
 }
 
 trait SuggestExternalEventRepo {
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 
-  def listLogos(): IO[Seq[Logo]]
+  def listLogos(): IO[List[Logo]]
 }

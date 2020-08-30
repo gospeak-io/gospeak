@@ -2,7 +2,7 @@
 @import gospeak.web.utils.UserReq
 @import helper.CSRF
 
-@(call: Call, args: Seq[(String, String)] = Seq())(content: Html)(implicit req: UserReq[AnyContent])
+@(call: Call, args: List[(String, String)] = List())(content: Html)(implicit req: UserReq[AnyContent])
 <form method="@call.method" action="@CSRF(call).url" class="btn-form">
     <button
         @Utils.typeAttr(args, "submit")

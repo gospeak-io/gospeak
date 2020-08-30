@@ -14,7 +14,7 @@ trait OrgaCfpRepo {
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]]
 
-  def list(ids: Seq[Cfp.Id]): IO[Seq[Cfp]]
+  def list(ids: List[Cfp.Id]): IO[List[Cfp]]
 
   def find(id: Cfp.Id): IO[Option[Cfp]]
 
@@ -36,9 +36,9 @@ trait UserCfpRepo
 trait AuthCfpRepo
 
 trait PublicCfpRepo {
-  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[Cfp.Slug]]
+  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[Cfp.Slug]]
 
-  def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Seq[Cfp]]
+  def listAllIncoming(group: Group.Id)(implicit ctx: UserAwareCtx): IO[List[Cfp]]
 
   def find(id: Cfp.Id): IO[Option[Cfp]]
 
@@ -48,7 +48,7 @@ trait PublicCfpRepo {
 }
 
 trait SuggestCfpRepo {
-  def list(group: Group.Id): IO[Seq[Cfp]]
+  def list(group: Group.Id): IO[List[Cfp]]
 
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 }

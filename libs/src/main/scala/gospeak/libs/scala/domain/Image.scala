@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
 abstract class Image(val url: Url) {
   def value: String = url.value
 
-  def thumbnail: String = transform(Seq("w_50", "c_scale"))
+  def thumbnail: String = transform(List("w_50", "c_scale"))
 
   def isCloudinary: Boolean = Image.CloudinaryUrl.parse(url.value).isSuccess
 
@@ -18,7 +18,7 @@ abstract class Image(val url: Url) {
 
   def isDefault: Boolean = isAdorable || isGravatar
 
-  private def transform(transformations: Seq[String]*): String =
+  private def transform(transformations: List[String]*): String =
     Image.CloudinaryUrl.parse(url.value).map(_.transform(transformations: _*).value).getOrElse(url.value)
 }
 
@@ -27,7 +27,7 @@ object Image {
   final case class CloudinaryUrl(cloudName: String,
                                  resource: String,
                                  kind: String,
-                                 transformations: Seq[Seq[String]],
+                                 transformations: List[List[String]],
                                  version: Option[Long],
                                  publicId: String,
                                  format: String) {
@@ -39,7 +39,7 @@ object Image {
 
     def toUrl: Url = Url.from(value).get
 
-    def transform(txs: Seq[String]*): CloudinaryUrl = copy(transformations = transformations ++ txs)
+    def transform(txs: List[String]*): CloudinaryUrl = copy(transformations = transformations ++ txs)
   }
 
   object CloudinaryUrl {
@@ -47,7 +47,7 @@ object Image {
 
     def parse(url: String): Try[CloudinaryUrl] = url match {
       case cloudinaryRegex(cloudName, resource, kind, transformations, version, id, format) =>
-        val txs = Option(transformations).filter(_.nonEmpty).map(_.stripPrefix("/").split("/").toSeq.map(_.split(",").toSeq)).getOrElse(Seq())
+        val txs = Option(transformations).filter(_.nonEmpty).map(_.stripPrefix("/").split("/").toList.map(_.split(",").toList)).getOrElse(List())
         Option(version).map(v => Try(v.toLong)).sequence.map { v =>
           CloudinaryUrl(cloudName, resource, kind, txs, v, id, format)
         }
@@ -72,7 +72,7 @@ object Image {
   }
 
   final case class GravatarUrl(hash: String,
-                               params: Seq[(String, String)]) {
+                               params: List[(String, String)]) {
     def value: String = {
       val queryParams = params.map { case (key, value) => s"$key=$value" }.mkString("&")
       s"https://secure.gravatar.com/avatar/$hash" + Some(queryParams).filter(_.nonEmpty).map("?" + _).getOrElse("")
@@ -84,13 +84,13 @@ object Image {
   object GravatarUrl {
     private val gravatarRegex = "https://secure.gravatar.com/avatar/([0-9a-f]{32})(\\?.*)?".r
 
-    def apply(email: EmailAddress, params: Seq[(String, String)]): GravatarUrl =
+    def apply(email: EmailAddress, params: List[(String, String)]): GravatarUrl =
       GravatarUrl(Crypto.md5(email.value.trim.toLowerCase), params)
 
     def parse(url: String): Try[GravatarUrl] = url match {
       case gravatarRegex(hash, queryParams) =>
         val params = Option(queryParams)
-          .map(_.stripPrefix("?").split("&").toSeq).getOrElse(Seq())
+          .map(_.stripPrefix("?").split("&").toList).getOrElse(List())
           .map(p => p.splitAt(p.indexOf("=")))
           .map { case (key, value) => (key, value.stripPrefix("=")) }
         Success(GravatarUrl(hash, params))

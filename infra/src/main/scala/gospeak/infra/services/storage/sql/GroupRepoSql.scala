@@ -60,7 +60,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
       case None => IO.raiseError(new IllegalArgumentException("unreachable group"))
     }
 
-  override def listAllSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Group.Slug)]] = selectAllSlugs().runList(xa)
+  override def listAllSlugs()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Group.Slug)]] = selectAllSlugs().runList(xa)
 
   override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPageFull(params).run(xa)
 
@@ -68,13 +68,13 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[Group]] = selectPage(params).run(xa)
 
-  override def list(user: User.Id): IO[Seq[Group]] = selectAll(user).runList(xa)
+  override def list(user: User.Id): IO[List[Group]] = selectAll(user).runList(xa)
 
-  override def listFull(user: User.Id): IO[Seq[Group.Full]] = selectAllFull(user).runList(xa)
+  override def listFull(user: User.Id): IO[List[Group.Full]] = selectAllFull(user).runList(xa)
 
-  override def list(implicit ctx: UserCtx): IO[Seq[Group]] = selectAll(ctx.user.id).runList(xa)
+  override def list(implicit ctx: UserCtx): IO[List[Group]] = selectAll(ctx.user.id).runList(xa)
 
-  override def list(ids: Seq[Group.Id]): IO[Seq[Group]] = runNel(selectAll, ids)
+  override def list(ids: List[Group.Id]): IO[List[Group]] = runNel(selectAll, ids)
 
   override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(params).run(xa)
 
@@ -86,7 +86,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def exists(group: Group.Slug): IO[Boolean] = selectOne(group).runExists(xa)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
   override def join(group: Group.Id)(user: User, now: Instant): IO[Done] =
     selectOneMember(group, user.id).runOption(xa).flatMap {
@@ -98,7 +98,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
     if (member.user.id == user) disableMember(member, now).run(xa)
     else IO.raiseError(CustomException("Internal error: authenticated user is not the member one"))
 
-  override def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]] = selectAllActiveMembers(ctx.group.id).runList(xa)
+  override def listMembers(implicit ctx: OrgaCtx): IO[List[Group.Member]] = selectAllActiveMembers(ctx.group.id).runList(xa)
 
   override def listMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
 
@@ -108,7 +108,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 }
 
 object GroupRepoSql {
-  private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = groupIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.groups
   private val tableSelect = table.dropFields(_.name.startsWith("location_"))
   private val memberTable = Tables.groupMembers
@@ -119,7 +119,7 @@ object GroupRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT gm.user_id), 0)", "memberCount")
     .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
     .aggregate("COALESCE(COUNT(DISTINCT p.id), 0)", "talkCount")
-    .dropFields(f => Seq(memberTable.prefix, Tables.events.prefix, Tables.proposals.prefix).contains(f.prefix))
+    .dropFields(f => Set(memberTable.prefix, Tables.events.prefix, Tables.proposals.prefix).contains(f.prefix))
   private val memberTableWithUser = Tables.groupMembers
     .join(Tables.users, _.user_id -> _.id).flatMap(_.dropField(_.user_id)).get
   private val tableWithMember = tableSelect
@@ -187,8 +187,8 @@ object GroupRepoSql {
   private[sql] def selectStats(group: Group.Slug): Query.Select[Group.Stats] =
     statTable.select[Group.Stats].where(fr0"g.slug=$group")
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    tableSelect.select[Seq[Tag]].fields(Field("tags", "g"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    tableSelect.select[List[Tag]].fields(Field("tags", "g"))
 
   private[sql] def insertMember(m: Group.Member): Query.Insert[Group.Member] =
     memberTable.insert[Group.Member](m, e => fr0"${e.group}, ${e.user.id}, ${e.role}, ${e.presentation}, ${e.joinedAt}, ${e.leavedAt}")

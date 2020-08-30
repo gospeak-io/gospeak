@@ -12,13 +12,13 @@ trait PublicExternalCfpRepo {
 
   def edit(id: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done]
 
-  def listAllIds(): IO[Seq[ExternalCfp.Id]]
+  def listAllIds(): IO[List[ExternalCfp.Id]]
 
-  def listAll(event: ExternalEvent.Id): IO[Seq[ExternalCfp]]
+  def listAll(event: ExternalEvent.Id): IO[List[ExternalCfp]]
 
   def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]]
 
-  def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[Seq[ExternalCfp.Full]]
+  def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[List[ExternalCfp.Full]]
 
   def findFull(id: ExternalCfp.Id): IO[Option[ExternalCfp.Full]]
 

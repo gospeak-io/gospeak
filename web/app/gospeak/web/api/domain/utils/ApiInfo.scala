@@ -13,7 +13,7 @@ final case class ApiInfo(createdAt: Instant,
                          updatedBy: ApiUser.Embed)
 
 object ApiInfo {
-  def from(i: Info, users: Seq[User])(implicit ctx: BasicCtx): ApiInfo =
+  def from(i: Info, users: List[User])(implicit ctx: BasicCtx): ApiInfo =
     new ApiInfo(
       createdAt = i.createdAt,
       createdBy = ApiUser.embed(i.createdBy, users),

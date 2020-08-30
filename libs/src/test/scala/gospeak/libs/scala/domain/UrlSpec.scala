@@ -18,7 +18,7 @@ class UrlSpec extends BaseSpec {
       Url.from("http://sub.domain.ext/path/to/file?p1=value&p2=other#fragment") shouldBe a[Right[_, _]]
     }
     it("should identify Twitter urls") {
-      Seq(
+      List(
         Url.from("https://twitter.com/gospeak_io").get -> "@gospeak_io",
         Url.from("https://twitter.com/gospeak_io/").get -> "@gospeak_io",
       ).foreach {
@@ -27,7 +27,7 @@ class UrlSpec extends BaseSpec {
       }
     }
     it("should identify LinkedIn urls") {
-      Seq(
+      List(
         Url.from("https://www.linkedin.com/in/loicknuchel").get -> "loicknuchel",
         Url.from("http://fr.linkedin.com/in/loicknuchel/").get -> "loicknuchel",
         Url.from("https://www.linkedin.com/company/humantalksparis").get -> "humantalksparis",
@@ -38,7 +38,7 @@ class UrlSpec extends BaseSpec {
       }
     }
     it("should identify YouTube urls") {
-      Seq(
+      List(
         ("https://loicknuchel.fr", "", ""),
         ("https://www.youtube.com/HumanTalksParis", "channel", "HumanTalksParis"),
         ("https://www.youtube.com/c/HumanTalksParis", "channel", "HumanTalksParis"),
@@ -59,7 +59,7 @@ class UrlSpec extends BaseSpec {
       }
     }
     it("should identify Vimeo urls") {
-      Seq(
+      List(
         ("https://loicknuchel.fr", "", ""),
         ("https://vimeo.com/parisweb", "channel", "parisweb"),
         ("https://vimeo.com/showcase/6597308", "showcase", "6597308"),
@@ -76,7 +76,7 @@ class UrlSpec extends BaseSpec {
       }
     }
     it("should identify Infoq urls") {
-      Seq(
+      List(
         ("https://loicknuchel.fr", "", ""),
         ("https://www.infoq.com/scala/", "topic", "scala"),
         ("https://www.infoq.com/fr/mixit16", "topic", "mixit16"),
@@ -91,7 +91,7 @@ class UrlSpec extends BaseSpec {
       }
     }
     it("should identify Meetup urls") {
-      Seq(
+      List(
         Url.from("https://www.meetup.com/HumanTalks-Paris").get -> "HumanTalks-Paris",
         Url.from("https://www.meetup.com/HumanTalks-Paris/events/269180953/").get -> "269180953",
         Url.from("https://www.meetup.com/members/14321102").get -> "14321102",
@@ -103,7 +103,7 @@ class UrlSpec extends BaseSpec {
       }
     }
     it("should identify Github urls") {
-      Seq(
+      List(
         Url.from("https://github.com/gospeak-io").get -> "gospeak-io",
         Url.from("https://github.com/gospeak-io/").get -> "gospeak-io",
         Url.from("https://github.com/gospeak-io/gospeak").get -> "gospeak",

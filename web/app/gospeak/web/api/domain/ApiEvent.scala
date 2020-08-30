@@ -16,12 +16,12 @@ object ApiEvent {
                         published: Option[Instant],
                         cfp: Option[ApiCfp.Embed],
                         venue: Option[ApiVenue.Embed],
-                        proposals: Seq[ApiProposal.Embed],
+                        proposals: List[ApiProposal.Embed],
                         maxAttendee: Option[Int],
                         allowRsvp: Boolean,
                         descriptionTmpl: String,
                         orgaNotes: Notes,
-                        tags: Seq[String],
+                        tags: List[String],
                         refs: Refs,
                         info: ApiInfo)
 
@@ -29,7 +29,7 @@ object ApiEvent {
     implicit val writes: Writes[Orga] = Json.writes[Orga]
   }
 
-  def orga(e: Event.Full, proposals: Seq[Proposal], users: Seq[User])(implicit ctx: OrgaCtx): Orga =
+  def orga(e: Event.Full, proposals: List[Proposal], users: List[User])(implicit ctx: OrgaCtx): Orga =
     new Orga(
       slug = e.slug.value,
       name = e.name.value,
@@ -52,15 +52,15 @@ object ApiEvent {
                              start: LocalDateTime,
                              // FIXME add rendered description
                              venue: Option[ApiVenue.Embed],
-                             proposals: Seq[ApiProposal.Embed],
-                             tags: Seq[String],
+                             proposals: List[ApiProposal.Embed],
+                             tags: List[String],
                              meetup: Option[String])
 
   object Published {
     implicit val writes: Writes[Published] = Json.writes[Published]
   }
 
-  def published(e: Event.Full, proposals: Seq[Proposal], users: Seq[User])(implicit ctx: BasicCtx): Published =
+  def published(e: Event.Full, proposals: List[Proposal], users: List[User])(implicit ctx: BasicCtx): Published =
     new Published(
       slug = e.slug.value,
       name = e.name.value,
@@ -76,7 +76,7 @@ object ApiEvent {
                           format: String,
                           start: Option[LocalDateTime],
                           location: Option[ApiPlace],
-                          tags: Seq[String])
+                          tags: List[String])
 
   object Common {
     implicit val writes: Writes[Common] = Json.writes[Common]
@@ -118,7 +118,7 @@ object ApiEvent {
                          updatedBy: ApiUser.Embed)
 
   object Notes {
-    def from(n: Event.Notes, users: Seq[User])(implicit ctx: OrgaCtx): Notes =
+    def from(n: Event.Notes, users: List[User])(implicit ctx: OrgaCtx): Notes =
       new Notes(
         text = n.text,
         updatedAt = n.updatedAt,

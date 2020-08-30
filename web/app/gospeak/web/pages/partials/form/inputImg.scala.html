@@ -8,7 +8,7 @@
 @req.conf.upload match {
     case _: UploadConf.Url => {
         <div class="input-imageurl">
-            @inputText(field, conf.args ++ Seq("placeholder" -> s"ex: ${Constants.Gospeak.logo.value}"))
+            @inputText(field, conf.args ++ List("placeholder" -> s"ex: ${Constants.Gospeak.logo.value}"))
             <img class="preview" src="" style="height: 50px; margin-top: 5px; display: none;"/>
         </div>
     }

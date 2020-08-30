@@ -40,7 +40,7 @@ object ScraperSrv {
         attrs.get("charset").map { value =>
           PageData.FullItem("charset", value, attrs - "charset")
         }.getOrElse {
-          val nameKey = Seq("property", "name", "id", "http-equiv", "itemprop").find(attrs.contains).getOrElse("")
+          val nameKey = List("property", "name", "id", "http-equiv", "itemprop").find(attrs.contains).getOrElse("")
           val name = attrs.getOrElse(nameKey, "")
           val value = attrs.getOrElse("content", "")
           if (name.nonEmpty) {

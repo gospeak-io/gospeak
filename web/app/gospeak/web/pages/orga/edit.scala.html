@@ -21,41 +21,41 @@
         <div class="card mb-3">
             <div class="card-header" data-toggle="collapse" data-target="#basicCollapse">Basic infos</div>
             <div class="card-body collapse show" id="basicCollapse">
-                @fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the group")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "ex: Scala coding talks", "autofocus" -> "true") ++ args)
+                @fieldHorizontal(form("name"), List("label" -> "Name", "help" -> "Name of the group")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "ex: Scala coding talks", "autofocus" -> "true") ++ args)
                 }
-                @fieldHorizontal(form("location"), Seq("label" -> "Location", "help" -> "The city of your group, it will be used to show nearest groups to users")) { (field, args) =>
+                @fieldHorizontal(form("location"), List("label" -> "Location", "help" -> "The city of your group, it will be used to show nearest groups to users")) { (field, args) =>
                     @inputGMapPlace(field, args)
                 }
-                @fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
+                @fieldHorizontal(form("description"), List("label" -> "Description", "help" -> "Describe your group, you should make people want to participate")) { (field, args) =>
                     @inputMarkdown(field, args)
                 }
-                @fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your group")) { (field, args) =>
-                    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+                @fieldHorizontal(form("tags"), List("label" -> "Tags", "help" -> "Main topics of your group")) { (field, args) =>
+                    @inputTags(field, args ++ List("remote" -> SuggestCtrl.suggestTags().toString))
                 }
             </div>
         </div>
         <div class="card mb-3">
             <div class="card-header" data-toggle="collapse" data-target="#contactCollapse">Contact infos</div>
             <div class="card-body collapse show" id="contactCollapse">
-                @fieldHorizontal(form("contact"), Seq("label" -> "Contact email", "help" -> "If you have an email for the hole group")) { (field, args) =>
-                    @inputEmail(field, Seq("placeholder" -> "ex: contact@my-group.com"))
+                @fieldHorizontal(form("contact"), List("label" -> "Contact email", "help" -> "If you have an email for the hole group")) { (field, args) =>
+                    @inputEmail(field, List("placeholder" -> "ex: contact@my-group.com"))
                 }
-                @fieldHorizontal(form("website"), Seq("label" -> "Website")) { (field, args) =>
-                    @inputUrl(field, Seq("placeholder" -> "ex: https://my-group.com"))
+                @fieldHorizontal(form("website"), List("label" -> "Website")) { (field, args) =>
+                    @inputUrl(field, List("placeholder" -> "ex: https://my-group.com"))
                 }
-                @fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference for your group (in urls for example)")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "Group slug", "slug-for" -> form("name").id) ++ args)
+                @fieldHorizontal(form("slug"), List("label" -> "Slug", "help" -> "Reference for your group (in urls for example)")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "Group slug", "slug-for" -> form("name").id) ++ args)
                 }
             </div>
         </div>
         <div class="card mb-3">
             <div class="card-header" data-toggle="collapse" data-target="#brandingCollapse">Branding infos</div>
             <div class="card-body collapse show" id="brandingCollapse">
-                @fieldHorizontal(form("logo"), Seq("label" -> "Logo", "help" -> "It should be a square image")) { (field, args) =>
+                @fieldHorizontal(form("logo"), List("label" -> "Logo", "help" -> "It should be a square image")) { (field, args) =>
                     @inputImg(field, ImgConf.groupLogo(args))
                 }
-                @fieldHorizontal(form("banner"), Seq("label" -> "Banner", "help" -> "It should be a landcape image")) { (field, args) =>
+                @fieldHorizontal(form("banner"), List("label" -> "Banner", "help" -> "It should be a landcape image")) { (field, args) =>
                     @inputImg(field, ImgConf.groupBanner(args))
                 }
             </div>

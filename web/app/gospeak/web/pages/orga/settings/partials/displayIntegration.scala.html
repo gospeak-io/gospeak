@@ -10,7 +10,7 @@
         <div>
             @account.map { _ =>
             <a href="#" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#@id">Update</a>
-            @formBtn(deleteCall, Seq("class" -> "btn-danger btn-xs", "confirm" -> s"Remove $name integration?")) {Remove}
+            @formBtn(deleteCall, List("class" -> "btn-danger btn-xs", "confirm" -> s"Remove $name integration?")) {Remove}
             }.getOrElse {
                 <a href="#" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#@id">Enable</a>
             }

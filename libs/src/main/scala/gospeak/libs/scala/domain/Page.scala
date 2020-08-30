@@ -29,14 +29,14 @@ final case class Page[+A](items: List[A], params: Page.Params, total: Page.Total
   private val middleStart: Int = (params.page.value - width).max(1)
   private val middleEnd: Int = (params.page.value + width).min(last)
 
-  def firstPages: Option[Seq[Page.Params]] = if (middleStart > width + 2) Some((1 to width).map(i => params.copy(page = Page.No(i)))) else None
+  def firstPages: Option[List[Page.Params]] = if (middleStart > width + 2) Some((1 to width).map(i => params.copy(page = Page.No(i))).toList) else None
 
-  def lastPages: Option[Seq[Page.Params]] = if (middleEnd < last - width - 1) Some((last - width + 1 to last).map(i => params.copy(page = Page.No(i)))) else None
+  def lastPages: Option[List[Page.Params]] = if (middleEnd < last - width - 1) Some((last - width + 1 to last).map(i => params.copy(page = Page.No(i))).toList) else None
 
-  def middlePages: Seq[Page.Params] = {
+  def middlePages: List[Page.Params] = {
     val start = if (middleStart > width + 2) middleStart else 1
     val end = if (middleEnd < last - width - 1) middleEnd else last
-    (start to end).map(i => params.copy(page = Page.No(i)))
+    (start to end).map(i => params.copy(page = Page.No(i))).toList
   }
 }
 
@@ -125,7 +125,7 @@ object Page {
 
     def search(q: String): Params = copy(search = Some(Search(q)))
 
-    def sorts: Seq[String] = orderBy.map(_.values.toList).getOrElse(Seq())
+    def sorts: List[String] = orderBy.map(_.values.toList).getOrElse(List())
 
     def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) withOrderBy(fields: _*) else this
 

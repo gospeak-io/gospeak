@@ -21,14 +21,14 @@ class ApiProposalCtrl(cc: ControllerComponents,
                       proposalRepo: OrgaProposalRepo,
                       commentRepo: OrgaCommentRepo,
                       userRequestRepo: OrgaUserRequestRepo) extends ApiCtrl(cc, silhouette, conf) with ApiCtrl.OrgaAction {
-  def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[Seq[ApiProposal.Orga]](group) { implicit req =>
+  def list(group: Group.Slug, cfp: Cfp.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[List[ApiProposal.Orga]](group) { implicit req =>
     for {
       proposals <- proposalRepo.listFull(cfp, params)
       users <- userRepo.list(proposals.items.flatMap(_.users))
     } yield ApiResult.of(proposals, (p: Proposal.Full) => ApiProposal.orga(p, users))
   }
 
-  def listAll(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[Seq[ApiProposal.Orga]](group) { implicit req =>
+  def listAll(group: Group.Slug, params: Page.Params): Action[AnyContent] = OrgaAction[List[ApiProposal.Orga]](group) { implicit req =>
     for {
       proposals <- proposalRepo.listFull(params)
       users <- userRepo.list(proposals.items.flatMap(_.users))
@@ -43,18 +43,18 @@ class ApiProposalCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(proposalNotFound(cfp, proposal)))
   }
 
-  def ratings(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction[Seq[ApiProposal.Orga.Rating]](group) { implicit req =>
+  def ratings(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction[List[ApiProposal.Orga.Rating]](group) { implicit req =>
     for {
       ratings <- proposalRepo.listRatings(proposal)
       users <- userRepo.list(ratings.flatMap(_.users))
     } yield ApiResult.of(ratings.map(ApiProposal.Orga.Rating.from(_, users)))
   }
 
-  def speakerComments(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction[Seq[ApiComment]](group) { implicit req =>
+  def speakerComments(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction[List[ApiComment]](group) { implicit req =>
     commentRepo.getComments(proposal).map(comments => ApiResult.of(comments.map(ApiComment.from)))
   }
 
-  def orgaComments(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction[Seq[ApiComment]](group) { implicit req =>
+  def orgaComments(group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Action[AnyContent] = OrgaAction[List[ApiComment]](group) { implicit req =>
     commentRepo.getOrgaComments(proposal).map(comments => ApiResult.of(comments.map(ApiComment.from)))
   }
 

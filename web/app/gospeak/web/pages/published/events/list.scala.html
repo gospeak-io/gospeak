@@ -7,7 +7,7 @@
 @import gospeak.web.pages.published.partials.html.{container, commonEventItem}
 @import gospeak.web.utils._
 
-@(events: Page[CommonEvent], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(events: Page[CommonEvent], orgas: List[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.gospeak} Gospeak events", PageMeta.default(EventCtrl.list()), b)() {
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Events</h2>

@@ -20,7 +20,7 @@ class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
   override def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Done] =
     update(id)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def listAllIds()(implicit ctx: UserAwareCtx): IO[Seq[ExternalEvent.Id]] = selectAllIds().runList(xa)
+  override def listAllIds()(implicit ctx: UserAwareCtx): IO[List[ExternalEvent.Id]] = selectAllIds().runList(xa)
 
   override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]] = selectPage(params).run(xa)
 
@@ -28,18 +28,18 @@ class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
 
   override def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]] = selectOne(id).runOption(xa)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 
-  override def listLogos(): IO[Seq[Logo]] = selectLogos().runList(xa).map(_.flatten.distinct)
+  override def listLogos(): IO[List[Logo]] = selectLogos().runList(xa).map(_.flatten.distinct)
 }
 
 object ExternalEventRepoSql {
 
   import GenericQuery._
 
-  private val _ = externalEventIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = externalEventIdMeta // for intellij not remove DoobieMappings import
   val table: Table = Tables.externalEvents.copy(filters = List(
-    Table.Filter.Enum.fromEnum("type", "Type", "ee.kind", Seq(
+    Table.Filter.Enum.fromEnum("type", "Type", "ee.kind", List(
       "conference" -> Event.Kind.Conference.value,
       "meetup" -> Event.Kind.Meetup.value,
       "training" -> Event.Kind.Training.value,
@@ -61,7 +61,7 @@ object ExternalEventRepoSql {
     sorts = Table.Sorts("start", Field("-start", "e"), Field("-created_at", "e")),
     search = List("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description").map(Field(_, "e")),
     filters = List(
-      Table.Filter.Enum.fromEnum("type", "Type", "e.kind", Seq(
+      Table.Filter.Enum.fromEnum("type", "Type", "e.kind", List(
         "conference" -> Event.Kind.Conference.value,
         "meetup" -> Event.Kind.Meetup.value,
         "training" -> Event.Kind.Training.value,
@@ -91,8 +91,8 @@ object ExternalEventRepoSql {
   private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[CommonEvent] =
     commonTable.selectPage[CommonEvent](params, adapt(ctx))
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    table.select[Seq[Tag]].fields(Field("tags", "ee"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    table.select[List[Tag]].fields(Field("tags", "ee"))
 
   private[sql] def selectLogos(): Query.Select[Option[Logo]] =
     table.select[Option[Logo]].fields(Field("logo", "ee")).where(fr0"ee.logo IS NOT NULL")

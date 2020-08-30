@@ -12,10 +12,10 @@ class TalkRepoSqlSpec extends RepoSpec {
     it("should create and retrieve") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
       val ctx = FakeCtx(now, user)
-      talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
+      talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       talkRepo.find(talkData1.slug)(ctx).unsafeRunSync() shouldBe None
       val talk = talkRepo.create(talkData1)(ctx).unsafeRunSync()
-      talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq(talk)
+      talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(talk)
       talkRepo.find(talkData1.slug)(ctx).unsafeRunSync() shouldBe Some(talk)
     }
     it("should not retrieve not owned talks") {
@@ -24,7 +24,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       val ctx2 = FakeCtx(now, user2)
       val talk = talkRepo.create(talkData1)(ctx2).unsafeRunSync()
-      talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe Seq()
+      talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       talkRepo.find(talkData1.slug)(ctx).unsafeRunSync() shouldBe None
     }
     it("should fail on duplicate slug") {

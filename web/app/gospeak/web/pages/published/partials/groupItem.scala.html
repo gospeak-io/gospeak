@@ -5,7 +5,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.utils._
 
-@(group: Group.Full, orgas: Seq[User])(implicit req: BasicReq[AnyContent])
+@(group: Group.Full, orgas: List[User])(implicit req: BasicReq[AnyContent])
 <div class="card mb-3">
     <div class="card-body p-3">
         <div class="media">

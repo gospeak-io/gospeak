@@ -36,10 +36,10 @@ class UserRepoSqlSpec extends RepoSpec {
       val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       userRepo.create(userData3, now, None).unsafeRunSync()
-      userRepo.list(Seq(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs Seq(user1, user2)
+      userRepo.list(List(user1.id, user2.id)).unsafeRunSync() should contain theSameElementsAs List(user1, user2)
     }
     it("should select all speakers for a group") {
-      userRepo.speakers(params)(FakeCtx(now, user, group)).unsafeRunSync().items shouldBe Seq()
+      userRepo.speakers(params)(FakeCtx(now, user, group)).unsafeRunSync().items shouldBe List()
 
       val user1 = userRepo.create(userData1, now, None).unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()

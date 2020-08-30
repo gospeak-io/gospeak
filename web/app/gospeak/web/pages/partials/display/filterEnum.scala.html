@@ -1,6 +1,6 @@
 @import gospeak.libs.scala.domain.Page
 
-@(page: Page[_], link: Page.Params => Call, key: String, label: String, values: Seq[String])
+@(page: Page[_], link: Page.Params => Call, key: String, label: String, values: List[String])
 @menu() = {
     <div class="dropdown-menu" aria-labelledby="filter-@key">
         @values.map { value =>

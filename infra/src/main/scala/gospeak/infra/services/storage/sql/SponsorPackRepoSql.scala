@@ -39,17 +39,17 @@ class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
   override def find(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Option[SponsorPack]] = selectOne(ctx.group.id, pack).runOption(xa)
 
-  override def listAll(group: Group.Id): IO[Seq[SponsorPack]] = selectAll(group).runList(xa)
+  override def listAll(group: Group.Id): IO[List[SponsorPack]] = selectAll(group).runList(xa)
 
-  override def listAll(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]] = selectAll(ctx.group.id).runList(xa)
+  override def listAll(implicit ctx: OrgaCtx): IO[List[SponsorPack]] = selectAll(ctx.group.id).runList(xa)
 
-  override def listActives(group: Group.Id): IO[Seq[SponsorPack]] = selectActives(group).runList(xa)
+  override def listActives(group: Group.Id): IO[List[SponsorPack]] = selectActives(group).runList(xa)
 
-  override def listActives(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]] = selectActives(ctx.group.id).runList(xa)
+  override def listActives(implicit ctx: OrgaCtx): IO[List[SponsorPack]] = selectActives(ctx.group.id).runList(xa)
 }
 
 object SponsorPackRepoSql {
-  private val _ = sponsorPackIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = sponsorPackIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.sponsorPacks
 
   private[sql] def insert(e: SponsorPack): Query.Insert[SponsorPack] = {

@@ -33,13 +33,13 @@ trait OrgaGroupSettingsRepo {
 
   def findProposalTweet(group: Group.Id): IO[Liquid[Message.ProposalInfo]]
 
-  def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]]
+  def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]]
 
   def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done]
 }
 
 trait AdminGroupSettingsRepo {
-  def list(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]]
+  def list(groups: List[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]]
 
   def find(group: Group.Id)(implicit ctx: AdminCtx): IO[Group.Settings]
 

@@ -13,7 +13,7 @@ final case class CommonEvent(name: Event.Name,
                              location: Option[GMapPlace],
                              twitterAccount: Option[TwitterAccount],
                              twitterHashtag: Option[TwitterHashtag],
-                             tags: Seq[Tag],
+                             tags: List[Tag],
                              extra: Either[CommonEvent.External, CommonEvent.Internal],
                              info: Info) {
   def logo: Option[Logo] = extra.fold(_.logo, i => i.group.logo.orElse(i.venue.map(_.logo)))

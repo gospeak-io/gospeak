@@ -7,7 +7,7 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils._
 
-@(event: Event.Full, proposals: Seq[Proposal], speakers: Seq[User])(implicit req: OrgaReq[AnyContent])
+@(event: Event.Full, proposals: List[Proposal], speakers: List[User])(implicit req: OrgaReq[AnyContent])
 <div class="card mb-3" @if(event.isPast(req.now)){style="opacity: 0.6;"}>
     <div class="card-body row">
         <div class="media col-lg-6">

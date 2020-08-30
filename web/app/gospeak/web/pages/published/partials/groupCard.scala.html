@@ -9,7 +9,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.utils.{GsForms, UserAwareReq}
 
-@(group: Group.Full, speakerCount: Long, cfps: Seq[Cfp], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], users: Seq[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group.Full, speakerCount: Long, cfps: List[Cfp], sponsors: List[Sponsor.Full], packs: List[SponsorPack], users: List[User], userMembership: Option[Group.Member])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 <div class="col-lg-4 mb-3 mb-lg-0">
     <div class="card shadow-sm p-5">
         @if(req.isOrga(group)) {
@@ -31,8 +31,8 @@
                 </div>
             }
             @cfps match {
-                case Seq() => {}
-                case Seq(cfp) => {
+                case List() => {}
+                case List(cfp) => {
                     <div class="mb-3">
                         <a class="btn btn-soft-primary transition-3d-hover" href="@CfpCtrl.detail(cfp.slug)">Propose a talk</a>
                     </div>
@@ -121,10 +121,10 @@
             <div class="modal-content">
                 @formElt(GsForms.orgaContact, GroupCtrl.contactOrga(group.slug)) {
                     <div class="modal-body">
-                        @fieldHorizontal(GsForms.orgaContact("subject"), Seq("label" -> "Subject")) { (field, args) =>
-                            @inputText(field, Seq("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
+                        @fieldHorizontal(GsForms.orgaContact("subject"), List("label" -> "Subject")) { (field, args) =>
+                            @inputText(field, List("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
                         }
-                        @fieldHorizontal(GsForms.orgaContact("content"), Seq("label" -> "Message")) { (field, args) =>
+                        @fieldHorizontal(GsForms.orgaContact("content"), List("label" -> "Message")) { (field, args) =>
                             @inputMarkdown(field, args)
                         }
                     </div>

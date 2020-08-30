@@ -33,7 +33,7 @@ trait SpeakerExternalProposalRepo {
 
   def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]]
 
-  def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]]
+  def listAllCommon(talk: Talk.Id): IO[List[CommonProposal]]
 }
 
 trait UserExternalProposalRepo {
@@ -45,15 +45,15 @@ trait PublicExternalProposalRepo {
 
   def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]]
 
-  def listAllPublicIds(): IO[Seq[(ExternalEvent.Id, ExternalProposal.Id)]]
+  def listAllPublicIds(): IO[List[(ExternalEvent.Id, ExternalProposal.Id)]]
 
   def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]]
 
-  def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]]
+  def listAllCommon(user: User.Id, status: Proposal.Status): IO[List[CommonProposal]]
 
   def listAllCommon(talk: Talk.Id, status: Proposal.Status): IO[List[CommonProposal]]
 }
 
 trait SuggestExternalProposalRepo {
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 }

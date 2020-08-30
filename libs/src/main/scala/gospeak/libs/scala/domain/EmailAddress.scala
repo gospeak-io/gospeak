@@ -16,8 +16,8 @@ object EmailAddress {
     else Left(CustomException(s"'$in' is an invalid EmailAddress", errs))
   }
 
-  private def errors(in: String): Seq[CustomError] =
-    Seq(
+  private def errors(in: String): List[CustomError] =
+    List(
       if (in.contains("@")) None else Some("Missing @")
     ).flatten.map(CustomError)
 

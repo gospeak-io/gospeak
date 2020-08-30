@@ -15,7 +15,7 @@ class SpeakerCtrl(cc: ControllerComponents,
                   silhouette: Silhouette[CookieEnv],
                   conf: AppConf,
                   userRepo: PublicUserRepo) extends ApiCtrl(cc, silhouette, conf) {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiUser.Published]] { implicit req =>
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[List[ApiUser.Published]] { implicit req =>
     // TODO add proposals, talks, groups member and owners
     userRepo.listPublic(params).map(ApiResult.of(_, ApiUser.published))
   }

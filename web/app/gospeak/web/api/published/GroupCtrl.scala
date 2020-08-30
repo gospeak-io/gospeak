@@ -23,7 +23,7 @@ class GroupCtrl(cc: ControllerComponents,
                 userRepo: PublicUserRepo,
                 groupSettingsRepo: PublicGroupSettingsRepo,
                 meetupSrvEth: Either[String, MeetupSrv]) extends ApiCtrl(cc, silhouette, conf) {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiGroup.Published]] { implicit req =>
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[List[ApiGroup.Published]] { implicit req =>
     groupRepo.listFull(params).map(ApiResult.of(_, ApiGroup.published))
   }
 
@@ -31,7 +31,7 @@ class GroupCtrl(cc: ControllerComponents,
     groupRepo.findFull(group).map(_.map(g => ApiResult.of(ApiGroup.published(g))).getOrElse(groupNotFound(group)))
   }
 
-  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiEvent.Published]] { implicit req =>
+  def events(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[List[ApiEvent.Published]] { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       events <- OptionT.liftF(eventRepo.listPublished(groupElt.id, params))
@@ -51,7 +51,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
-  def eventDrawMeetupAttendee(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction[Seq[ApiAttendee.Published]] { implicit req =>
+  def eventDrawMeetupAttendee(group: Group.Slug, event: Event.Slug): Action[AnyContent] = UserAwareAction[List[ApiAttendee.Published]] { implicit req =>
     (for {
       meetupSrv <- OptionT.liftF(meetupSrvEth.toIO(CustomException(_)))
       groupElt <- OptionT(groupRepo.find(group))
@@ -65,7 +65,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(eventNotFound(group, event)))
   }
 
-  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiProposal.Published]] { implicit req =>
+  def talks(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[List[ApiProposal.Published]] { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       talks <- OptionT.liftF(proposalRepo.listPublicFull(groupElt.id, params))
@@ -83,7 +83,7 @@ class GroupCtrl(cc: ControllerComponents,
     } yield res).value.map(_.getOrElse(talkNotFound(group, talk)))
   }
 
-  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiUser.Published]] { implicit req =>
+  def speakers(group: Group.Slug, params: Page.Params): Action[AnyContent] = UserAwareAction[List[ApiUser.Published]] { implicit req =>
     (for {
       groupElt <- OptionT(groupRepo.find(group))
       speakers <- OptionT.liftF(userRepo.speakersPublic(groupElt.id, params))

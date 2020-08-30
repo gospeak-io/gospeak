@@ -27,7 +27,7 @@ class Field[A, T <: Table.SqlTable](val table: T,
   }
 
   override def hashCode(): Int = {
-    val state = Seq(table, name)
+    val state = List(table, name)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }
@@ -54,7 +54,7 @@ class FieldRef[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: 
   }
 
   override def hashCode(): Int = {
-    val state = Seq(super.hashCode(), table, name, references)
+    val state = List(super.hashCode(), table, name, references)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }

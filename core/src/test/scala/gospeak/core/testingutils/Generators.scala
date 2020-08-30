@@ -38,7 +38,7 @@ object Generators {
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
   implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(Constants.defaultZoneId).toLocalDate))
   implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(Constants.defaultZoneId).toLocalDateTime))
-  implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toSeq.map(ZoneId.of)))
+  implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toList.map(ZoneId.of)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
   implicit val aUrlSlides: Arbitrary[Url.Slides] = Arbitrary(slugGen.map(slug => Url.Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").get))
@@ -66,7 +66,7 @@ object Generators {
   implicit val aGithubAccount: Arbitrary[GithubAccount] = Arbitrary(aGithubUrl.arbitrary.map(GithubAccount))
   implicit val aTwitterHashtag: Arbitrary[TwitterHashtag] = Arbitrary(nonEmptyStringGen.map(e => TwitterHashtag.from(e.replaceAll(" ", "")).get))
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
-  implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))
+  implicit val aTags: Arbitrary[List[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))
   implicit val aCurrency: Arbitrary[Price.Currency] = Arbitrary(Gen.oneOf(Price.Currency.all))
   implicit val aGeo: Arbitrary[Geo] = Arbitrary(for {
     lat <- Gen.chooseNum[Double](-90, 90)

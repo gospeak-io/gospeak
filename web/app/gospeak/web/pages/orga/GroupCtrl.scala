@@ -158,7 +158,7 @@ class GroupCtrl(cc: ControllerComponents,
     allowRsvp = false,
     venue = e.venue.flatMap(v => venues.get(v.id)),
     description = LiquidMarkdown[Message.EventInfo](e.description.map(_.value).getOrElse("")),
-    tags = Seq(),
+    tags = List(),
     refs = Event.ExtRefs(meetup = Some(MeetupEvent.Ref(group, e.id))))
 
   def join(params: Page.Params): Action[AnyContent] = UserAction { implicit req =>
@@ -185,9 +185,9 @@ class GroupCtrl(cc: ControllerComponents,
       proposals <- proposalRepo.list(events.items.flatMap(_.talks))
       speakers <- userRepo.list(proposals.flatMap(_.users).distinct)
       sponsors <- sponsorRepo.listAll.map(_.groupBy(_.partner))
-      partners <- partnerRepo.list(sponsors.keys.toSeq)
-      currentSponsors = sponsors.flatMap { case (id, ss) => partners.find(_.id == id).flatMap(p => ss.find(_.isCurrent(req.now)).map(s => (p, (s, ss.length)))) }.toSeq.sortBy(_._2._1.finish.toEpochDay)
-      pastSponsors = sponsors.filter(_._2.forall(!_.isCurrent(req.now))).flatMap { case (id, s) => partners.find(_.id == id).map(p => (p, s)) }.toSeq.sortBy(s => -s._2.map(_.finish.toEpochDay).max)
+      partners <- partnerRepo.list(sponsors.keys.toList)
+      currentSponsors = sponsors.flatMap { case (id, ss) => partners.find(_.id == id).flatMap(p => ss.find(_.isCurrent(req.now)).map(s => (p, (s, ss.length)))) }.toList.sortBy(_._2._1.finish.toEpochDay)
+      pastSponsors = sponsors.filter(_._2.forall(!_.isCurrent(req.now))).flatMap { case (id, s) => partners.find(_.id == id).map(p => (p, s)) }.toList.sortBy(s => -s._2.map(_.finish.toEpochDay).max)
       packs <- sponsorPackRepo.listAll
       requests <- userRequestRepo.listPendingGroupRequests
       requestUsers <- userRepo.list(requests.flatMap(_.users).distinct)

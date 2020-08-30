@@ -14,7 +14,7 @@ final case class CommonCfp(name: String,
                            close: Option[LocalDateTime],
                            location: Option[GMapPlace],
                            description: Markdown,
-                           tags: Seq[Tag],
+                           tags: List[Tag],
                            extra: Either[CommonCfp.External, CommonCfp.Internal]) {
   def closesInDays(nb: Int, now: Instant): Boolean = close.exists(_.toInstant(Constants.defaultZoneId).isBefore(now.minus(nb, ChronoUnit.DAYS)))
 

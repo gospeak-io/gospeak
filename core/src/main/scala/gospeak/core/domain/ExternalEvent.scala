@@ -19,7 +19,7 @@ final case class ExternalEvent(id: ExternalEvent.Id,
                                videos: Option[Url.Videos],
                                twitterAccount: Option[TwitterAccount],
                                twitterHashtag: Option[TwitterHashtag],
-                               tags: Seq[Tag],
+                               tags: List[Tag],
                                info: Info) {
   def data: ExternalEvent.Data = ExternalEvent.Data(this)
 
@@ -46,7 +46,7 @@ object ExternalEvent {
                         videos: Option[Url.Videos],
                         twitterAccount: Option[TwitterAccount],
                         twitterHashtag: Option[TwitterHashtag],
-                        tags: Seq[Tag])
+                        tags: List[Tag])
 
   object Data {
     def apply(e: ExternalEvent): Data = new Data(e.name, e.kind, e.logo, e.description, e.start, e.finish, e.location, e.url, e.tickets, e.videos, e.twitterAccount, e.twitterHashtag, e.tags)

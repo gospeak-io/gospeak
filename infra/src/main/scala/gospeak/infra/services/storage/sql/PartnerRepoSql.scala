@@ -41,9 +41,9 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(params).run(xa)
 
-  override def list(group: Group.Id): IO[Seq[Partner]] = selectAll(group).runList(xa)
+  override def list(group: Group.Id): IO[List[Partner]] = selectAll(group).runList(xa)
 
-  override def list(partners: Seq[Partner.Id]): IO[Seq[Partner]] = runNel(selectAll, partners)
+  override def list(partners: List[Partner.Id]): IO[List[Partner]] = runNel(selectAll, partners)
 
   override def find(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).runOption(xa)
 
@@ -53,7 +53,7 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 }
 
 object PartnerRepoSql {
-  private val _ = partnerIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = partnerIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.partners
   val tableFull: Table = table
     .joinOpt(Tables.venues, _.id("pa") -> _.partner_id).get

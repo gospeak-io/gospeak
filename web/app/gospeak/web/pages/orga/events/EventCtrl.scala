@@ -241,7 +241,7 @@ class EventCtrl(cc: ControllerComponents,
           OptionT.liftF(groupRepo.listMembers
             .flatMap(members => members.map(m => emailSrv.send(Emails.eventPublished(e.event, e.venue, m))).sequence))
         } else {
-          OptionT.liftF(IO.pure(Seq.empty[Done]))
+          OptionT.liftF(IO.pure(List.empty[Done]))
         }
         _ <- OptionT.liftF(ms.eventPublished(e.event).map(bus.publish))
       } yield Redirect(routes.EventCtrl.detail(group, event))).value.map(_.getOrElse(eventNotFound(group, event))))

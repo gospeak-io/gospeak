@@ -1,6 +1,6 @@
 @import gospeak.libs.scala.domain.TimePeriod
 
-@(field: Field, timeUnits: Seq[TimePeriod.PeriodUnit] = TimePeriod.PeriodUnit.simple, args: Seq[(String, String)] = Seq())
+@(field: Field, timeUnits: List[TimePeriod.PeriodUnit] = TimePeriod.PeriodUnit.simple, args: List[(String, String)] = List())
 <div class="row">
     <div class="col">
         @inputNumber(field("length"), args)

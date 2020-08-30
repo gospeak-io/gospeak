@@ -18,17 +18,17 @@ trait OrgaSponsorPackRepo {
 
   def find(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Option[SponsorPack]]
 
-  def listAll(group: Group.Id): IO[Seq[SponsorPack]]
+  def listAll(group: Group.Id): IO[List[SponsorPack]]
 
-  def listAll(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]]
+  def listAll(implicit ctx: OrgaCtx): IO[List[SponsorPack]]
 
-  def listActives(implicit ctx: OrgaCtx): IO[Seq[SponsorPack]]
+  def listActives(implicit ctx: OrgaCtx): IO[List[SponsorPack]]
 }
 
 trait PublicSponsorPackRepo {
-  def listActives(group: Group.Id): IO[Seq[SponsorPack]]
+  def listActives(group: Group.Id): IO[List[SponsorPack]]
 }
 
 trait SuggestSponsorPackRepo {
-  def listAll(group: Group.Id): IO[Seq[SponsorPack]]
+  def listAll(group: Group.Id): IO[List[SponsorPack]]
 }

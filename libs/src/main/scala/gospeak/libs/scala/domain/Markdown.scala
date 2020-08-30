@@ -22,7 +22,7 @@ final case class Markdown(value: String) extends AnyVal {
 object Markdown {
   private val options = new MutableDataSet()
     // https://github.com/vsch/flexmark-java/wiki/Extensions#emoji
-    .set(Parser.EXTENSIONS, Seq(EmojiExtension.create(): Extension).asJava)
+    .set(Parser.EXTENSIONS, List(EmojiExtension.create(): Extension).asJava)
     .set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.UNICODE_ONLY)
   private val parser = Parser.builder(options).build
   private val renderer = HtmlRenderer.builder(options).escapeHtml(true).build

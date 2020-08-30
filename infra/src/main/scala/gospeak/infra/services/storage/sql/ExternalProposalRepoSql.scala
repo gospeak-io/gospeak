@@ -60,7 +60,7 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done] = delete(id, ctx.user.id).run(xa)
 
-  override def listAllPublicIds(): IO[Seq[(ExternalEvent.Id, ExternalProposal.Id)]] = selectAllPublicIds().runList(xa)
+  override def listAllPublicIds(): IO[List[(ExternalEvent.Id, ExternalProposal.Id)]] = selectAllPublicIds().runList(xa)
 
   override def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]] = selectPage(event, Proposal.Status.Accepted, params).run(xa)
 
@@ -70,9 +70,9 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(params).run(xa)
 
-  override def listAllCommon(talk: Talk.Id): IO[Seq[CommonProposal]] = selectAllCommon(talk).runList(xa)
+  override def listAllCommon(talk: Talk.Id): IO[List[CommonProposal]] = selectAllCommon(talk).runList(xa)
 
-  override def listAllCommon(user: User.Id, status: Proposal.Status): IO[Seq[CommonProposal]] = selectAllCommon(user, status).runList(xa)
+  override def listAllCommon(user: User.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(user, status).runList(xa)
 
   override def listAllCommon(talk: Talk.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(talk, status).runList(xa)
 
@@ -80,14 +80,14 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]] = selectOneFull(id).runOption(xa)
 
-  override def listTags(): IO[Seq[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
 }
 
 object ExternalProposalRepoSql {
 
   import GenericQuery._
 
-  private val _ = externalProposalIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = externalProposalIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.externalProposals
   private val tableFull = table
     .join(Tables.talks, _.talk_id -> _.id).get
@@ -171,8 +171,8 @@ object ExternalProposalRepoSql {
   private[sql] def selectAllCommon(talk: Talk.Id, status: Proposal.Status): Query.Select[CommonProposal] =
     commonTable.select[CommonProposal].where(fr0"p.talk_id=$talk AND p.status=$status")
 
-  private[sql] def selectTags(): Query.Select[Seq[Tag]] =
-    table.select[Seq[Tag]].fields(Field("tags", "ep"))
+  private[sql] def selectTags(): Query.Select[List[Tag]] =
+    table.select[List[Tag]].fields(Field("tags", "ep"))
 
   private def where(id: ExternalProposal.Id, user: User.Id): Fragment =
     fr0"ep.id=$id AND ep.speakers LIKE ${"%" + user.value + "%"}"

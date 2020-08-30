@@ -23,14 +23,14 @@ final case class Group(id: Group.Id,
                        location: Option[GMapPlace],
                        owners: NonEmptyList[User.Id],
                        social: SocialAccounts,
-                       tags: Seq[Tag],
+                       tags: List[Tag],
                        status: Group.Status,
                        info: Info) {
   def data: Group.Data = Group.Data(this)
 
   def hasOrga(user: User.Id): Boolean = owners.toList.contains(user)
 
-  def senders(user: User): Seq[EmailAddress.Contact] = Seq(
+  def senders(user: User): List[EmailAddress.Contact] = List(
     contact.map(email => EmailAddress.Contact(email, Some(name.value))),
     Some(EmailAddress.Contact(user.email, Some(user.name.value))),
     Some(Constants.Gospeak.noreplyEmail)).flatten
@@ -83,7 +83,7 @@ object Group {
 
       case object Member extends Role
 
-      val all: Seq[Role] = Seq(Owner, Member)
+      val all: List[Role] = List(Owner, Member)
     }
 
   }
@@ -98,7 +98,7 @@ object Group {
 
     case object Disabled extends Status
 
-    val all: Seq[Status] = Seq(Active, Disabled)
+    val all: List[Status] = List(Active, Disabled)
   }
 
   final case class Full(group: Group, memberCount: Long, eventCount: Long, talkCount: Long) {
@@ -122,7 +122,7 @@ object Group {
 
     def social: SocialAccounts = group.social
 
-    def tags: Seq[Tag] = group.tags
+    def tags: List[Tag] = group.tags
 
     def info: Info = group.info
   }
@@ -143,7 +143,7 @@ object Group {
                         description: Markdown,
                         location: Option[GMapPlace],
                         social: SocialAccounts,
-                        tags: Seq[Tag])
+                        tags: List[Tag])
 
   object Data {
     def apply(g: Group): Data = new Data(g.slug, g.name, g.logo, g.banner, g.contact, g.website, g.description, g.location, g.social, g.tags)
@@ -153,7 +153,7 @@ object Group {
   final case class Settings(accounts: Settings.Accounts,
                             event: Settings.Event,
                             proposal: Settings.Proposal,
-                            actions: Map[Settings.Action.Trigger, Seq[Settings.Action]]) {
+                            actions: Map[Settings.Action.Trigger, List[Settings.Action]]) {
     def set(meetup: MeetupCredentials): Settings = copy(accounts = accounts.copy(meetup = Some(meetup)))
 
     def set(slack: SlackCredentials): Settings = copy(accounts = accounts.copy(slack = Some(slack)))
@@ -167,21 +167,21 @@ object Group {
     }
 
     def getAction(trigger: Settings.Action.Trigger, index: Int): Option[Settings.Action] =
-      actions.getOrElse(trigger, Seq()).zipWithIndex.find(_._2 == index).map(_._1)
+      actions.getOrElse(trigger, List()).zipWithIndex.find(_._2 == index).map(_._1)
 
     def addAction(trigger: Settings.Action.Trigger, action: Settings.Action): Settings = {
-      val triggerActions = actions.getOrElse(trigger, Seq()) :+ action
+      val triggerActions = actions.getOrElse(trigger, List()) :+ action
       copy(actions = actions + (trigger -> triggerActions))
     }
 
     def removeAction(trigger: Settings.Action.Trigger, index: Int): Settings = {
-      val triggerActions = actions.getOrElse(trigger, Seq()).zipWithIndex.filter(_._2 != index).map(_._1)
+      val triggerActions = actions.getOrElse(trigger, List()).zipWithIndex.filter(_._2 != index).map(_._1)
       copy(actions = (actions + (trigger -> triggerActions)).filter(_._2.nonEmpty))
     }
 
     def updateAction(oldTrigger: Settings.Action.Trigger, index: Int)(newTrigger: Settings.Action.Trigger, action: Settings.Action): Settings = {
       if (newTrigger == oldTrigger) {
-        val triggerActions = actions.getOrElse(newTrigger, Seq()).zipWithIndex.map { case (a, i) => if (i == index) action else a }
+        val triggerActions = actions.getOrElse(newTrigger, List()).zipWithIndex.map { case (a, i) => if (i == index) action else a }
         copy(actions = actions + (newTrigger -> triggerActions))
       } else {
         removeAction(oldTrigger, index).addAction(newTrigger, action)
@@ -226,7 +226,7 @@ object Group {
 
         case object OnEventRemoveTalk extends Trigger(Message.Ref.proposalRemovedFromEvent, "When a Talk is removed from an Event")
 
-        val all: Seq[Trigger] = Seq(OnEventCreated, OnEventPublish, OnProposalCreated, OnEventAddTalk, OnEventRemoveTalk)
+        val all: List[Trigger] = List(OnEventCreated, OnEventPublish, OnProposalCreated, OnEventAddTalk, OnEventRemoveTalk)
       }
 
       final case class Email(to: Liquid[Any],
@@ -243,9 +243,9 @@ object Group {
         Event.descriptionTmplId -> Some(description),
       ).collect { case (id, Some(tmpl)) => (id, tmpl) }
 
-      def allTemplates: Seq[(String, Boolean, Liquid[Message.EventInfo])] =
-        defaultTemplates.toSeq.map { case (id, t) => (id, true, t.asText) } ++
-          templates.toSeq.map { case (id, t) => (id, false, t) }.sortBy(_._1)
+      def allTemplates: List[(String, Boolean, Liquid[Message.EventInfo])] =
+        defaultTemplates.toList.map { case (id, t) => (id, true, t.asText) } ++
+          templates.toList.map { case (id, t) => (id, false, t) }.sortBy(_._1)
 
       def getTemplate(name: String): Option[Liquid[Message.EventInfo]] =
         defaultTemplates.get(name).map(_.asText).orElse(templates.get(name))
@@ -268,7 +268,7 @@ object Group {
     object Event {
       val descriptionTmplId = "Event description"
 
-      val defaultTmplIds: Seq[String] = Seq(descriptionTmplId)
+      val defaultTmplIds: List[String] = List(descriptionTmplId)
     }
 
     final case class Proposal(tweet: Liquid[Message.ProposalInfo])

@@ -6,15 +6,15 @@
 @(proposal: Proposal.Full, userGrade: Option[Proposal.Rating.Grade], btnClass: String = "")(implicit req: OrgaReq[AnyContent])
 @userGrade match {
     case Some(Proposal.Rating.Grade.Like) => {
-        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-secondary $btnClass", "title" -> "I changed my mind, I don't want it anymore!", "data-toggle" -> "tooltip")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
-        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> s"btn-success $btnClass", "title" -> "I want this proposal", "data-toggle" -> "tooltip")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), List("class" -> s"btn-secondary $btnClass", "title" -> "I changed my mind, I don't want it anymore!", "data-toggle" -> "tooltip")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), List("class" -> s"btn-success $btnClass", "title" -> "I want this proposal", "data-toggle" -> "tooltip")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
     }
     case Some(Proposal.Rating.Grade.Dislike) => {
-        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-danger $btnClass", "title" -> "I don't want this proposal", "data-toggle" -> "tooltip")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
-        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> s"btn-secondary $btnClass", "title" -> "I changed my mind, I want it!", "data-toggle" -> "tooltip")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), List("class" -> s"btn-danger $btnClass", "title" -> "I don't want this proposal", "data-toggle" -> "tooltip")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), List("class" -> s"btn-secondary $btnClass", "title" -> "I changed my mind, I want it!", "data-toggle" -> "tooltip")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
     }
     case None => {
-        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), Seq("class" -> s"btn-danger $btnClass", "title" -> "I don't want this proposal", "data-toggle" -> "tooltip")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
-        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), Seq("class" -> s"btn-success $btnClass", "title" -> "Vote for this proposal", "data-toggle" -> "tooltip")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Dislike), List("class" -> s"btn-danger $btnClass", "title" -> "I don't want this proposal", "data-toggle" -> "tooltip")) {@proposal.dislikes <i class="far fa-thumbs-down"></i>}
+        @formBtn(ProposalCtrl.doRate(proposal.group.slug, proposal.cfp.slug, proposal.id, Proposal.Rating.Grade.Like), List("class" -> s"btn-success $btnClass", "title" -> "Vote for this proposal", "data-toggle" -> "tooltip")) {@proposal.likes <i class="far fa-thumbs-up"></i>}
     }
 }

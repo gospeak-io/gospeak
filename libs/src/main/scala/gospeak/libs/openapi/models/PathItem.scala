@@ -40,7 +40,7 @@ object PathItem {
   /**
    * @see "https://spec.openapis.org/oas/v3.0.2#operation-object"
    */
-  final case class Operation(tags: Option[Seq[String]],
+  final case class Operation(tags: Option[List[String]],
                              operationId: Option[String],
                              deprecated: Option[Boolean],
                              summary: Option[String],

@@ -16,7 +16,7 @@ object Price {
 
     case object USD extends Currency("USD")
 
-    val all: Seq[Currency] = Seq(EUR, USD)
+    val all: List[Currency] = List(EUR, USD)
 
     def from(str: String): Option[Currency] =
       all.find(_.value == str)

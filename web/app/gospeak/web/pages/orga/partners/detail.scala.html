@@ -9,7 +9,7 @@
 @import gospeak.web.pages.partials.form.html._
 @import gospeak.web.utils._
 
-@(partner: Partner, venues: Seq[Venue.Full], contacts: Seq[Contact], speakers: Seq[User], sponsors: Seq[Sponsor.Full], packs: Seq[SponsorPack], events: Seq[(Event, Venue)])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(partner: Partner, venues: List[Venue.Full], contacts: List[Contact], speakers: List[User], sponsors: List[Sponsor.Full], packs: List[SponsorPack], events: List[(Event, Venue)])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(partner.name.value, b)() {
     <div class="d-flex justify-content-between align-items-start">
         <div class="media">
@@ -26,7 +26,7 @@
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@PartnerCtrl.edit(req.group.slug, partner.slug)">Edit</a>
                 @if(venues.isEmpty && sponsors.isEmpty && contacts.isEmpty) {
-                    @formBtn(PartnerCtrl.doRemove(req.group.slug, partner.slug), Seq("class" -> "dropdown-item", "confirm" -> s"Delete partner ${partner.name.value}?")) {Delete}
+                    @formBtn(PartnerCtrl.doRemove(req.group.slug, partner.slug), List("class" -> "dropdown-item", "confirm" -> s"Delete partner ${partner.name.value}?")) {Delete}
                 } else {
                     <span class="dropdown-item text-muted" title="This partner has venues, sponsors or contacts" data-toggle="tooltip" data-placement="left">Can't delete</span>
                 }
@@ -69,7 +69,7 @@
                                 <i class="fas fa-trash"></i>
                             </span>
                         } else {
-                            @formBtn(PartnerCtrl.doRemoveVenue(req.group.slug, partner.slug, venue.id), Seq(
+                            @formBtn(PartnerCtrl.doRemoveVenue(req.group.slug, partner.slug, venue.id), List(
                                 "confirm" -> s"Delete venue ${venue.address.value} from ${partner.name.value}?",
                                 "class" -> "btn-danger btn-xs"
                             )) {<i class="fas fa-trash"></i>}
@@ -128,9 +128,9 @@
                     </span>
                     <span>
                         @if(sponsor.paid.isEmpty) {
-                            @formBtn(SponsorCtrl.paid(req.group.slug, sponsor.id), Seq("class" -> "btn-primary btn-xs", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
+                            @formBtn(SponsorCtrl.paid(req.group.slug, sponsor.id), List("class" -> "btn-primary btn-xs", "confirm" -> "Mark this sponsoring as paid ?")) {Mark as paid}
                         }
-                        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> "Remove this sponsoring ?")) {<i class="fas fa-trash"></i>}
+                        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), List("class" -> "btn-danger btn-xs", "confirm" -> "Remove this sponsoring ?")) {<i class="fas fa-trash"></i>}
                         <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, Some(partner.slug))" class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></a>
                     </span>
                 </span>
@@ -172,7 +172,7 @@
                                     <i class="fas fa-trash"></i>
                                 </span>
                             } else {
-                                @formBtn(PartnerCtrl.doRemoveContact(req.group.slug, partner.slug, contact.id), Seq(
+                                @formBtn(PartnerCtrl.doRemoveContact(req.group.slug, partner.slug, contact.id), List(
                                     "confirm" -> s"Delete contact ${contact.name.value} from ${partner.name.value}?",
                                     "class" -> "btn-danger btn-xs"
                                 )) {<i class="fas fa-trash"></i>}

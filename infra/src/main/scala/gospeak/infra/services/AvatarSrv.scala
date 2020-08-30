@@ -10,7 +10,7 @@ class AvatarSrv {
   def getDefault(email: EmailAddress, slug: User.Slug): Avatar = {
     val size = 150
     val default = AdorableUrl(slug.value, Some(size)).value
-    val gravatar = GravatarUrl(email, Seq("size" -> s"$size", "default" -> URLEncoder.encode(default, "UTF8")))
+    val gravatar = GravatarUrl(email, List("size" -> s"$size", "default" -> URLEncoder.encode(default, "UTF8")))
     Avatar(gravatar.toUrl)
   }
 }

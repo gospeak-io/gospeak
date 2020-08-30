@@ -56,7 +56,7 @@ class UtilsCtrl(cc: ControllerComponents,
       .map(ApiResult.of(_))
   }
 
-  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction[Seq[ApiExternalCfp.Published]] { implicit req =>
+  def duplicatesExtCfp(params: ExternalCfp.DuplicateParams): Action[AnyContent] = UserAction[List[ApiExternalCfp.Published]] { implicit req =>
     externalCfpRepo.listDuplicatesFull(params).map(cfps => ApiResult.of(cfps.map(ApiExternalCfp.published)))
   }
 

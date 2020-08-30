@@ -7,7 +7,7 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.libs.scala.domain.GMapPlace
 
 object GenericQuery {
-  private val _ = gMapPlaceMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = gMapPlaceMeta // for intellij not remove DoobieMappings import
 
   def insertLocation(p: Option[GMapPlace]): Fragment =
     fr0"$p, ${p.map(_.id)}, ${p.map(_.geo.lat)}, ${p.map(_.geo.lng)}, ${p.flatMap(_.locality)}, ${p.map(_.country)}"

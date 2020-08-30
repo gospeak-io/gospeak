@@ -80,7 +80,7 @@
             <td>@event.name.value <a href="@EventCtrl.detailExt(event.id)" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
             <td>@videoCount videos</td>
             <td>@event.videos.map { u => <a href="@u.value" target="_blank">@u.platform @u.kind</a> }.getOrElse{No video link}</td>
-            <td>@formBtn(AdminCtrl.updateExtEventVideos(event.id), Seq("class" -> "btn-success btn-xs")){Update videos}</td>
+            <td>@formBtn(AdminCtrl.updateExtEventVideos(event.id), List("class" -> "btn-success btn-xs")){Update videos}</td>
         </tr>
     } { p =>
             </tbody>

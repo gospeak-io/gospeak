@@ -28,17 +28,17 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]] = selectPage(params).run(xa)
 
-  override def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]] = selectCurrent(group, now).runList(xa)
+  override def listCurrentFull(group: Group.Id, now: Instant): IO[List[Sponsor.Full]] = selectCurrent(group, now).runList(xa)
 
-  override def listAll(implicit ctx: OrgaCtx): IO[Seq[Sponsor]] = selectAll(ctx.group.id).runList(xa)
+  override def listAll(implicit ctx: OrgaCtx): IO[List[Sponsor]] = selectAll(ctx.group.id).runList(xa)
 
-  override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor]] = selectAll(ctx.group.id, contact).runList(xa)
+  override def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[List[Sponsor]] = selectAll(ctx.group.id, contact).runList(xa)
 
-  override def listAllFull(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor.Full]] = selectAllFull(ctx.group.id, partner).runList(xa)
+  override def listAllFull(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[List[Sponsor.Full]] = selectAllFull(ctx.group.id, partner).runList(xa)
 }
 
 object SponsorRepoSql {
-  private val _ = sponsorIdMeta // for intellij not remove DoobieUtils.Mappings import
+  private val _ = sponsorIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.sponsors
   val tableFull: Table = table
     .join(Tables.sponsorPacks, _.sponsor_pack_id -> _.id).get

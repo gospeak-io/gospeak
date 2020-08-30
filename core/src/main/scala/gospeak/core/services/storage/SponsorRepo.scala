@@ -20,15 +20,15 @@ trait OrgaSponsorRepo {
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]]
 
-  def listAll(implicit ctx: OrgaCtx): IO[Seq[Sponsor]]
+  def listAll(implicit ctx: OrgaCtx): IO[List[Sponsor]]
 
-  def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor]]
+  def listAll(contact: Contact.Id)(implicit ctx: OrgaCtx): IO[List[Sponsor]]
 
-  def listAllFull(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Seq[Sponsor.Full]]
+  def listAllFull(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[List[Sponsor.Full]]
 
-  def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
+  def listCurrentFull(group: Group.Id, now: Instant): IO[List[Sponsor.Full]]
 }
 
 trait PublicSponsorRepo {
-  def listCurrentFull(group: Group.Id, now: Instant): IO[Seq[Sponsor.Full]]
+  def listCurrentFull(group: Group.Id, now: Instant): IO[List[Sponsor.Full]]
 }

@@ -6,7 +6,7 @@
 @import gospeak.web.pages.user.partials.html.container
 @import gospeak.web.utils._
 
-@(groups: Page[Group], owners: Seq[User], pendingRequests: Seq[UserRequest.UserAskToJoinAGroupRequest])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(groups: Page[Group], owners: List[User], pendingRequests: List[UserRequest.UserAskToJoinAGroupRequest])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container("Join group", b)() {
     @if(groups.isEmpty) {
         <div class="jumbotron">
@@ -27,7 +27,7 @@
                 @pendingRequests.find(_.group == group.id).map { userReq =>
                     <a href="#" class="btn btn-success disabled">Asked @userReq.createdAt.asTimeAgo</a>
                 }.getOrElse {
-                    @formBtn(GroupCtrl.doJoin(group.slug, groups.params), Seq("class" -> "btn-primary")){Ask to join}
+                    @formBtn(GroupCtrl.doJoin(group.slug, groups.params), List("class" -> "btn-primary")){Ask to join}
                 }
             </div>
         }

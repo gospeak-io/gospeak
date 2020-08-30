@@ -4,7 +4,7 @@
 * @param 'ref' ref of data to use
 * @param 'target' Id of input to watch to get the ref (or some info that allow to get the ref)
 *@
-@(field: Field, ref: Option[Message.Ref] = None, target: Option[String] = None, multiline: Boolean = true, markdown: Boolean = true, args: Seq[(String, String)] = Seq())
+@(field: Field, ref: Option[Message.Ref] = None, target: Option[String] = None, multiline: Boolean = true, markdown: Boolean = true, args: List[(String, String)] = List())
 <div class="template-editor" @ref.map { r => data-ref="@r.value" }@target.map { t => data-target="@t" } data-markdown="@markdown">
     <ul class="nav nav-tabs" role="tablist" id="@Utils.id(field, args)-tab">
         <li class="nav-item">
@@ -16,7 +16,7 @@
     </ul>
     <div class="tab-content" id="@Utils.id(field, args)-content">
         <div class="tab-pane write fade show active" id="@Utils.id(field, args)-write" role="tabpanel" aria-labelledby="@Utils.id(field, args)-write-tab">
-            @inputHidden(field("kind"), Seq("value" -> "Liquid"))
+            @inputHidden(field("kind"), List("value" -> "Liquid"))
             @if(multiline) {
                 @inputTextarea(field("value"), args, html = true)
             } else {

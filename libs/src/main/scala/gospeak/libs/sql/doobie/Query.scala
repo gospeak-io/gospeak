@@ -13,7 +13,7 @@ import scala.util.control.NonFatal
 
 object Query {
 
-  final case class Insert[A](table: String, fields: Seq[Field], elt: A, build: A => Fragment) {
+  final case class Insert[A](table: String, fields: List[Field], elt: A, build: A => Fragment) {
     def fr: Fragment = const0(s"INSERT INTO $table (${fields.map(_.name).mkString(", ")}) VALUES (") ++ build(elt) ++ fr0")"
 
     def run(xa: doobie.Transactor[IO]): IO[A] =
@@ -141,7 +141,7 @@ object Query {
   private def exec[A](fr: Fragment, run: Fragment => doobie.ConnectionIO[A], xa: doobie.Transactor[IO]): IO[A] =
     run(fr).transact(xa).recoverWith { case NonFatal(e) => IO.raiseError(new Exception(s"Fail on ${fr.query.sql}: ${e.getMessage}", e)) }
 
-  private[doobie] def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: Seq[Field]): Option[Fragment] = {
+  private[doobie] def whereFragment(whereOpt: Option[Fragment], search: Option[Page.Search], fields: List[Field]): Option[Fragment] = {
     search.filter(_ => fields.nonEmpty)
       .map { search => fields.map(s => const0(s.value + " ") ++ fr0"ILIKE ${"%" + search.value + "%"}").reduce(_ ++ fr0" OR " ++ _) }
       .map { search => whereOpt.map(_ ++ fr0" AND " ++ fr0"(" ++ search ++ fr0")").getOrElse(fr0" WHERE " ++ search) }
@@ -163,7 +163,7 @@ object Query {
   private[doobie] def limitFragment(size: Page.Size, start: Page.Offset): Fragment =
     fr0" LIMIT " ++ const0(size.value.toString) ++ fr0" OFFSET " ++ const0(start.value.toString)
 
-  private[doobie] def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, sorts: Table.Sorts, searchFields: Seq[Field]): (Fragment, Fragment, Fragment) = {
+  private[doobie] def paginationFragment(prefix: String, whereOpt: Option[Fragment], params: Page.Params, sorts: Table.Sorts, searchFields: List[Field]): (Fragment, Fragment, Fragment) = {
     val where = whereFragment(whereOpt, params.search, searchFields).getOrElse(fr0"")
     val sortFields = sorts.get(params.orderBy, prefix)
     val orderBy = orderByFragment(sortFields, params.nullsFirst)

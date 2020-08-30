@@ -11,11 +11,11 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    @fieldVertical(GsForms.invite("email"), Seq("label" -> "Email", "help" -> s"Email of your $role")) { (field, args) =>
-                        @inputText(field, Seq("placeholder" -> "ex: example@mail.com", "value" -> req.getOrElseFlash("email", ""), "autofocus" -> "true") ++ args)
+                    @fieldVertical(GsForms.invite("email"), List("label" -> "Email", "help" -> s"Email of your $role")) { (field, args) =>
+                        @inputText(field, List("placeholder" -> "ex: example@mail.com", "value" -> req.getOrElseFlash("email", ""), "autofocus" -> "true") ++ args)
                     }
-                    @fieldVertical(GsForms.invite("message"), Seq("label" -> "Message")) { (field, args) =>
-                        @inputMarkdown(field, args ++ Seq("value" -> req.getOrElseFlash("message", "")))
+                    @fieldVertical(GsForms.invite("message"), List("label" -> "Message")) { (field, args) =>
+                        @inputMarkdown(field, args ++ List("value" -> req.getOrElseFlash("message", "")))
                     }
                 </div>
                 <div class="modal-footer">
