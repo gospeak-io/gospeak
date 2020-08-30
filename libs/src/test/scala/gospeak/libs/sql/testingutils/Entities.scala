@@ -6,15 +6,15 @@ object Entities {
 
   case class User(id: User.Id,
                   name: String,
-                  email: String)
+                  email: Option[String])
 
   object User {
 
     case class Id(value: Int) extends AnyVal
 
-    val loic: User = User(Id(1), "loic", "loic@mail.com")
-    val jean: User = User(Id(2), "jean", null)
-    val tim: User = User(Id(3), "tim", "tim@mail.com")
+    val loic: User = User(Id(1), "loic", Some("loic@mail.com"))
+    val jean: User = User(Id(2), "jean", None)
+    val tim: User = User(Id(3), "tim", Some("tim@mail.com"))
   }
 
   case class Category(id: Category.Id,

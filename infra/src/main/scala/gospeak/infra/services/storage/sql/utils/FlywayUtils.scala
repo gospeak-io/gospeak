@@ -19,7 +19,7 @@ object FlywayUtils {
     }
     Flyway.configure()
       .dataSource(new HikariDataSource(config))
-      .locations("classpath:sql")
+      .locations("classpath:migrations")
       .load()
   }
 }
