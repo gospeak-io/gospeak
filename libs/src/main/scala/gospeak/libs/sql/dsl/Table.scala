@@ -3,7 +3,7 @@ package gospeak.libs.sql.dsl
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
-import gospeak.libs.sql.dsl.Query.SelectBuilder
+import gospeak.libs.sql.dsl.Query.{Delete, Insert, Select, Update}
 import gospeak.libs.sql.dsl.Table.Inner._
 
 sealed trait Table {
@@ -19,12 +19,12 @@ sealed trait Table {
 
   def fr: Fragment
 
-  // TODO do not lose previous type (chain predefined joins, still use fields...)
+  // TODO do not lose previous type (chain predefined joins, still use typed fields...)
   def join[T <: Table](table: T): JoinClause[this.type, T] = JoinClause(this, "INNER JOIN", table)
 
   def joinOpt[T <: Table](table: T): JoinClause[this.type, T] = JoinClause(this, "LEFT OUTER JOIN", table)
 
-  def select: SelectBuilder[this.type] = SelectBuilder(this, getFields, None)
+  def select: Select.Builder[this.type] = Select.Builder(this, getFields)
 }
 
 object Table {
@@ -39,6 +39,14 @@ object Table {
     override def getJoins: List[Join[_]] = List()
 
     override def fr: Fragment = const0(getName + alias.map(" " + _).getOrElse(""))
+
+    def insert: Insert.Builder[this.type] = Insert.Builder(this)
+
+    def update: Update.Builder[this.type] = Update.Builder(this, List())
+
+    def delete: Delete.Builder[this.type] = Delete.Builder(this)
+
+    override def toString: String = s"SqlTable($schema, $name, $alias, $getFields)"
   }
 
   case class JoinTable(getSchema: String,
