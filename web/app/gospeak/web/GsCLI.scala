@@ -8,6 +8,7 @@ import doobie.util.transactor.Transactor
 import gospeak.libs.scala.FileUtils
 import gospeak.libs.sql.generator.Generator
 import gospeak.libs.sql.generator.reader.H2Reader
+import gospeak.libs.sql.generator.writer.ScalaWriter.DatabaseConfig
 import gospeak.libs.sql.generator.writer.{ScalaWriter, Writer}
 import org.flywaydb.core.Flyway
 
@@ -42,7 +43,8 @@ object GsCLI {
     val writer = new ScalaWriter(
       directory = FileUtils.adaptLocalPath("infra/src/main/scala"),
       packageName = "gospeak.infra.services.storage.sql.database",
-      identifierStrategy = Writer.IdentifierStrategy.upperCase)
+      identifierStrategy = Writer.IdentifierStrategy.upperCase,
+      config = DatabaseConfig())
     for {
       _ <- Try(flyway.migrate())
       _ <- Try(Generator.generate(xa, reader, writer).unsafeRunSync())

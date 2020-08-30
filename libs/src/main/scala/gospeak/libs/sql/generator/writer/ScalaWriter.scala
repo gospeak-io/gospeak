@@ -1,11 +1,13 @@
 package gospeak.libs.sql.generator.writer
 
-import gospeak.libs.sql.generator.Database.{Field, Table}
+import gospeak.libs.sql.generator.Database.{Field, FieldRef, Table}
+import gospeak.libs.sql.generator.writer.ScalaWriter.DatabaseConfig
 import gospeak.libs.sql.generator.writer.Writer.IdentifierStrategy
 
 class ScalaWriter(directory: String,
                   packageName: String,
-                  identifierStrategy: IdentifierStrategy = Writer.IdentifierStrategy.upperCase) extends Writer {
+                  identifierStrategy: IdentifierStrategy = Writer.IdentifierStrategy.upperCase,
+                  config: DatabaseConfig) extends Writer {
   override protected def rootFolderPath: String = directory + "/" + packageName.replaceAll("\\.", "/")
 
   override protected def tableFilePath(t: Table): String = tablesFolderPath + "/" + idf(t.name) + ".scala"
@@ -67,8 +69,11 @@ class ScalaWriter(directory: String,
   }
 
   protected def tableFieldAttr(t: Table, f: Field): String = {
-    val (tableName, fieldName, fieldType) = (idf(t.name), idf(f.name), scalaType(f))
-    f.ref.map(r => s"""val $fieldName: LinkField[$fieldType, $tableName, ${idf(r.table)}] = new LinkField[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", ${idf(r.table)}.table.${idf(r.field)}) // ${f.`type`}""")
+    val (tableName, fieldName) = (idf(t.name), idf(f.name))
+    val fieldType = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
+      .orElse(config.field(f).customType)
+      .getOrElse(scalaType(f))
+    f.ref.map(r => s"""val $fieldName: FieldRef[$fieldType, $tableName, ${idf(r.table)}] = new FieldRef[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", ${idf(r.table)}.table.${idf(r.field)}) // ${f.`type`}""")
       .getOrElse(s"""val $fieldName: Field[$fieldType, $tableName] = new Field[$fieldType, $tableName](this, "${f.name}") // ${f.`type`}""")
   }
 
@@ -93,4 +98,31 @@ class ScalaWriter(directory: String,
     case "TIMESTAMP" | "TIMESTAMP WITH TIME ZONE" => "Instant"
     case "VARCHAR" | "CHAR" => "String"
   }
+}
+
+object ScalaWriter {
+
+  case class DatabaseConfig(customTypesFollowReferences: Boolean = true, // if a field has a reference to an other field having a custom type, it inherit from the custom type
+                            schemas: Map[String, SchemaConfig] = Map()) {
+    def schema(name: String): SchemaConfig = schemas.getOrElse(name, SchemaConfig())
+
+    def table(schema: String, table: String): TableConfig = this.schema(schema).tables.getOrElse(table, TableConfig())
+
+    def table(table: Table): TableConfig = this.table(table.schema, table.name)
+
+    def field(schema: String, table: String, field: String): FieldConfig = this.table(schema, table).fields.getOrElse(field, FieldConfig())
+
+    def field(table: Table, field: String): FieldConfig = this.field(table.schema, table.name, field)
+
+    def field(field: Field): FieldConfig = this.field(field.schema, field.table, field.name)
+
+    def field(field: FieldRef): FieldConfig = this.field(field.schema, field.table, field.field)
+  }
+
+  case class SchemaConfig(tables: Map[String, TableConfig] = Map())
+
+  case class TableConfig(fields: Map[String, FieldConfig] = Map())
+
+  case class FieldConfig(customType: Option[String] = None) // override the computed type with this one, should be the fully qualified name
+
 }
