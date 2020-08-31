@@ -1,5 +1,6 @@
 package gospeak.libs.sql.dsl
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
 import doobie.util.fragment.Fragment
@@ -7,7 +8,7 @@ import doobie.util.fragment.Fragment.const0
 import doobie.util.{Put, Read}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
-import gospeak.libs.sql.dsl.Query.Inner.WhereClause
+import gospeak.libs.sql.dsl.Query.Inner.{OrderByClause, WhereClause}
 
 import scala.util.control.NonFatal
 
@@ -125,10 +126,11 @@ object Query {
 
   case class Select[A: Read](private val table: Table,
                              private val fields: List[Field[_, _]],
-                             private val where: WhereClause) {
+                             private val where: WhereClause,
+                             private val orderBy: OrderByClause) {
     def fr: Fragment = {
-      val fieldsFr = fields.tail.map(const0(", ") ++ _.fr).foldLeft(fields.head.fr)(_ ++ _)
-      fr0"SELECT " ++ fieldsFr ++ fr0" FROM " ++ table.fr ++ where.fr
+      val fieldsFr = fields.tail.foldLeft(fields.head.fr)(_ ++ fr0", " ++ _.fr)
+      fr0"SELECT " ++ fieldsFr ++ fr0" FROM " ++ table.fr ++ where.fr ++ orderBy.fr
     }
 
     def runList(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
@@ -147,7 +149,7 @@ object Query {
                                   private val where: WhereClause,
                                   private val params: Page.Params) {
       def fr: Fragment = {
-        val fieldsFr = fields.tail.map(const0(", ") ++ _.fr).foldLeft(fields.head.fr)(_ ++ _)
+        val fieldsFr = fields.tail.foldLeft(fields.head.fr)(_ ++ fr0", " ++ _.fr)
         val pagination = fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
         fr0"SELECT " ++ fieldsFr ++ fr0" FROM " ++ table.fr ++ where.fr ++ pagination
       }
@@ -164,7 +166,8 @@ object Query {
 
     case class Builder[T <: Table](table: T,
                                    fields: List[Field[_, _]],
-                                   where: WhereClause = WhereClause(None)) {
+                                   where: WhereClause,
+                                   orderBy: OrderByClause) {
       def fields(fields: Field[_, _]*): Builder[T] = copy(fields = fields.toList)
 
       def fields(fields: List[Field[_, _]]): Builder[T] = copy(fields = fields)
@@ -174,7 +177,7 @@ object Query {
       def where(cond: T => Cond): Builder[T] = where(cond(table))
 
       def build[A: Read]: Select[A] =
-        if (implicitly[Read[A]].length == fields.length) Select[A](table, fields, where)
+        if (implicitly[Read[A]].length == fields.length) Select[A](table, fields, where, orderBy)
         else throw new Exception(s"Expects ${implicitly[Read[A]].length} fields but got ${fields.length}")
 
       def build[A: Read](params: Page.Params): Select.Paginated[A] =
@@ -188,6 +191,10 @@ object Query {
 
     case class WhereClause(cond: Option[Cond]) {
       def fr: Fragment = cond.map(fr0" WHERE " ++ _.fr).getOrElse(fr0"")
+    }
+
+    case class OrderByClause(fields: List[Field.Order[_, _]]) {
+      def fr: Fragment = NonEmptyList.fromList(fields).map(l => l.tail.foldLeft(fr0" ORDER BY " ++ l.head.fr)(_ ++ fr0", " ++ _.fr)).getOrElse(fr0"")
     }
 
   }

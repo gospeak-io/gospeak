@@ -1,8 +1,10 @@
 package gospeak.libs.sql.dsl
 
+import doobie.implicits._
 import doobie.util.Put
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
+import gospeak.libs.sql.dsl.Field.Order
 
 class Field[A, T <: Table.SqlTable](val table: T,
                                     val name: String) {
@@ -11,6 +13,10 @@ class Field[A, T <: Table.SqlTable](val table: T,
   def eq(v: A)(implicit p: Put[A]): Cond = Cond.eq(this, v)
 
   def eq(f: Field[A, _ <: Table.SqlTable]): Cond = Cond.eq(this, f)
+
+  def asc: Order[A, T] = Order(this, asc = true)
+
+  def desc: Order[A, T] = Order(this, asc = false)
 
   private def value = s"${table.getAlias.getOrElse(table.getName)}.$name"
 
@@ -30,6 +36,14 @@ class Field[A, T <: Table.SqlTable](val table: T,
     val state = List(table, name)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+}
+
+object Field {
+
+  case class Order[A, T <: Table.SqlTable](field: Field[A, T], asc: Boolean) {
+    def fr: Fragment = field.fr ++ fr0" IS NULL, " ++ field.fr ++ (if (asc) fr0"" else fr0" DESC")
+  }
+
 }
 
 class FieldRef[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: T,

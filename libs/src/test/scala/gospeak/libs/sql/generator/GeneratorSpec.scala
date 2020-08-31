@@ -1,5 +1,6 @@
 package gospeak.libs.sql.generator
 
+import cats.data.NonEmptyList
 import gospeak.libs.scala.FileUtils
 import gospeak.libs.sql.generator.reader.H2Reader
 import gospeak.libs.sql.generator.writer.ScalaWriter.{DatabaseConfig, FieldConfig, SchemaConfig, TableConfig}
@@ -19,7 +20,7 @@ class GeneratorSpec extends SqlSpec {
       schemas = Map("PUBLIC" -> SchemaConfig(tables = Map(
         "users" -> TableConfig(alias = Some("u"), fields = Map(
           "id" -> FieldConfig(customType = Some("User.Id")))),
-        "categories" -> TableConfig(alias = Some("c"), fields = Map(
+        "categories" -> TableConfig(alias = Some("c"), sorts = List(TableConfig.Sort("name", NonEmptyList.of("-name", "id"))), fields = Map(
           "id" -> FieldConfig(customType = Some("Category.Id")))),
         "posts" -> TableConfig(alias = Some("p"), fields = Map(
           "id" -> FieldConfig(customType = Some("Post.Id"))))
