@@ -3,7 +3,7 @@ package gospeak.libs.sql.dsl
 import doobie.implicits._
 import doobie.util.Put
 import gospeak.libs.scala.domain.Page
-import gospeak.libs.sql.testingutils.Entities.{Post, User}
+import gospeak.libs.sql.testingutils.Entities.{Category, Post, User}
 import gospeak.libs.sql.testingutils.SqlSpec
 import gospeak.libs.sql.testingutils.database.Tables._
 
@@ -58,6 +58,10 @@ class DslSpec extends SqlSpec {
       userPage.items shouldBe List(User.loic)
       userPage.params shouldBe params
       userPage.total.value shouldBe 3
+    }
+    it("should add default sort on select") {
+      val select = CATEGORIES.select.build[Category]
+      select.fr.query.sql shouldBe "SELECT c.id, c.name FROM categories c ORDER BY c.name IS NULL, c.name DESC, c.id IS NULL, c.id"
     }
   }
 }
