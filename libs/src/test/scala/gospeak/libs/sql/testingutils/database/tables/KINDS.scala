@@ -1,5 +1,7 @@
 package gospeak.libs.sql.testingutils.database.tables
 
+import gospeak.libs.sql.testingutils.Entities._
+
 import java.time.{Instant, LocalDate}
 
 import gospeak.libs.sql.dsl._

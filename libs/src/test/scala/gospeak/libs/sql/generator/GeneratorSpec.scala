@@ -14,14 +14,16 @@ class GeneratorSpec extends SqlSpec {
     directory = FileUtils.adaptLocalPath("libs/src/test/scala"),
     packageName = "gospeak.libs.sql.testingutils.database",
     identifierStrategy = Writer.IdentifierStrategy.upperCase,
-    config = DatabaseConfig(schemas = Map("PUBLIC" -> SchemaConfig(tables = Map(
-      "users" -> TableConfig(alias = Some("u"), fields = Map(
-        "id" -> FieldConfig(customType = Some("gospeak.libs.sql.testingutils.Entities.User.Id")))),
-      "categories" -> TableConfig(alias = Some("c"), fields = Map(
-        "id" -> FieldConfig(customType = Some("gospeak.libs.sql.testingutils.Entities.Category.Id")))),
-      "posts" -> TableConfig(alias = Some("p"), fields = Map(
-        "id" -> FieldConfig(customType = Some("gospeak.libs.sql.testingutils.Entities.Post.Id"))))
-    )))))
+    config = DatabaseConfig(
+      imports = List("gospeak.libs.sql.testingutils.Entities._"),
+      schemas = Map("PUBLIC" -> SchemaConfig(tables = Map(
+        "users" -> TableConfig(alias = Some("u"), fields = Map(
+          "id" -> FieldConfig(customType = Some("User.Id")))),
+        "categories" -> TableConfig(alias = Some("c"), fields = Map(
+          "id" -> FieldConfig(customType = Some("Category.Id")))),
+        "posts" -> TableConfig(alias = Some("p"), fields = Map(
+          "id" -> FieldConfig(customType = Some("Post.Id"))))
+      )))))
 
   describe("Generator") {
     ignore("should generate database tables") {

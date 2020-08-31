@@ -61,12 +61,14 @@ class ScalaWriter(directory: String,
 
   protected def tableImports(table: Table): String = {
     val scalaTypes = table.fields.map(scalaType).toSet
-    (scalaTypes.contains("Instant"), scalaTypes.contains("LocalDate")) match {
+    val customImports = config.imports.map("\nimport " + _).mkString + config.imports.headOption.map(_ => "\n").getOrElse("")
+    val dateImports = (scalaTypes.contains("Instant"), scalaTypes.contains("LocalDate")) match {
       case (true, true) => "\nimport java.time.{Instant, LocalDate}\n"
       case (true, false) => "\nimport java.time.Instant\n"
       case (false, true) => "\nimport java.time.LocalDate\n"
       case (false, false) => ""
     }
+    customImports + dateImports
   }
 
   protected def tableFieldAttr(t: Table, f: Field): String = {
@@ -76,8 +78,10 @@ class ScalaWriter(directory: String,
       .getOrElse(scalaType(f))
     // TODO put Option for nullable fields only when having no references (references MUST have same type right now, this should be fixed)
     val fieldType = if (f.nullable && f.ref.isEmpty) s"Option[$fieldKind]" else fieldKind
-    f.ref.map(r => s"""val $fieldName: FieldRef[$fieldType, $tableName, ${idf(r.table)}] = new FieldRef[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", ${idf(r.table)}.table.${idf(r.field)}) // ${f.`type`}""")
-      .getOrElse(s"""val $fieldName: Field[$fieldType, $tableName] = new Field[$fieldType, $tableName](this, "${f.name}") // ${f.`type`}""")
+    f.ref.map { r =>
+      val fieldRef = (if (r.schema == f.schema && r.table == f.table) "" else s"${idf(r.table)}.table.") + idf(r.field)
+      s"""val $fieldName: FieldRef[$fieldType, $tableName, ${idf(r.table)}] = new FieldRef[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", $fieldRef) // ${f.`type`}"""
+    }.getOrElse(s"""val $fieldName: Field[$fieldType, $tableName] = new Field[$fieldType, $tableName](this, "${f.name}") // ${f.`type`}""")
   }
 
   protected def tableAutoJoins(table: Table): String =
@@ -106,6 +110,7 @@ class ScalaWriter(directory: String,
 object ScalaWriter {
 
   case class DatabaseConfig(customTypesFollowReferences: Boolean = true, // if a field has a reference to an other field having a custom type, it inherit from the custom type
+                            imports: List[String] = List(), // imports to add on top of all Table files (for custom types for example)
                             schemas: Map[String, SchemaConfig] = Map()) {
     def schema(name: String): SchemaConfig = schemas.getOrElse(name, SchemaConfig())
 
@@ -124,7 +129,8 @@ object ScalaWriter {
 
   case class SchemaConfig(tables: Map[String, TableConfig] = Map())
 
-  case class TableConfig(alias: Option[String] = None, fields: Map[String, FieldConfig] = Map())
+  case class TableConfig(alias: Option[String] = None, // table alias, should be unique
+                         fields: Map[String, FieldConfig] = Map())
 
   case class FieldConfig(customType: Option[String] = None) // override the computed type with this one, should be the fully qualified name
 
