@@ -22,10 +22,14 @@ trait Writer {
   } yield ()
 
   def generateFiles(db: Database): Map[String, String] = {
+    val errors = getDatabaseErrors(db)
+    if (errors.nonEmpty) throw new IllegalArgumentException(s"DatabaseConfig do not match with actual database, errors:${errors.map("\n - " + _).mkString}")
     val tables = db.schemas.flatMap(_.tables)
     val tableFiles = tables.map(t => tableFilePath(t) -> tableFile(t))
     ((listTablesFilePath, listTablesFile(tables)) :: tableFiles).toMap
   }
+
+  protected def getDatabaseErrors(db: Database): List[String]
 
   protected def rootFolderPath: String
 

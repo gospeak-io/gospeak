@@ -2,6 +2,7 @@ package gospeak.libs.sql.generator.writer
 
 import cats.data.NonEmptyList
 import gospeak.libs.scala.StringUtils
+import gospeak.libs.sql.generator.Database
 import gospeak.libs.sql.generator.Database.{Field, FieldRef, Table}
 import gospeak.libs.sql.generator.writer.ScalaWriter.DatabaseConfig
 import gospeak.libs.sql.generator.writer.Writer.IdentifierStrategy
@@ -10,6 +11,10 @@ class ScalaWriter(directory: String,
                   packageName: String,
                   identifierStrategy: IdentifierStrategy = Writer.IdentifierStrategy.upperCase,
                   config: DatabaseConfig) extends Writer {
+  require(config.getConfigErrors.isEmpty, s"DatabaseConfig has some errors :${config.getConfigErrors.map("\n - " + _).mkString}")
+
+  override protected def getDatabaseErrors(db: Database): List[String] = config.getDatabaseErrors(db)
+
   override protected def rootFolderPath: String = directory + "/" + packageName.replaceAll("\\.", "/")
 
   override protected def tableFilePath(t: Table): String = tablesFolderPath + "/" + idf(t.name) + ".scala"
@@ -148,6 +153,33 @@ object ScalaWriter {
     def field(field: Field): FieldConfig = this.field(field.schema, field.table, field.name)
 
     def field(field: FieldRef): FieldConfig = this.field(field.schema, field.table, field.field)
+
+    def getConfigErrors: List[String] = {
+      val duplicatedTableAlias = schemas
+        .flatMap { case (schemaName, schemaConf) => schemaConf.tables.flatMap { case (tableName, tableConf) => tableConf.alias.map(a => (schemaName, tableName, a)) } }
+        .groupBy(_._3).toList
+        .collect { case (alias, tables) if tables.size > 1 => s"Alias '$alias' can't be used for multiple tables (${tables.map(t => s"${t._1}.${t._2}").mkString(", ")})" }
+
+      duplicatedTableAlias
+    }
+
+    def getDatabaseErrors(db: Database): List[String] = {
+      schemas.toList.flatMap { case (schemaName, schemaConf) =>
+        db.schemas.find(_.name == schemaName).fold(List(s"Schema '$schemaName' declared in conf does not exist in Database")) { schema =>
+          schemaConf.tables.toList.flatMap { case (tableName, tableConf) =>
+            schema.tables.find(_.name == tableName).fold(List(s"Table '$schemaName.$tableName' declared in conf does not exist in Database")) { table =>
+              val missingSorts = tableConf.sorts.flatMap(sort => sort.fields.map(_.stripPrefix("-")).toList.flatMap(fieldName =>
+                table.fields.find(_.name == fieldName).fold(List(s"Field '$fieldName' in sort '${sort.label}' of table '$schemaName.$tableName' does not exist in Database"))(_ => List())
+              ))
+              val missingFields = tableConf.fields.toList.flatMap { case (fieldName, _) =>
+                table.fields.find(_.name == fieldName).fold(List(s"Field '$schemaName.$tableName.$fieldName' declared in conf does not exist in Database"))(_ => List())
+              }
+              missingSorts ++ missingFields
+            }
+          }
+        }
+      }
+    }
   }
 
   case class SchemaConfig(tables: Map[String, TableConfig] = Map())

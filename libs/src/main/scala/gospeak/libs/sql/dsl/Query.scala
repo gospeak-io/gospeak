@@ -8,6 +8,7 @@ import doobie.util.fragment.Fragment.const0
 import doobie.util.{Put, Read}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
+import gospeak.libs.sql.dsl.Extensions._
 import gospeak.libs.sql.dsl.Query.Inner.{OrderByClause, WhereClause}
 
 import scala.util.control.NonFatal
@@ -79,7 +80,7 @@ object Query {
   }
 
   case class Update[T <: Table.SqlTable](table: T, values: List[Fragment], where: WhereClause) {
-    def fr: Fragment = fr0"UPDATE " ++ table.fr ++ fr0" SET " ++ values.tail.foldLeft(values.head)(_ ++ fr0", " ++ _) ++ where.fr
+    def fr: Fragment = fr0"UPDATE " ++ table.fr ++ fr0" SET " ++ values.mkFragment(", ") ++ where.fr
 
     def run(xa: doobie.Transactor[IO]): IO[Unit] =
       exec(fr, _.update.run, xa).flatMap {
@@ -128,10 +129,7 @@ object Query {
                              private val fields: List[Field[_, _]],
                              private val where: WhereClause,
                              private val orderBy: OrderByClause) {
-    def fr: Fragment = {
-      val fieldsFr = fields.tail.foldLeft(fields.head.fr)(_ ++ fr0", " ++ _.fr)
-      fr0"SELECT " ++ fieldsFr ++ fr0" FROM " ++ table.fr ++ where.fr ++ orderBy.fr
-    }
+    def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ where.fr ++ orderBy.fr
 
     def runList(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
 
@@ -147,11 +145,11 @@ object Query {
     case class Paginated[A: Read](private val table: Table,
                                   private val fields: List[Field[_, _]],
                                   private val where: WhereClause,
+                                  private val orderBy: OrderByClause,
                                   private val params: Page.Params) {
       def fr: Fragment = {
-        val fieldsFr = fields.tail.foldLeft(fields.head.fr)(_ ++ fr0", " ++ _.fr)
         val pagination = fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
-        fr0"SELECT " ++ fieldsFr ++ fr0" FROM " ++ table.fr ++ where.fr ++ pagination
+        fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ where.fr ++ orderBy.fr ++ pagination
       }
 
       def countFr: Fragment = {
@@ -181,7 +179,7 @@ object Query {
         else throw new Exception(s"Expects ${implicitly[Read[A]].length} fields but got ${fields.length}")
 
       def build[A: Read](params: Page.Params): Select.Paginated[A] =
-        if (implicitly[Read[A]].length == fields.length) Select.Paginated[A](table, fields, where, params)
+        if (implicitly[Read[A]].length == fields.length) Select.Paginated[A](table, fields, where, orderBy, params)
         else throw new Exception(s"Expects ${implicitly[Read[A]].length} fields but got ${fields.length}")
     }
 
@@ -194,7 +192,7 @@ object Query {
     }
 
     case class OrderByClause(fields: List[Field.Order[_, _]]) {
-      def fr: Fragment = NonEmptyList.fromList(fields).map(l => l.tail.foldLeft(fr0" ORDER BY " ++ l.head.fr)(_ ++ fr0", " ++ _.fr)).getOrElse(fr0"")
+      def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
     }
 
   }

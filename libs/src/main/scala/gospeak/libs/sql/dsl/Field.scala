@@ -1,5 +1,6 @@
 package gospeak.libs.sql.dsl
 
+import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.Put
 import doobie.util.fragment.Fragment
@@ -8,17 +9,31 @@ import gospeak.libs.sql.dsl.Field.Order
 
 class Field[A, T <: Table.SqlTable](val table: T,
                                     val name: String) {
-  def fr: Fragment = const0(value)
+  def fr: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
-  def eq(v: A)(implicit p: Put[A]): Cond = Cond.eq(this, v)
+  def eq(value: A)(implicit p: Put[A]): Cond = Cond.eq(this, value)
 
-  def eq(f: Field[A, _ <: Table.SqlTable]): Cond = Cond.eq(this, f)
+  def eq(field: Field[A, _ <: Table.SqlTable]): Cond = Cond.eq(this, field)
+
+  def gt(value: A)(implicit p: Put[A]): Cond = Cond.gt(this, value)
+
+  def lt(value: A)(implicit p: Put[A]): Cond = Cond.lt(this, value)
+
+  def isNull: Cond = Cond.isNull(this)
+
+  def notNull: Cond = Cond.notNull(this)
+
+  def in(values: NonEmptyList[A])(implicit p: Put[A]): Cond = Cond.in(this, values)
+
+  def notIn(values: NonEmptyList[A])(implicit p: Put[A]): Cond = Cond.notIn(this, values)
+
+  def in(q: Query.Select[A]): Cond = Cond.in(this, q)
+
+  def notIn(q: Query.Select[A]): Cond = Cond.notIn(this, q)
 
   def asc: Order[A, T] = Order(this, asc = true)
 
   def desc: Order[A, T] = Order(this, asc = false)
-
-  private def value = s"${table.getAlias.getOrElse(table.getName)}.$name"
 
   override def toString: String = s"Field(${table.getName}.$name)"
 
