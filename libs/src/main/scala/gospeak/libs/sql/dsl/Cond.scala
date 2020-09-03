@@ -18,63 +18,81 @@ sealed trait Cond {
 }
 
 object Cond {
-  def eq[A, T <: Table.SqlTable, U <: Table.SqlTable](f: Field[A, T], g: Field[A, U]): EqField[A, T, U] = EqField(f, g)
+  def is[T <: Table.SqlTable, A: Put](f: Field[A, T], v: A): IsValue[T, A] = IsValue(f, v)
 
-  def eq[A: Put, T <: Table.SqlTable](f: Field[A, T], v: A): EqValue[A, T] = EqValue(f, v)
+  def is[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: Field[A, T], g: Field[A, T2]): IsField[T, A, T2] = IsField(f, g)
 
-  def gt[A: Put, T <: Table.SqlTable](f: Field[A, T], v: A): GtValue[A, T] = GtValue(f, v)
+  def isOpt[T <: Table.SqlTable, A: Put](f: Field[Option[A], T], v: A): IsValueOpt[T, A] = IsValueOpt(f, v)
 
-  def lt[A: Put, T <: Table.SqlTable](f: Field[A, T], v: A): LtValue[A, T] = LtValue(f, v)
+  def isOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: Field[Option[A], T], g: Field[A, T2]): IsFieldLeftOpt[T, A, T2] = IsFieldLeftOpt(f, g)
 
-  def isNull[A, T <: Table.SqlTable](f: Field[A, T]): IsNull[A, T] = IsNull(f)
+  def isOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: Field[A, T], g: Field[Option[A], T2]): IsFieldRightOpt[T, A, T2] = IsFieldRightOpt(f, g)
 
-  def notNull[A, T <: Table.SqlTable](f: Field[A, T]): NotNull[A, T] = NotNull(f)
+  def gt[T <: Table.SqlTable, A: Put](f: Field[A, T], v: A): GtValue[T, A] = GtValue(f, v)
 
-  def in[A: Put, T <: Table.SqlTable](f: Field[A, T], v: NonEmptyList[A]): InValues[A, T] = InValues(f, v)
+  def lt[T <: Table.SqlTable, A: Put](f: Field[A, T], v: A): LtValue[T, A] = LtValue(f, v)
 
-  def notIn[A: Put, T <: Table.SqlTable](f: Field[A, T], v: NonEmptyList[A]): NotInValues[A, T] = NotInValues(f, v)
+  def isNull[T <: Table.SqlTable, A](f: Field[A, T]): IsNull[T, A] = IsNull(f)
 
-  def in[A, T <: Table.SqlTable](f: Field[A, T], q: Query.Select[A]): InQuery[A, T] = InQuery(f, q)
+  def notNull[T <: Table.SqlTable, A](f: Field[A, T]): NotNull[T, A] = NotNull(f)
 
-  def notIn[A, T <: Table.SqlTable](f: Field[A, T], q: Query.Select[A]): NotInQuery[A, T] = NotInQuery(f, q)
+  def in[T <: Table.SqlTable, A: Put](f: Field[A, T], v: NonEmptyList[A]): InValues[T, A] = InValues(f, v)
 
-  case class EqField[A, T <: Table.SqlTable, U <: Table.SqlTable](f1: Field[A, T], f2: Field[A, U]) extends Cond {
-    override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
-  }
+  def notIn[T <: Table.SqlTable, A: Put](f: Field[A, T], v: NonEmptyList[A]): NotInValues[T, A] = NotInValues(f, v)
 
-  case class EqValue[A: Put, T <: Table.SqlTable](f: Field[A, T], value: A) extends Cond {
+  def in[T <: Table.SqlTable, A](f: Field[A, T], q: Query.Select[A]): InQuery[T, A] = InQuery(f, q)
+
+  def notIn[T <: Table.SqlTable, A](f: Field[A, T], q: Query.Select[A]): NotInQuery[T, A] = NotInQuery(f, q)
+
+  case class IsValue[T <: Table.SqlTable, A: Put](f: Field[A, T], value: A) extends Cond {
     override def fr: Fragment = f.fr ++ fr0"=$value"
   }
 
-  case class GtValue[A: Put, T <: Table.SqlTable](f: Field[A, T], value: A) extends Cond {
+  case class IsValueOpt[T <: Table.SqlTable, A: Put](f: Field[Option[A], T], value: A) extends Cond {
+    override def fr: Fragment = f.fr ++ fr0"=$value"
+  }
+
+  case class IsField[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f1: Field[A, T], f2: Field[A, T2]) extends Cond {
+    override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
+  }
+
+  case class IsFieldLeftOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f1: Field[Option[A], T], f2: Field[A, T2]) extends Cond {
+    override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
+  }
+
+  case class IsFieldRightOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f1: Field[A, T], f2: Field[Option[A], T2]) extends Cond {
+    override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
+  }
+
+  case class GtValue[T <: Table.SqlTable, A: Put](f: Field[A, T], value: A) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" > $value"
   }
 
-  case class LtValue[A: Put, T <: Table.SqlTable](f: Field[A, T], value: A) extends Cond {
+  case class LtValue[T <: Table.SqlTable, A: Put](f: Field[A, T], value: A) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" < $value"
   }
 
-  case class IsNull[A, T <: Table.SqlTable](f: Field[A, T]) extends Cond {
+  case class IsNull[T <: Table.SqlTable, A](f: Field[A, T]) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" IS NULL"
   }
 
-  case class NotNull[A, T <: Table.SqlTable](f: Field[A, T]) extends Cond {
+  case class NotNull[T <: Table.SqlTable, A](f: Field[A, T]) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" IS NOT NULL"
   }
 
-  case class InValues[A: Put, T <: Table.SqlTable](f: Field[A, T], values: NonEmptyList[A]) extends Cond {
+  case class InValues[T <: Table.SqlTable, A: Put](f: Field[A, T], values: NonEmptyList[A]) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0") " // TODO remove last space when migration is done
   }
 
-  case class NotInValues[A: Put, T <: Table.SqlTable](f: Field[A, T], values: NonEmptyList[A]) extends Cond {
+  case class NotInValues[T <: Table.SqlTable, A: Put](f: Field[A, T], values: NonEmptyList[A]) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0") " // TODO remove last space when migration is done
   }
 
-  case class InQuery[A, T <: Table.SqlTable](f: Field[A, T], q: Query.Select[A]) extends Cond {
+  case class InQuery[T <: Table.SqlTable, A](f: Field[A, T], q: Query.Select[A]) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" IN (" ++ q.fr ++ fr0")"
   }
 
-  case class NotInQuery[A, T <: Table.SqlTable](f: Field[A, T], q: Query.Select[A]) extends Cond {
+  case class NotInQuery[T <: Table.SqlTable, A](f: Field[A, T], q: Query.Select[A]) extends Cond {
     override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ q.fr ++ fr0")"
   }
 

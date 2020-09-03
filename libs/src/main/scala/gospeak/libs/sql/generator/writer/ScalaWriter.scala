@@ -98,20 +98,22 @@ class ScalaWriter(directory: String,
 
   protected def tableFieldAttr(t: Table, f: Field): String = {
     val (tableName, fieldName) = (idf(t.name), idf(f.name))
-    val fieldKind = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
+    val valueType = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
       .orElse(config.field(f).customType)
       .getOrElse(scalaType(f))
-    // TODO put Option for nullable fields only when having no references (references MUST have same type right now and this break with Option[A], this should be fixed)
-    val fieldType = if (f.nullable && f.ref.isEmpty) s"Option[$fieldKind]" else fieldKind
     f.ref.map { r =>
+      val fieldType = (if (f.nullable) "FieldRefOpt" else "FieldRef") + s"[$valueType, $tableName, ${idf(r.table)}]"
       val fieldRef = (if (r.schema == f.schema && r.table == f.table) "" else s"${idf(r.table)}.table.") + idf(r.field)
-      s"""val $fieldName: FieldRef[$fieldType, $tableName, ${idf(r.table)}] = new FieldRef[$fieldType, $tableName, ${idf(r.table)}](this, "${f.name}", $fieldRef) // ${f.`type`}"""
-    }.getOrElse(s"""val $fieldName: Field[$fieldType, $tableName] = new Field[$fieldType, $tableName](this, "${f.name}") // ${f.`type`}""")
+      s"""val $fieldName: $fieldType = new $fieldType(this, "${f.name}", $fieldRef) // ${f.`type`}"""
+    }.getOrElse {
+      val fieldType = (if (f.nullable) "FieldOpt" else "Field") + s"[$valueType, $tableName]"
+      s"""val $fieldName: $fieldType = new $fieldType(this, "${f.name}") // ${f.`type`}"""
+    }
   }
 
   protected def tableAutoJoins(table: Table): String =
     table.fields.filter(_.ref.isDefined)
-      .map(f => s"\n\n  def ${idf(f.name)}Join: Table.JoinTable = join(${idf(f.ref.get.table)}.table).on(_.${idf(f.name)} eq _.${idf(f.ref.get.field)})")
+      .map(f => s"\n\n  def ${idf(f.name)}Join: Table.JoinTable = join(${idf(f.ref.get.table)}.table).on(_.${idf(f.name)} is${if (f.nullable) "Opt" else ""} _.${idf(f.ref.get.field)})")
       .mkString
 
   /*

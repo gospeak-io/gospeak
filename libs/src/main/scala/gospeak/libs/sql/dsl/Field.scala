@@ -11,9 +11,11 @@ class Field[A, T <: Table.SqlTable](val table: T,
                                     val name: String) {
   def fr: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
-  def is(value: A)(implicit p: Put[A]): Cond = Cond.eq(this, value)
+  def is(value: A)(implicit p: Put[A]): Cond = Cond.is(this, value)
 
-  def eq(field: Field[A, _ <: Table.SqlTable]): Cond = Cond.eq(this, field)
+  def is[T2 <: Table.SqlTable](field: Field[A, T2]): Cond = Cond.is(this, field)
+
+  def isOpt[T2 <: Table.SqlTable](field: Field[Option[A], T2]): Cond = Cond.isOpt(this, field)
 
   def gt(value: A)(implicit p: Put[A]): Cond = Cond.gt(this, value)
 
@@ -61,12 +63,21 @@ object Field {
 
 }
 
+class FieldOpt[A, T <: Table.SqlTable](override val table: T,
+                                       override val name: String) extends Field[Option[A], T](table, name) {
+  def isOpt(value: A)(implicit p: Put[A]): Cond = Cond.isOpt(this, value)
+
+  def isOpt[T2 <: Table.SqlTable](field: Field[A, T2]): Cond = Cond.isOpt(this, field)
+
+  override def toString: String = s"FieldOpt(${table.getName}.$name)"
+}
+
 class FieldRef[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: T,
                                                             override val name: String,
                                                             val references: Field[A, R]) extends Field[A, T](table, name) {
-  def join: Table.JoinTable = table.join(references.table).on(this.eq(references))
+  def join: Table.JoinTable = table.join(references.table).on(this.is(references))
 
-  def joinOpt: Table.JoinTable = table.joinOpt(references.table).on(this.eq(references))
+  def joinOpt: Table.JoinTable = table.joinOpt(references.table).on(this.is(references))
 
   override def toString: String = s"FieldRef(${table.getName}.$name, ${references.table.getName}.${references.name})"
 
@@ -74,6 +85,33 @@ class FieldRef[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: 
 
   override def equals(other: Any): Boolean = other match {
     case that: FieldRef[_, _, _] =>
+      super.equals(that) &&
+        (that canEqual this) &&
+        table == that.table &&
+        name == that.name &&
+        references == that.references
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = List(super.hashCode(), table, name, references)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+
+class FieldRefOpt[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: T,
+                                                               override val name: String,
+                                                               val references: Field[A, R]) extends FieldOpt[A, T](table, name) {
+  def join: Table.JoinTable = table.join(references.table).on(this.isOpt(references))
+
+  def joinOpt: Table.JoinTable = table.joinOpt(references.table).on(this.isOpt(references))
+
+  override def toString: String = s"FieldRefOpt(${table.getName}.$name, ${references.table.getName}.${references.name})"
+
+  override def canEqual(other: Any): Boolean = other.isInstanceOf[FieldRefOpt[_, _, _]]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: FieldRefOpt[_, _, _] =>
       super.equals(that) &&
         (that canEqual this) &&
         table == that.table &&

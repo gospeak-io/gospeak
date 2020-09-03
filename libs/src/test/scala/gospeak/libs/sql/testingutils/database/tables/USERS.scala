@@ -13,7 +13,7 @@ import gospeak.libs.sql.testingutils.Entities._
 class USERS private() extends Table.SqlTable("PUBLIC", "users", Some("u")) {
   val ID: Field[User.Id, USERS] = new Field[User.Id, USERS](this, "id") // INT NOT NULL
   val NAME: Field[String, USERS] = new Field[String, USERS](this, "name") // VARCHAR(50) NOT NULL
-  val EMAIL: Field[Option[String], USERS] = new Field[Option[String], USERS](this, "email") // VARCHAR(50)
+  val EMAIL: FieldOpt[String, USERS] = new FieldOpt[String, USERS](this, "email") // VARCHAR(50)
 
   override def getFields: List[Field[_, USERS]] = List(ID, NAME, EMAIL)
 

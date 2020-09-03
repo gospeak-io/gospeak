@@ -33,7 +33,7 @@ class DslSpec extends SqlSpec {
       select.run(xa).unsafeRunSync() shouldBe None
     }
     it("should build a joined select query") {
-      val joined = POSTS.join(USERS).on(_.AUTHOR eq _.ID).joinOpt(CATEGORIES).on(POSTS.CATEGORY eq _.ID)
+      val joined = POSTS.join(USERS).on(_.AUTHOR is _.ID).joinOpt(CATEGORIES).on(POSTS.CATEGORY isOpt _.ID)
       val res = joined.select.fields(POSTS.getFields).where(USERS.ID is User.loic.id).all[Post]
       val exp = fr0"SELECT p.id, p.title, p.text, p.date, p.author, p.category FROM posts p " ++
         fr0"INNER JOIN users u ON p.author=u.id " ++
@@ -43,7 +43,7 @@ class DslSpec extends SqlSpec {
       res.run(xa).unsafeRunSync() shouldBe List(Post.newYear, Post.first2020)
     }
     it("should have auto joins") {
-      val join = POSTS.join(USERS).on(_.AUTHOR eq _.ID)
+      val join = POSTS.join(USERS).on(_.AUTHOR is _.ID)
       val autoJoin = POSTS.AUTHOR.join
       autoJoin shouldBe join
     }
