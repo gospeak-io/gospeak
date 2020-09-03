@@ -18,15 +18,15 @@ class POSTS private() extends Table.SqlTable("PUBLIC", "posts", Some("p")) {
   val TEXT: Field[String, POSTS] = new Field[String, POSTS](this, "text") // VARCHAR(4096) NOT NULL
   val DATE: Field[Instant, POSTS] = new Field[Instant, POSTS](this, "date") // TIMESTAMP NOT NULL
   val AUTHOR: FieldRef[User.Id, POSTS, USERS] = new FieldRef[User.Id, POSTS, USERS](this, "author", USERS.table.ID) // INT NOT NULL
-  val CATEGORY: FieldRef[Category.Id, POSTS, CATEGORIES] = new FieldRef[Category.Id, POSTS, CATEGORIES](this, "category", CATEGORIES.table.ID) // INT
+  val CATEGORY: FieldRefOpt[Category.Id, POSTS, CATEGORIES] = new FieldRefOpt[Category.Id, POSTS, CATEGORIES](this, "category", CATEGORIES.table.ID) // INT
 
   override def getFields: List[Field[_, POSTS]] = List(ID, TITLE, TEXT, DATE, AUTHOR, CATEGORY)
 
   override def getSorts: List[Sort] = List()
 
-  def AUTHORJoin: Table.JoinTable = join(USERS.table).on(_.AUTHOR eq _.ID)
+  def AUTHORJoin: Table.JoinTable = join(USERS.table).on(_.AUTHOR is _.ID)
 
-  def CATEGORYJoin: Table.JoinTable = join(CATEGORIES.table).on(_.CATEGORY eq _.ID)
+  def CATEGORYJoin: Table.JoinTable = join(CATEGORIES.table).on(_.CATEGORY isOpt _.ID)
 }
 
 private[database] object POSTS {

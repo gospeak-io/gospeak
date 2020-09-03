@@ -32,8 +32,8 @@ class GeneratorSpec extends SqlSpec {
       Generator.generate(xa, reader, writer).unsafeRunSync()
     }
     it("should generate same files as before") {
-      val database = reader.read(xa).unsafeRunSync()
       val existingFiles = writer.readFiles().get
+      val database = reader.read(xa).unsafeRunSync()
       val newFiles = writer.generateFiles(database)
       newFiles.size shouldBe existingFiles.size
       newFiles.map { case (path, content) =>
