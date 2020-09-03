@@ -11,7 +11,7 @@ class Field[A, T <: Table.SqlTable](val table: T,
                                     val name: String) {
   def fr: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
-  def eq(value: A)(implicit p: Put[A]): Cond = Cond.eq(this, value)
+  def is(value: A)(implicit p: Put[A]): Cond = Cond.eq(this, value)
 
   def eq(field: Field[A, _ <: Table.SqlTable]): Cond = Cond.eq(this, field)
 

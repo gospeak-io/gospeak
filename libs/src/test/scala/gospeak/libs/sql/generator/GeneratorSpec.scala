@@ -16,6 +16,7 @@ class GeneratorSpec extends SqlSpec {
     packageName = "gospeak.libs.sql.testingutils.database",
     identifierStrategy = Writer.IdentifierStrategy.upperCase,
     config = DatabaseConfig(
+      scaladoc = _ => Some("Hello"),
       imports = List("gospeak.libs.sql.testingutils.Entities._"),
       schemas = Map("PUBLIC" -> SchemaConfig(tables = Map(
         "users" -> TableConfig(alias = Some("u"), fields = Map(

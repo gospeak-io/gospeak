@@ -68,6 +68,8 @@ object Table {
                        getSorts: List[Sort],
                        getJoins: List[Join[_]]) extends Table {
     override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse("")) ++ getJoins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
+
+    def dropFields(fields: Field[_, _]*): JoinTable = copy(getFields = getFields.filterNot(fields.contains))
   }
 
   case class Join[T <: Table](kind: String, table: T, on: Cond) {
