@@ -10,7 +10,7 @@ import gospeak.libs.scala.domain.{Liquid, LiquidMarkdown}
 
 object Values {
   private val dbConf = DbConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
-  private val gsConf = GsConf(
+  val gsConf: GsConf = GsConf(
     event = GsConf.EventConf(
       description = LiquidMarkdown[Message.EventInfo]("Default event description")),
     proposal = GsConf.ProposalConf(

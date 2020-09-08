@@ -5,8 +5,8 @@ import gospeak.libs.scala.domain.Crypted
 
 import scala.util.Try
 
-final case class SlackToken(private val crypted: Crypted) {
-  def decode(key: AesSecretKey): Try[String] = crypted.decode(key)
+final case class SlackToken(value: Crypted) {
+  def decode(key: AesSecretKey): Try[String] = value.decode(key)
 }
 
 object SlackToken {

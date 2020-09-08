@@ -47,7 +47,7 @@ class QueryStringBindablesSpec extends BaseSpec {
         pageParamsQueryStringBindable.unbind("", params) shouldBe s"${Page.No.key}=2&${Page.Size.key}=30&${Page.Search.key}=test&${Page.OrderBy.key}=name"
       }
       it("should bind & unbind filters") {
-        val params = Page.Params.defaults.toggleFilter("f1").withFilter("f2", "v2")
+        val params = Page.Params.defaults.toggleFilter("f1").addFilter("f2", "v2")
         pageParamsQueryStringBindable.bind("", Map(
           "f1" -> Seq("true"),
           "f2" -> Seq("v2"))) shouldBe Some(Right(params))

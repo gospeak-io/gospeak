@@ -11,11 +11,14 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ProposalRepo
 import gospeak.infra.services.storage.sql.ProposalRepoSql._
+import gospeak.infra.services.storage.sql.database.Tables._
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.doobie.{CustomField, DbCtx, Field, Query, Table}
+import gospeak.libs.sql.doobie._
+import gospeak.libs.sql.dsl
+import gospeak.libs.sql.dsl.{AggField, Cond, NullField}
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal] =
@@ -59,14 +62,14 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
   override def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Done] =
     removeSpeaker(find(cfp, id))(speaker, ctx.user.id, ctx.now)
 
-  private def removeSpeaker(proposal: IO[Option[Proposal]])(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
-    proposal.flatMap {
-      case Some(proposalElt) =>
-        if (proposalElt.info.createdBy == speaker) {
+  private def removeSpeaker(proposalIO: IO[Option[Proposal]])(speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+    proposalIO.flatMap {
+      case Some(proposal) =>
+        if (proposal.info.createdBy == speaker) {
           IO.raiseError(new IllegalArgumentException("proposal creator can't be removed"))
-        } else if (proposalElt.speakers.toList.contains(speaker)) {
-          proposalElt.speakers.filter(_ != speaker).toNel.map { speakers =>
-            updateSpeakers(proposalElt.id)(speakers, by, now).run(xa)
+        } else if (proposal.speakers.toList.contains(speaker)) {
+          proposal.speakers.filter(_ != speaker).toNel.map { speakers =>
+            updateSpeakers(proposal.id)(speakers, by, now).run(xa)
           }.getOrElse {
             IO.raiseError(new IllegalArgumentException("last speaker can't be removed"))
           }
@@ -111,17 +114,17 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def findPublicFull(group: Group.Id, proposal: Proposal.Id)(implicit ctx: UserAwareCtx): IO[Option[Proposal.Full]] = selectOnePublicFull(group, proposal).runOption(xa)
 
+  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFullSpeaker(params).run(xa)
+
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(params).run(xa)
+
   override def listFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
 
   override def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(params).run(xa)
-
-  override def listFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
-
   override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFullSpeaker(params).run(xa)
+  override def listFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
 
   override def listAllPublicIds()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Proposal.Id)]] = selectAllPublicIds().runList(xa)
 
@@ -156,8 +159,7 @@ object ProposalRepoSql {
   private val tableWithCfp = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
   private val tableWithEvent = table
-    .joinOpt(Tables.events, _.event_id -> _.id).get
-    .dropFields(_.prefix == Tables.events.prefix)
+    .joinOpt(Tables.events, _.event_id -> _.id).get.dropFields(_.prefix == Tables.events.prefix)
   val tableFullBase: Table = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
@@ -168,33 +170,29 @@ object ProposalRepoSql {
     .joinOpt(Tables.contacts, _.contact_id("v") -> _.id).get
     .joinOpt(Tables.comments.setPrefix("sco"), fr0"sco.kind=${Comment.Kind.Proposal: Comment.Kind}", _.id("p") -> _.proposal_id).get.dropFields(_.prefix == "sco")
     .joinOpt(Tables.comments.setPrefix("oco"), fr0"oco.kind=${Comment.Kind.ProposalOrga: Comment.Kind}", _.id("p") -> _.proposal_id).get.dropFields(_.prefix == "oco")
-    .aggregate(s"COALESCE(COUNT(DISTINCT sco.id), 0)", "speakerCommentCount")
-    .aggregate(s"MAX(sco.created_at)", "speakerLastComment")
-    .aggregate(s"COALESCE(COUNT(DISTINCT oco.id), 0)", "orgaCommentCount")
-    .aggregate(s"MAX(oco.created_at)", "orgaLastComment")
-    .addField(CustomField(fr0"(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", "score"))
-    .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Like: Proposal.Rating.Grade})", "likes"))
-    .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings WHERE proposal_id=p.id AND grade=${Proposal.Rating.Grade.Dislike: Proposal.Rating.Grade})", "dislikes"))
-    .copy(filters = List(
-      Table.Filter.Enum.fromEnum("status", "Status", "p.status", List(
-        "pending" -> Proposal.Status.Pending.value,
-        "accepted" -> Proposal.Status.Accepted.value,
-        "declined" -> Proposal.Status.Declined.value)),
+    .aggregate("COALESCE(COUNT(DISTINCT sco.id), 0)", "speakerCommentCount")
+    .aggregate("MAX(sco.created_at)", "speakerLastComment")
+    .aggregate("COALESCE(COUNT(DISTINCT oco.id), 0)", "orgaCommentCount")
+    .aggregate("MAX(oco.created_at)", "orgaLastComment")
+    .addField(CustomField(fr0"(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings pr WHERE pr.proposal_id=p.id)", "score"))
+    .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings pr WHERE pr.proposal_id=p.id AND pr.grade=${Proposal.Rating.Grade.Like: Proposal.Rating.Grade})", "likes"))
+    .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings pr WHERE pr.proposal_id=p.id AND pr.grade=${Proposal.Rating.Grade.Dislike: Proposal.Rating.Grade})", "dislikes"))
+    .filters(
+      Table.Filter.Enum.fromEnum("status", "Status", "p.status", Proposal.Status.all.map(s => s.value.toLowerCase -> s.value)),
       Table.Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
       Table.Filter.Bool.fromNullable("video", "With video", "p.video"),
       Table.Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)"),
       Table.Filter.Value.fromField("tags", "With tag", "p.tags"),
-      Table.Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags")))
+      Table.Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags"))
     .setSorts(
-      Table.Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings WHERE proposal_id=p.id)", ""), Field("-created_at", "p")),
+      Table.Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings pr WHERE pr.proposal_id=p.id)", ""), Field("-created_at", "p")),
       Table.Sort("title", Field("LOWER(p.title)", "")),
       Table.Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
       Table.Sort("created", Field("-created_at", "p")),
       Table.Sort("updated", Field("-updated_at", "p")))
 
-  private def userGrade(user: User) = fr0"(SELECT grade FROM proposal_ratings WHERE created_by=${user.id} AND proposal_id=p.id)"
-
-  private def tableFull(user: Option[User]): Table = tableFullBase.addField(CustomField(user.map(userGrade).getOrElse(fr0"null"), "user_grade"))
+  private def tableFull(user: Option[User]): Table = tableFullBase.addField(CustomField(
+    user.map(u => fr0"(SELECT pr.grade FROM proposal_ratings pr WHERE pr.created_by=${u.id} AND pr.proposal_id=p.id)").getOrElse(fr0"null"), "user_grade"))
 
   private def tableFull(user: User): Table = tableFull(Some(user))
 
@@ -206,134 +204,334 @@ object ProposalRepoSql {
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .dropFields(_.prefix == table.prefix)
     .dropFields(_.prefix == Tables.cfps.prefix)
+  private val PROPOSALS_WITH_CFPS = PROPOSALS.joinOn(_.CFP_ID)
+  private val PROPOSALS_WITH_EVENTS = PROPOSALS.joinOn(_.EVENT_ID).dropFields(EVENTS.getFields)
+  private val PROPOSALS_FULL_BASE = PROPOSALS
+    .joinOn(_.CFP_ID)
+    .joinOn(CFPS.GROUP_ID).dropFields(_.name.startsWith("location_"))
+    .joinOn(PROPOSALS.TALK_ID)
+    .joinOn(PROPOSALS.EVENT_ID)
+    .joinOn(EVENTS.VENUE).dropFields(_.name.startsWith("address_"))
+    .joinOn(VENUES.PARTNER_ID, _.LeftOuter)
+    .joinOn(VENUES.CONTACT_ID)
+    .join(COMMENTS.alias("sco"), _.LeftOuter).on(c => PROPOSALS.ID.is(c.PROPOSAL_ID) and c.KIND.is(Comment.Kind.Proposal)).dropFields(f => COMMENTS.has(f))
+    .join(COMMENTS.alias("oco"), _.LeftOuter).on(c => PROPOSALS.ID.is(c.PROPOSAL_ID) and c.KIND.is(Comment.Kind.ProposalOrga)).dropFields(f => COMMENTS.has(f))
+    .addFields(
+      AggField("COALESCE(COUNT(DISTINCT sco.id), 0)").as("speakerCommentCount"),
+      AggField("MAX(sco.created_at)").as("speakerLastComment"),
+      AggField("COALESCE(COUNT(DISTINCT oco.id), 0)").as("orgaCommentCount"),
+      AggField("MAX(oco.created_at)").as("orgaLastComment"),
+      AggField(PROPOSAL_RATINGS.select.fields(AggField("COALESCE(SUM(grade), 0)")).where(_.PROPOSAL_ID is PROPOSALS.ID, unsafe = true).orderBy().one[Long], "score"),
+      AggField(PROPOSAL_RATINGS.select.fields(AggField("COUNT(grade)")).where(pr => pr.PROPOSAL_ID.is(PROPOSALS.ID) and pr.GRADE.is(Proposal.Rating.Grade.Like), unsafe = true).orderBy().one[Long], "likes"),
+      AggField(PROPOSAL_RATINGS.select.fields(AggField("COUNT(grade)")).where(pr => pr.PROPOSAL_ID.is(PROPOSALS.ID) and pr.GRADE.is(Proposal.Rating.Grade.Dislike), unsafe = true).orderBy().one[Long], "dislikes"))
+    .filters(
+      dsl.Table.Filter.Enum.fromValues("status", "Status", PROPOSALS.STATUS, Proposal.Status.all.map(s => s.value.toLowerCase -> s)),
+      dsl.Table.Filter.Bool.fromNullable("slides", "With slides", PROPOSALS.SLIDES),
+      dsl.Table.Filter.Bool.fromNullable("video", "With video", PROPOSALS.VIDEO),
+      dsl.Table.Filter.Bool.fromCountExpr("comment", "With comments", AggField("COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")),
+      dsl.Table.Filter.Value.fromField("tags", "With tag", PROPOSALS.TAGS),
+      dsl.Table.Filter.Value.fromField("orga-tags", "With orga tag", PROPOSALS.ORGA_TAGS))
+    .sorts(
+      dsl.Table.Sort("score", dsl.Field(PROPOSAL_RATINGS.select.fields(AggField("COALESCE(SUM(grade), 0)")).where(_.PROPOSAL_ID is PROPOSALS.ID, unsafe = true).orderBy().one[Long], "score").desc, PROPOSALS.CREATED_AT.desc),
+      dsl.Table.Sort("title", dsl.TableField("LOWER(p.title)").asc),
+      dsl.Table.Sort("comment", "last comment", dsl.TableField("MAX(GREATEST(sco.created_at, oco.created_at))").desc),
+      dsl.Table.Sort("created", PROPOSALS.CREATED_AT.desc),
+      dsl.Table.Sort("updated", PROPOSALS.UPDATED_AT.desc))
+
+  private def PROPOSALS_FULL(user: Option[User]): dsl.Table.JoinTable = PROPOSALS_FULL_BASE.addFields(
+    user.map(u => AggField(PROPOSAL_RATINGS.select.withFields(_.GRADE).where(pr => pr.CREATED_BY.is(u.id) and pr.PROPOSAL_ID.is(PROPOSALS.ID), unsafe = true).orderBy().one[Long], "user_grade")).getOrElse(NullField("user_grade")))
+
+  private def PROPOSALS_FULL(user: User): dsl.Table.JoinTable = PROPOSALS_FULL(Some(user))
+
+  private val PROPOSAL_RATINGS_FULL = PROPOSAL_RATINGS.joinOn(_.CREATED_BY).joinOn(PROPOSAL_RATINGS.PROPOSAL_ID)
+  private val PROPOSAL_RATINGS_WITH_PROPOSALS_AND_CFPS = PROPOSAL_RATINGS
+    .joinOn(_.PROPOSAL_ID).dropFields(PROPOSALS.getFields)
+    .joinOn(PROPOSALS.CFP_ID).dropFields(CFPS.getFields)
 
   private[sql] def insert(e: Proposal): Query.Insert[Proposal] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.cfp}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.tags}, ${e.orgaTags}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
-    table.insert[Proposal](e, _ => values)
+    val q1 = table.insert[Proposal](e, _ => values)
+    val q2 = PROPOSALS.insert.values(e.id, e.talk, e.cfp, e.event, e.status, e.title, e.duration, e.description, e.message, e.speakers, e.slides, e.video, e.tags, e.orgaTags, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
   }
-
-  private[sql] def insert(e: Proposal.Rating): Query.Insert[Proposal.Rating] =
-    ratingTable.insert[Proposal.Rating](e, _ => fr0"${e.proposal}, ${e.grade.value}, ${e.createdAt}, ${e.createdBy}")
 
   private[sql] def update(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id)(data: Proposal.DataOrga, now: Instant): Query.Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, orga_tags=${data.orgaTags}, updated_at=$now, updated_by=$orga"
-    table.update(fields).where(where(orga, group, cfp, proposal))
+    val q1 = table.update(fields).where(where(orga, group, cfp, proposal))
+    val q2 = PROPOSALS.update.set(_.TITLE, data.title).set(_.DURATION, data.duration).set(_.DESCRIPTION, data.description).set(_.SLIDES, data.slides).set(_.VIDEO, data.video).set(_.TAGS, data.tags).set(_.ORGA_TAGS, data.orgaTags).set(_.UPDATED_AT, now).set(_.UPDATED_BY, orga).where(where2(orga, group, cfp, proposal))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
   }
 
   private[sql] def update(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(data: Proposal.Data, now: Instant): Query.Update = {
     val fields = fr0"title=${data.title}, duration=${data.duration}, description=${data.description}, message=${data.message}, slides=${data.slides}, video=${data.video}, tags=${data.tags}, updated_at=$now, updated_by=$speaker"
-    table.update(fields).where(where(speaker, talk, cfp))
+    val q1 = table.update(fields).where(where(speaker, talk, cfp))
+    val q2 = PROPOSALS.update.set(_.TITLE, data.title).set(_.DURATION, data.duration).set(_.DESCRIPTION, data.description).set(_.MESSAGE, data.message).set(_.SLIDES, data.slides).set(_.VIDEO, data.video).set(_.TAGS, data.tags).set(_.UPDATED_AT, now).set(_.UPDATED_BY, speaker).where(where2(speaker, talk, cfp))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
   }
 
-  private[sql] def update(e: Proposal.Rating): Query.Update =
-    ratingTable.update(fr"grade=${e.grade.value}, created_at=${e.createdAt}").where(fr0"pr.proposal_id=${e.proposal} AND pr.created_by=${e.createdBy}")
+  private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Query.Update = {
+    val q1 = table.update(fr0"status=$status, event_id=$event").where(where(cfp, id))
+    val q2 = PROPOSALS.update.set(_.STATUS, status).set(_.EVENT_ID, event).where(where2(cfp, id))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateStatus(cfp: Cfp.Slug, id: Proposal.Id)(status: Proposal.Status, event: Option[Event.Id]): Query.Update =
-    table.update(fr0"status=$status, event_id=$event").where(where(cfp, id))
+  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update = {
+    val q1 = table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(cfp, id))
+    val q2 = PROPOSALS.update.setOpt(_.SLIDES, slides).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(cfp, id))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateSlides(cfp: Cfp.Slug, id: Proposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update =
-    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(cfp, id))
+  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update = {
+    val q1 = table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
+    val q2 = PROPOSALS.update.setOpt(_.SLIDES, slides).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(speaker, talk, cfp))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateSlides(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update =
-    table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
+  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Url.Video, by: User.Id, now: Instant): Query.Update = {
+    val q1 = table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(cfp, id))
+    val q2 = PROPOSALS.update.setOpt(_.VIDEO, video).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(cfp, id))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateVideo(cfp: Cfp.Slug, id: Proposal.Id)(video: Url.Video, by: User.Id, now: Instant): Query.Update =
-    table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(cfp, id))
+  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Url.Video, by: User.Id, now: Instant): Query.Update = {
+    val q1 = table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
+    val q2 = PROPOSALS.update.setOpt(_.VIDEO, video).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(speaker, talk, cfp))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateVideo(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug)(video: Url.Video, by: User.Id, now: Instant): Query.Update =
-    table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(speaker, talk, cfp))
+  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: List[Tag], by: User.Id, now: Instant): Query.Update = {
+    val q1 = table.update(fr0"orga_tags=$orgaTags").where(where(cfp, id))
+    val q2 = PROPOSALS.update.set(_.ORGA_TAGS, orgaTags).where(where2(cfp, id))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateOrgaTags(cfp: Cfp.Slug, id: Proposal.Id)(orgaTags: List[Tag], by: User.Id, now: Instant): Query.Update =
-    table.update(fr0"orga_tags=$orgaTags").where(where(cfp, id))
+  private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update = {
+    val q1 = table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by").where(where(id))
+    val q2 = PROPOSALS.update.set(_.SPEAKERS, speakers).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(id))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def updateSpeakers(id: Proposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update =
-    table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by").where(fr0"p.id=$id")
+  private[sql] def selectOne(id: Proposal.Id): Query.Select[Proposal] = {
+    val q1 = table.select[Proposal].where(where(id))
+    val q2 = PROPOSALS.select.where(where2(id)).one[Proposal]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOne(id: Proposal.Id): Query.Select[Proposal] =
-    table.select[Proposal].where(where(id))
+  private[sql] def selectOne(cfp: Cfp.Slug, id: Proposal.Id): Query.Select[Proposal] = {
+    val q1 = table.select[Proposal].where(where(cfp, id))
+    val q2 = PROPOSALS.select.where(where2(cfp, id)).one[Proposal]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOne(cfp: Cfp.Slug, id: Proposal.Id): Query.Select[Proposal] =
-    table.select[Proposal].where(where(cfp, id))
+  private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Query.Select[Proposal] = {
+    val q1 = table.select[Proposal].where(where(speaker, talk, cfp))
+    val q2 = PROPOSALS.select.where(where2(speaker, talk, cfp)).one[Proposal]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOne(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Query.Select[Proposal] =
-    table.select[Proposal].where(where(speaker, talk, cfp))
+  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(where(cfp, id))
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(where2(cfp, id)).option[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOneFull(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(where(cfp, id))
+  private[sql] def selectOneFull(id: Proposal.Id)(implicit ctx: UserCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(where(id))
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(where2(id)).option[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOneFull(id: Proposal.Id)(implicit ctx: UserCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(fr0"p.id=$id")
+  private[sql] def selectOneFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(fr0"t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(TALKS.SLUG.is(talk) and CFPS.SLUG.is(cfp) and PROPOSALS.SPEAKERS.like("%" + ctx.user.id.value + "%")).option[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOneFull(talk: Talk.Slug, cfp: Cfp.Slug)(implicit ctx: UserCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(fr0"t.slug=$talk AND c.slug=$cfp AND p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+  private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id)(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(fr0"c.group_id=$group AND p.id=$id AND e.published IS NOT NULL")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID.is(group) and PROPOSALS.ID.is(id) and EVENTS.PUBLISHED.notNull).option[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOnePublicFull(group: Group.Id, id: Proposal.Id)(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(fr0"c.group_id=$group AND p.id=$id AND e.published IS NOT NULL")
+  private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.SPEAKERS.like("%" + ctx.user.id.value + "%")).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.slug=$cfp")
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.group_id=${ctx.group.id}")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID is ctx.group.id).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.slug=$cfp AND p.status=$status")
+  private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.slug=$cfp")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(CFPS.SLUG is cfp).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.group_id=${ctx.group.id}")
+  private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.slug=$cfp AND p.status=$status")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(CFPS.SLUG.is(cfp) and PROPOSALS.STATUS.is(status)).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.group_id=${ctx.group.id} AND p.speakers LIKE ${"%" + speaker.value + "%"}")
+  private[sql] def selectPageFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"c.group_id=${ctx.group.id} AND p.speakers LIKE ${"%" + speaker.value + "%"}")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID.is(ctx.group.id) and PROPOSALS.SPEAKERS.like("%" + speaker.value + "%")).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"p.talk_id=$talk")
+  private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"p.talk_id=$talk")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.TALK_ID is talk).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
+  private[sql] def selectAllPublicIds()(implicit ctx: UserAwareCtx): Query.Select[(Group.Id, Proposal.Id)] = {
+    val q1 = tableWithEvent.select[(Group.Id, Proposal.Id)].fields(Field("group_id", "e"), Field("id", "p")).where(fr0"e.published IS NOT NULL")
+    val q2 = PROPOSALS_WITH_EVENTS.select.fields(EVENTS.GROUP_ID, PROPOSALS.ID).where(EVENTS.PUBLISHED.notNull).all[(Group.Id, Proposal.Id)]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllPublicIds()(implicit ctx: UserAwareCtx): Query.Select[(Group.Id, Proposal.Id)] =
-    tableWithEvent.select[(Group.Id, Proposal.Id)].fields(Field("group_id", "e"), Field("id", "p")).where(fr0"e.published IS NOT NULL")
+  private[sql] def selectAllFullPublic(speaker: User.Id)(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(fr0"p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL").sort(Table.Sort("created", Field("-created_at", "p")))
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.SPEAKERS.like("%" + speaker.value + "%") and EVENTS.PUBLISHED.notNull).orderBy(PROPOSALS.CREATED_AT.desc).all[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllFullPublic(speaker: User.Id)(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(fr0"p.speakers LIKE ${"%" + speaker.value + "%"} AND e.published IS NOT NULL").sort(Table.Sort("created", Field("-created_at", "p")))
+  private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"e.group_id=$group AND e.published IS NOT NULL")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(EVENTS.GROUP_ID.is(group) and EVENTS.PUBLISHED.notNull).page[Proposal.Full](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Proposal.Full] =
-    tableFull(ctx.user).selectPage[Proposal.Full](params, adapt(ctx)).where(fr0"e.group_id=$group AND e.published IS NOT NULL")
+  private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Query.Select[Proposal] = {
+    val q1 = table.select[Proposal].where(Fragments.in(fr"p.id", ids))
+    val q2 = PROPOSALS.select.where(_.ID in ids).all[Proposal]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Query.Select[Proposal] =
-    table.select[Proposal].where(Fragments.in(fr"id", ids))
+  private[sql] def selectAllFull(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids))
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.ID in ids).all[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllFull(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids))
+  private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Query.Select[Proposal] = {
+    val q1 = tableWithEvent.select[Proposal].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+    val q2 = PROPOSALS_WITH_EVENTS.select.where(PROPOSALS.ID.in(ids) and EVENTS.PUBLISHED.notNull).all[Proposal]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllPublic(ids: NonEmptyList[Proposal.Id]): Query.Select[Proposal] =
-    tableWithEvent.select[Proposal].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+  private[sql] def selectAllFullPublic(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] = {
+    val q1 = tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+    val q2 = PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.ID.in(ids) and EVENTS.PUBLISHED.notNull).all[Proposal.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllFullPublic(ids: NonEmptyList[Proposal.Id])(implicit ctx: UserAwareCtx): Query.Select[Proposal.Full] =
-    tableFull(ctx.user).select[Proposal.Full].where(Fragments.in(fr"p.id", ids) ++ fr0"AND e.published IS NOT NULL")
+  private[sql] def selectTags(): Query.Select[List[Tag]] = {
+    val q1 = table.select[List[Tag]].fields(Field("tags", "p"))
+    val q2 = PROPOSALS.select.withFields(_.TAGS).all[List[Tag]]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectTags(): Query.Select[List[Tag]] =
-    table.select[List[Tag]].fields(Field("tags", "p"))
+  private[sql] def selectOrgaTags(group: Group.Id): Query.Select[List[Tag]] = {
+    val q1 = tableWithCfp.select[List[Tag]].fields(Field("orga_tags", "p")).where(fr0"c.group_id=$group")
+    val q2 = PROPOSALS_WITH_CFPS.select.fields(PROPOSALS.ORGA_TAGS).where(CFPS.GROUP_ID is group).all[List[Tag]]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOrgaTags(group: Group.Id): Query.Select[List[Tag]] =
-    tableWithCfp.select[List[Tag]].fields(Field("orga_tags", "p")).where(fr0"c.group_id=$group")
+  private[sql] def insert(e: Proposal.Rating): Query.Insert[Proposal.Rating] = {
+    val q1 = ratingTable.insert[Proposal.Rating](e, _ => fr0"${e.proposal}, ${e.grade}, ${e.createdAt}, ${e.createdBy}")
+    val q2 = PROPOSAL_RATINGS.insert.values(e.proposal, e.grade, e.createdAt, e.createdBy)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Query.Select[Proposal.Rating] =
-    ratingTable.select[Proposal.Rating].where(fr0"pr.proposal_id=$id AND pr.created_by=$user")
+  private[sql] def update(e: Proposal.Rating): Query.Update = {
+    val q1 = ratingTable.update(fr"grade=${e.grade}, created_at=${e.createdAt}").where(fr0"pr.proposal_id=${e.proposal} AND pr.created_by=${e.createdBy}")
+    val q2 = PROPOSAL_RATINGS.update.set(_.GRADE, e.grade).set(_.CREATED_AT, e.createdAt).where(pr => pr.PROPOSAL_ID.is(e.proposal) and pr.CREATED_BY.is(e.createdBy))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllRatings(id: Proposal.Id): Query.Select[Proposal.Rating.Full] =
-    ratingTableFull.select[Proposal.Rating.Full].where(fr0"pr.proposal_id=$id")
+  private[sql] def selectOneRating(id: Proposal.Id, user: User.Id): Query.Select[Proposal.Rating] = {
+    val q1 = ratingTable.select[Proposal.Rating].where(fr0"pr.proposal_id=$id AND pr.created_by=$user")
+    val q2 = PROPOSAL_RATINGS.select.where(pr => pr.PROPOSAL_ID.is(id) and pr.CREATED_BY.is(user)).option[Proposal.Rating]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllRatings(cfp: Cfp.Slug, user: User.Id): Query.Select[Proposal.Rating] =
-    ratingTableWithProposalCfp.select[Proposal.Rating].where(fr0"c.slug=$cfp AND pr.created_by=$user")
+  private[sql] def selectAllRatings(id: Proposal.Id): Query.Select[Proposal.Rating.Full] = {
+    val q1 = ratingTableFull.select[Proposal.Rating.Full].where(fr0"pr.proposal_id=$id")
+    val q2 = PROPOSAL_RATINGS_FULL.select.where(PROPOSAL_RATINGS.PROPOSAL_ID is id).all[Proposal.Rating.Full]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllRatings(user: User.Id, proposals: NonEmptyList[Proposal.Id]): Query.Select[Proposal.Rating] =
-    ratingTable.select[Proposal.Rating].where(Fragments.in(fr"pr.proposal_id", proposals) ++ fr0"AND pr.created_by=$user")
+  private[sql] def selectAllRatings(cfp: Cfp.Slug, user: User.Id): Query.Select[Proposal.Rating] = {
+    val q1 = ratingTableWithProposalCfp.select[Proposal.Rating].where(fr0"c.slug=$cfp AND pr.created_by=$user")
+    val q2 = PROPOSAL_RATINGS_WITH_PROPOSALS_AND_CFPS.select.where(CFPS.SLUG.is(cfp) and PROPOSAL_RATINGS.CREATED_BY.is(user)).all[Proposal.Rating]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private def where(id: Proposal.Id): Fragment =
-    fr0"p.id=$id"
+  private[sql] def selectAllRatings(user: User.Id, proposals: NonEmptyList[Proposal.Id]): Query.Select[Proposal.Rating] = {
+    val q1 = ratingTable.select[Proposal.Rating].where(Fragments.in(fr"pr.proposal_id", proposals) ++ fr0"AND pr.created_by=$user")
+    val q2 = PROPOSAL_RATINGS.select.where(pr => pr.PROPOSAL_ID.in(proposals) and pr.CREATED_BY.is(user)).all[Proposal.Rating]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
+
+  private def where(id: Proposal.Id): Fragment = fr0"p.id=$id"
+
+  private def where2(id: Proposal.Id): Cond = PROPOSALS.ID is id
 
   private def where(cfp: Cfp.Slug, id: Proposal.Id): Fragment =
     fr0"p.id=(SELECT p.id FROM " ++ table.value ++
       fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" WHERE p.id=$id AND c.slug=$cfp" ++ fr0")"
+
+  private def where2(cfp: Cfp.Slug, id: Proposal.Id): Cond = PROPOSALS.ID.is {
+    PROPOSALS.joinOn(PROPOSALS.CFP_ID)
+      .select.fields(PROPOSALS.ID)
+      .where(PROPOSALS.ID.is(id) and CFPS.SLUG.is(cfp))
+      .orderBy().one[Proposal.Id]
+  }
 
   private def where(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Fragment =
     fr0"p.id=(SELECT p.id FROM " ++ table.value ++
@@ -341,11 +539,25 @@ object ProposalRepoSql {
       fr0" INNER JOIN " ++ Tables.groups.value ++ fr0" ON c.group_id=g.id" ++
       fr0" WHERE p.id=$proposal AND c.slug=$cfp AND g.slug=$group AND g.owners LIKE ${"%" + orga.value + "%"}" ++ fr0")"
 
+  private def where2(orga: User.Id, group: Group.Slug, cfp: Cfp.Slug, proposal: Proposal.Id): Cond = PROPOSALS.ID.is {
+    PROPOSALS.joinOn(_.CFP_ID).joinOn(CFPS.GROUP_ID)
+      .select.fields(PROPOSALS.ID)
+      .where(PROPOSALS.ID.is(proposal) and CFPS.SLUG.is(cfp) and GROUPS.SLUG.is(group) and GROUPS.OWNERS.like("%" + orga.value + "%"))
+      .orderBy().one[Proposal.Id]
+  }
+
   private def where(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Fragment =
     fr0"p.id=(SELECT p.id FROM " ++ table.value ++
       fr0" INNER JOIN " ++ Tables.cfps.value ++ fr0" ON p.cfp_id=c.id" ++
       fr0" INNER JOIN " ++ Tables.talks.value ++ fr0" ON p.talk_id=t.id" ++
       fr0" WHERE c.slug=$cfp AND t.slug=$talk AND p.speakers LIKE ${"%" + speaker.value + "%"}" ++ fr0")"
+
+  private def where2(speaker: User.Id, talk: Talk.Slug, cfp: Cfp.Slug): Cond = PROPOSALS.ID.is {
+    PROPOSALS.joinOn(PROPOSALS.CFP_ID).joinOn(PROPOSALS.TALK_ID)
+      .select.fields(PROPOSALS.ID)
+      .where(CFPS.SLUG.is(cfp) and TALKS.SLUG.is(talk) and PROPOSALS.SPEAKERS.like("%" + speaker.value + "%"))
+      .orderBy().one[Proposal.Id]
+  }
 
   private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

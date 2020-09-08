@@ -131,8 +131,8 @@ object Group {
                          slug: Slug,
                          name: Name,
                          memberCount: Long,
-                         proposalCount: Long,
-                         eventCount: Long)
+                         eventCount: Long,
+                         proposalCount: Long)
 
   final case class Data(slug: Group.Slug,
                         name: Group.Name,

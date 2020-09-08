@@ -5,21 +5,30 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import cats.data.NonEmptyList
 import doobie.util.{Meta, Read}
 import gospeak.core.ApplicationConf
-import gospeak.core.domain.messages.Message
-import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import gospeak.core.domain._
-import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup}
-import gospeak.core.services.slack.domain.SlackAction
+import gospeak.core.domain.messages.Message
+import gospeak.core.domain.utils.BasicCtx
+import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
+import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupUser, MeetupVenue}
+import gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import gospeak.libs.sql.dsl.Query
 import io.circe._
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object DoobieMappings {
 
+  implicit class BasicCtxConverter(val ctx: BasicCtx) extends AnyVal {
+    def toDb: Query.Ctx = Query.Ctx.Basic(ctx.now)
+  }
+
   import scala.reflect.runtime.universe._
+
+  // I don't know why it's needed and Doobie can't build a Put[Option[A]] from a Put[A] :(
+  implicit def optMeta[A: Meta : TypeTag]: Meta[Option[A]] = implicitly[Meta[A]].timap(Option(_))(_.getOrElse(throw new Exception(s"Bad value of type ${implicitly[TypeTag[A]]}")))
 
   implicit val envMeta: Meta[ApplicationConf.Env] = Meta[String].timap(ApplicationConf.Env.from(_).get)(_.value)
   implicit val timePeriodMeta: Meta[TimePeriod] = Meta[String].timap(TimePeriod.from(_).get)(_.value)
@@ -40,6 +49,7 @@ object DoobieMappings {
   implicit val urlGithubMeta: Meta[Url.Github] = Meta[String].timap(Url.Github.from(_).get)(_.value)
   implicit val logoMeta: Meta[Logo] = urlMeta.timap(Logo)(_.url)
   implicit val bannerMeta: Meta[Banner] = urlMeta.timap(Banner)(_.url)
+  implicit val avatarMeta: Meta[Avatar] = urlMeta.timap(Avatar)(_.url)
   implicit val facebookAccountMeta: Meta[FacebookAccount] = urlMeta.timap(FacebookAccount)(_.url)
   implicit val instagramAccountMeta: Meta[InstagramAccount] = urlMeta.timap(InstagramAccount)(_.url)
   implicit val twitterAccountMeta: Meta[TwitterAccount] = urlTwitterMeta.timap(TwitterAccount)(_.url)
@@ -53,6 +63,7 @@ object DoobieMappings {
   implicit val twitterHashtagMeta: Meta[TwitterHashtag] = Meta[String].timap(TwitterHashtag.from(_).get)(_.value)
   implicit val currencyMeta: Meta[Price.Currency] = Meta[String].timap(Price.Currency.from(_).get)(_.value)
   implicit val markdownMeta: Meta[Markdown] = Meta[String].timap(Markdown(_))(_.value)
+  implicit val cryptedMeta: Meta[Crypted] = Meta[String].timap(Crypted(_))(_.value)
 
   implicit def liquidMeta[A: TypeTag]: Meta[Liquid[A]] = Meta[String].timap(Liquid[A])(_.value)
 
@@ -96,6 +107,11 @@ object DoobieMappings {
   // implicit def listMeta[A](implicit m: Meta[A]): Meta[List[A]] = ???
   // implicit def nelMeta[A](implicit m: Meta[A]): Meta[NonEmptyList[A]] = ???
 
+  implicit val userProviderIdMeta: Meta[User.ProviderId] = Meta[String].timap(User.ProviderId)(_.value)
+  implicit val userProviderKeyMeta: Meta[User.ProviderKey] = Meta[String].timap(User.ProviderKey)(_.value)
+  implicit val userHasherMeta: Meta[User.Hasher] = Meta[String].timap(User.Hasher)(_.value)
+  implicit val userPasswordValueMeta: Meta[User.PasswordValue] = Meta[String].timap(User.PasswordValue)(_.value)
+  implicit val userSaltMeta: Meta[User.Salt] = Meta[String].timap(User.Salt)(_.value)
   implicit val userIdMeta: Meta[User.Id] = Meta[String].timap(User.Id.from(_).get)(_.value)
   implicit val userSlugMeta: Meta[User.Slug] = Meta[String].timap(User.Slug.from(_).get)(_.value)
   implicit val userStatusMeta: Meta[User.Status] = Meta[String].timap(User.Status.from(_).get)(_.value)
@@ -130,6 +146,9 @@ object DoobieMappings {
   implicit val commentKindMeta: Meta[Comment.Kind] = Meta[String].timap(Comment.Kind.from(_).get)(_.value)
   implicit val meetupGroupSlugMeta: Meta[MeetupGroup.Slug] = Meta[String].timap(MeetupGroup.Slug.from(_).get)(_.value)
   implicit val meetupEventIdMeta: Meta[MeetupEvent.Id] = Meta[Long].timap(MeetupEvent.Id(_))(_.value)
+  implicit val meetupUserIdMeta: Meta[MeetupUser.Id] = Meta[Long].timap(MeetupUser.Id)(_.value)
+  implicit val meetupVenueIdMeta: Meta[MeetupVenue.Id] = Meta[Long].timap(MeetupVenue.Id(_))(_.value)
+  implicit val slackTokenMeta: Meta[SlackToken] = Meta[Crypted].timap(SlackToken(_))(_.value)
   implicit val memberRoleMeta: Meta[Group.Member.Role] = Meta[String].timap(Group.Member.Role.from(_).get)(_.value)
   implicit val rsvpAnswerMeta: Meta[Event.Rsvp.Answer] = Meta[String].timap(Event.Rsvp.Answer.from(_).get)(_.value)
   implicit val externalEventIdMeta: Meta[ExternalEvent.Id] = Meta[String].timap(ExternalEvent.Id.from(_).get)(_.value)

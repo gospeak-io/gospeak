@@ -1,5 +1,7 @@
 package gospeak.core.services.storage
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import cats.effect.IO
 import gospeak.core.domain._
@@ -38,6 +40,8 @@ trait SpeakerExternalProposalRepo {
 
 trait UserExternalProposalRepo {
   def addSpeaker(id: ExternalProposal.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
+
+  def addSpeaker(id: ExternalProposal.Id, speaker: User.Id, by: User.Id, now: Instant): IO[Done]
 }
 
 trait PublicExternalProposalRepo {

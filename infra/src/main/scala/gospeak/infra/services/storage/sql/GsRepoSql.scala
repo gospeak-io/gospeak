@@ -3,8 +3,7 @@ package gospeak.infra.services.storage.sql
 import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, IO}
-import doobie.Transactor
+import cats.effect.IO
 import gospeak.core.domain.Contact.{FirstName, LastName}
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
@@ -14,14 +13,13 @@ import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage.{DbConf, GsRepo}
 import gospeak.core.{ApplicationConf, GsConf}
 import gospeak.infra.services.AvatarSrv
-import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.DbConnection
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.TimePeriod._
 import gospeak.libs.scala.domain._
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 

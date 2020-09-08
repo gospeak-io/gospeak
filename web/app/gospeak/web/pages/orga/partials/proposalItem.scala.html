@@ -27,8 +27,8 @@
             @commentsIcon(proposal.speakerCommentCount, proposal.speakerLastComment, "speaker")
             @commentsIcon(proposal.orgaCommentCount, proposal.orgaLastComment, "orga")
 
-            @proposal.tags.asBadgeLinks(t => link(params.withFilter("tags", t.value)))
-            @proposal.orgaTags.asBadgeLinks(t => link(params.withFilter("orga-tags", t.value)), color = "info", title = "orga tag")
+            @proposal.tags.asBadgeLinks(t => link(params.addFilter("tags", t.value)))
+            @proposal.orgaTags.asBadgeLinks(t => link(params.addFilter("orga-tags", t.value)), color = "info", title = "orga tag")
             <small>Proposed on @proposal.info.createdAt.asDate</small>
         </div>
     </div>

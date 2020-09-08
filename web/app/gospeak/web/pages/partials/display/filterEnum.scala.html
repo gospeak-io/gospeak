@@ -4,7 +4,7 @@
 @menu() = {
     <div class="dropdown-menu" aria-labelledby="filter-@key">
         @values.map { value =>
-            <a href="@link(page.params.withFilter(key, value))" class="dropdown-item @if(page.params.filters.get(key).contains(value)){active}">@value</a>
+            <a href="@link(page.params.addFilter(key, value))" class="dropdown-item @if(page.params.filters.get(key).contains(value)){active}">@value</a>
         }
     </div>
 }
