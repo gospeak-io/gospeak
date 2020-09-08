@@ -2,7 +2,6 @@ package gospeak.core.domain
 
 import java.time.{Instant, LocalDateTime}
 
-import gospeak.core.domain.Event.Notes
 import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{Constants, Info}
 import gospeak.core.services.meetup.domain.MeetupEvent
@@ -20,7 +19,7 @@ final case class Event(id: Event.Id,
                        allowRsvp: Boolean,
                        // duration: Option[Duration]
                        description: LiquidMarkdown[Message.EventInfo],
-                       orgaNotes: Notes,
+                       orgaNotes: Event.Notes,
                        venue: Option[Venue.Id],
                        talks: List[Proposal.Id],
                        tags: List[Tag],
