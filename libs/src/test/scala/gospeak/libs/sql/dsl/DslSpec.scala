@@ -7,6 +7,13 @@ import gospeak.libs.sql.testingutils.Entities.{Category, Post, User}
 import gospeak.libs.sql.testingutils.SqlSpec
 import gospeak.libs.sql.testingutils.database.Tables._
 
+/**
+ * TODO :
+ *  - check that Cond fields belong to existing tables in `where` and `join`
+ *  - rename `SqlTable.joinOnOpt` to `joinOn` (should find polymorphism trick to avoid double definition)
+ *  - rename `Cond.isOpt` to `is` (should find polymorphism trick to avoid indistinct overloaded methods)
+ *  - keep typed fields after joins (in JoinTable)
+ */
 class DslSpec extends SqlSpec {
   private implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // I don't know why it's needed and Doobie can't build a Put[Option[String]] :(
 
@@ -32,21 +39,6 @@ class DslSpec extends SqlSpec {
       delete.run(xa).unsafeRunSync()
       select.run(xa).unsafeRunSync() shouldBe None
     }
-    it("should build a joined select query") {
-      val joined = POSTS.join(USERS).on(_.AUTHOR is _.ID).joinOpt(CATEGORIES).on(POSTS.CATEGORY isOpt _.ID)
-      val res = joined.select.fields(POSTS.getFields).where(USERS.ID is User.loic.id).all[Post]
-      val exp = fr0"SELECT p.id, p.title, p.text, p.date, p.author, p.category FROM posts p " ++
-        fr0"INNER JOIN users u ON p.author=u.id " ++
-        fr0"LEFT OUTER JOIN categories c ON p.category=c.id " ++
-        fr0"WHERE u.id=${User.loic.id}"
-      res.fr.query.sql shouldBe exp.query.sql
-      res.run(xa).unsafeRunSync() shouldBe List(Post.newYear, Post.first2020)
-    }
-    it("should have auto joins") {
-      val join = POSTS.join(USERS).on(_.AUTHOR is _.ID)
-      val autoJoin = POSTS.AUTHOR.join
-      autoJoin shouldBe join
-    }
     it("should build paginated select") {
       val params = Page.Params.defaults.copy(pageSize = Page.Size(1))
 
@@ -62,6 +54,26 @@ class DslSpec extends SqlSpec {
     it("should add default sort on select") {
       val select = CATEGORIES.select.all[Category]
       select.fr.query.sql shouldBe "SELECT c.id, c.name FROM categories c ORDER BY c.name IS NULL, c.name DESC, c.id IS NULL, c.id"
+    }
+    it("should build a joined select query") {
+      val joined = POSTS.join(USERS).on(_.AUTHOR is _.ID).join(CATEGORIES, _.LeftOuter).on(POSTS.CATEGORY isOpt _.ID)
+      val res = joined.select.fields(POSTS.getFields).where(USERS.ID is User.loic.id).all[Post]
+      val exp = fr0"SELECT p.id, p.title, p.text, p.date, p.author, p.category FROM posts p " ++
+        fr0"INNER JOIN users u ON p.author=u.id " ++
+        fr0"LEFT OUTER JOIN categories c ON p.category=c.id " ++
+        fr0"WHERE u.id=${User.loic.id}"
+      res.fr.query.sql shouldBe exp.query.sql
+      res.run(xa).unsafeRunSync() shouldBe List(Post.newYear, Post.first2020)
+    }
+    it("should have auto joins") {
+      val join = POSTS.join(USERS).on(_.AUTHOR is _.ID)
+      val autoJoin = POSTS.joinOn(_.AUTHOR)
+      autoJoin shouldBe join
+    }
+    it("should join using field refs") {
+      val basicJoin = POSTS.join(USERS).on(_.AUTHOR is _.ID).join(CATEGORIES, _.LeftOuter).on(POSTS.CATEGORY isOpt _.ID)
+      val fieldJoin = POSTS.joinOn(POSTS.AUTHOR).joinOn(POSTS.CATEGORY, _.LeftOuter)
+      fieldJoin shouldBe basicJoin
     }
   }
 }
