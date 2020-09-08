@@ -75,5 +75,9 @@ class DslSpec extends SqlSpec {
       val fieldJoin = POSTS.joinOn(POSTS.AUTHOR).joinOn(POSTS.CATEGORY, _.LeftOuter)
       fieldJoin shouldBe basicJoin
     }
+    it("should check that join and where clause have fields belong to table") {
+      an[Exception] should be thrownBy USERS.joinOn(POSTS.CATEGORY)
+      an[Exception] should be thrownBy USERS.select.where(POSTS.CATEGORY.isNull)
+    }
   }
 }
