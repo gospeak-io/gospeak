@@ -8,6 +8,7 @@ import doobie.util.fragment.Fragment.const0
 import doobie.util.{Put, Read}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
+import gospeak.libs.sql.dsl.Exceptions.{FailedQuery, InvalidNumberOfFields, InvalidNumberOfValues}
 import gospeak.libs.sql.dsl.Extensions._
 import gospeak.libs.sql.dsl.Query.Inner.{OrderByClause, WhereClause}
 
@@ -82,7 +83,7 @@ object Query {
 
       private def build(size: Int, fr: Fragment) =
         if (size == table.getFields.length) Insert(table, fr)
-        else throw new Exception(s"Insert expects ${table.getFields.length} fields but got $size")
+        else throw InvalidNumberOfValues(table, size)
     }
 
   }
@@ -107,7 +108,7 @@ object Query {
 
       def all: Update[T] = Update(table, values, WhereClause(None))
 
-      def where(cond: Cond): Update[T] = Update(table, values, WhereClause(Some(cond)))
+      def where(cond: Cond): Update[T] = Exceptions.check(cond, table, Update(table, values, WhereClause(Some(cond))))
 
       def where(cond: T => Cond): Update[T] = where(cond(table))
     }
@@ -129,24 +130,24 @@ object Query {
     case class Builder[T <: Table.SqlTable](private val table: T) {
       def all: Delete[T] = Delete(table, WhereClause(None))
 
-      def where(cond: Cond): Delete[T] = Delete(table, WhereClause(Some(cond)))
+      def where(cond: Cond): Delete[T] = Exceptions.check(cond, table, Delete(table, WhereClause(Some(cond))))
 
       def where(cond: T => Cond): Delete[T] = where(cond(table))
     }
 
   }
 
-  sealed abstract class Select[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) {
+  sealed abstract class Select[A: Read](table: Table, fields: List[Field[_, Table.SqlTable]], where: WhereClause, orderBy: OrderByClause) {
     def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ where.fr ++ orderBy.fr
   }
 
   object Select {
 
-    case class All[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[List[A]] {
+    case class All[A: Read](table: Table, fields: List[Field[_, Table.SqlTable]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[List[A]] {
       def run(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
     }
 
-    case class Paginated[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause, params: Page.Params) extends Select[A](table, fields, where, orderBy) with Query[Page[A]] {
+    case class Paginated[A: Read](table: Table, fields: List[Field[_, Table.SqlTable]], where: WhereClause, orderBy: OrderByClause, params: Page.Params) extends Select[A](table, fields, where, orderBy) with Query[Page[A]] {
       override def fr: Fragment = super.fr ++ fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
 
       def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
@@ -157,29 +158,29 @@ object Query {
       } yield Page(elts, params, Page.Total(total)), xa)
     }
 
-    case class Optional[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause, limit: Boolean) extends Select[A](table, fields, where, orderBy) with Query[Option[A]] {
+    case class Optional[A: Read](table: Table, fields: List[Field[_, Table.SqlTable]], where: WhereClause, orderBy: OrderByClause, limit: Boolean) extends Select[A](table, fields, where, orderBy) with Query[Option[A]] {
       override def fr: Fragment = super.fr ++ (if (limit) fr0" LIMIT 1" else fr0"")
 
       def run(xa: doobie.Transactor[IO]): IO[Option[A]] = exec(fr, _.query[A].option, xa)
     }
 
-    case class One[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[A] {
+    case class One[A: Read](table: Table, fields: List[Field[_, Table.SqlTable]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[A] {
       def run(xa: doobie.Transactor[IO]): IO[A] = exec(fr, _.query[A].unique, xa)
     }
 
-    case class Exists[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[Boolean] {
+    case class Exists[A: Read](table: Table, fields: List[Field[_, Table.SqlTable]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[Boolean] {
       def run(xa: doobie.Transactor[IO]): IO[Boolean] = exec(fr, _.query[A].option.map(_.isDefined), xa)
     }
 
     case class Builder[T <: Table](private val table: T,
-                                   private val fields: List[Field[_, _]],
+                                   private val fields: List[Field[_, Table.SqlTable]],
                                    private val where: WhereClause,
                                    private val orderBy: OrderByClause) {
-      def fields(fields: Field[_, _]*): Builder[T] = copy(fields = fields.toList)
+      def fields(fields: Field[_, Table.SqlTable]*): Builder[T] = copy(fields = fields.toList)
 
-      def fields(fields: List[Field[_, _]]): Builder[T] = copy(fields = fields)
+      def fields(fields: List[Field[_, Table.SqlTable]]): Builder[T] = copy(fields = fields)
 
-      def where(cond: Cond): Builder[T] = copy(where = WhereClause(Some(cond)))
+      def where(cond: Cond): Builder[T] = Exceptions.check(cond, table, copy(where = WhereClause(Some(cond))))
 
       def where(cond: T => Cond): Builder[T] = where(cond(table))
 
@@ -196,7 +197,7 @@ object Query {
       def exists[A: Read]: Select.Exists[A] = build[A, Select.Exists[A]](new Select.Exists[A](table, fields, where, orderBy))
 
       private def build[A: Read, S <: Select[A]](res: => S): S =
-        if (implicitly[Read[A]].length == fields.length) res else throw new Exception(s"Expects ${implicitly[Read[A]].length} fields but got ${fields.length}")
+        if (implicitly[Read[A]].length == fields.length) res else throw InvalidNumberOfFields(implicitly[Read[A]], fields)
     }
 
   }
@@ -207,12 +208,12 @@ object Query {
       def fr: Fragment = cond.map(fr0" WHERE " ++ _.fr).getOrElse(fr0"")
     }
 
-    case class OrderByClause(fields: List[Field.Order[_, _]]) {
+    case class OrderByClause(fields: List[Field.Order[_, Table.SqlTable]]) {
       def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
     }
 
   }
 
   private def exec[A](fr: Fragment, run: Fragment => doobie.ConnectionIO[A], xa: doobie.Transactor[IO]): IO[A] =
-    run(fr).transact(xa).recoverWith { case NonFatal(e) => IO.raiseError(new Exception(s"Fail on ${fr.query.sql}: ${e.getMessage}", e)) }
+    run(fr).transact(xa).recoverWith { case NonFatal(e) => IO.raiseError(FailedQuery(fr, e)) }
 }

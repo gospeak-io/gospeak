@@ -7,8 +7,8 @@ import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import gospeak.libs.sql.dsl.Field.Order
 
-class Field[A, T <: Table.SqlTable](val table: T,
-                                    val name: String) {
+class Field[A, +T <: Table.SqlTable](val table: T,
+                                     val name: String) {
   def fr: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
   def is(value: A)(implicit p: Put[A]): Cond = Cond.is(this, value)
@@ -33,11 +33,13 @@ class Field[A, T <: Table.SqlTable](val table: T,
 
   def notIn(q: Query.Select[A]): Cond = Cond.notIn(this, q)
 
-  def asc: Order[A, T] = Order(this, asc = true)
+  def asc: Order[A, Table.SqlTable] = Order(this, asc = true)
 
-  def desc: Order[A, T] = Order(this, asc = false)
+  def desc: Order[A, Table.SqlTable] = Order(this, asc = false)
 
-  override def toString: String = s"Field(${table.getName}.$name)"
+  def value: String = s"${table.getName}.$name"
+
+  override def toString: String = s"Field($value)"
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[Field[_, _]]
 

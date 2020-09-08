@@ -16,11 +16,13 @@ sealed trait Table {
 
   def getAlias: Option[String]
 
-  def getFields: List[Field[_, _]]
+  def getFields: List[Field[_, Table.SqlTable]]
 
   def getSorts: List[Sort]
 
-  def getJoins: List[Join[_]]
+  def getJoins: List[Join[Table]]
+
+  def has(f: Field[_, Table.SqlTable]): Boolean
 
   def fr: Fragment
 
@@ -56,7 +58,9 @@ object Table {
 
     override def getAlias: Option[String] = alias
 
-    override def getJoins: List[Join[_]] = List()
+    override def getJoins: List[Join[Table]] = List()
+
+    override def has(f: Field[_, Table.SqlTable]): Boolean = f.table == this
 
     override def fr: Fragment = const0(getName + alias.map(" " + _).getOrElse(""))
 
@@ -80,19 +84,21 @@ object Table {
   case class JoinTable(getSchema: String,
                        getName: String,
                        getAlias: Option[String],
-                       getFields: List[Field[_, _]],
+                       getFields: List[Field[_, Table.SqlTable]],
                        getSorts: List[Sort],
-                       getJoins: List[Join[_]]) extends Table {
+                       getJoins: List[Join[Table]]) extends Table {
+    override def has(f: Field[_, Table.SqlTable]): Boolean = (f.table.getSchema == getSchema && f.table.getName == getName) || getJoins.exists(j => f.table.getSchema == j.table.getSchema && f.table.getName == j.table.getName)
+
     override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse("")) ++ getJoins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
 
-    def dropFields(p: Field[_, _] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
+    def dropFields(p: Field[_, Table.SqlTable] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
 
-    def dropFields(fields: List[Field[_, _]]): JoinTable = dropFields(fields.contains(_))
+    def dropFields(fields: List[Field[_, Table.SqlTable]]): JoinTable = dropFields(fields.contains(_))
 
-    def dropFields(fields: Field[_, _]*): JoinTable = dropFields(fields.contains(_))
+    def dropFields(fields: Field[_, Table.SqlTable]*): JoinTable = dropFields(fields.contains(_))
   }
 
-  case class Join[T <: Table](kind: Join.Kind, table: T, on: Cond) {
+  case class Join[+T <: Table](kind: Join.Kind, table: T, on: Cond) {
     def fr: Fragment = const0(s"${kind.value} ") ++ table.fr ++ const0(" ON ") ++ on.fr
   }
 
@@ -110,19 +116,19 @@ object Table {
 
   }
 
-  case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_, _]])
+  case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_, Table.SqlTable]])
 
   object Inner {
 
     case class JoinClause[T <: Table, U <: Table](left: T, kind: Join.Kind, right: U) {
       def on(cond: Cond): JoinTable =
-        JoinTable(
+        Exceptions.check(cond, JoinTable(
           getSchema = left.getSchema,
           getName = left.getName,
           getAlias = left.getAlias,
           getFields = left.getFields ++ right.getFields,
           getSorts = left.getSorts,
-          getJoins = left.getJoins ++ List(Join(kind, right, cond)) ++ right.getJoins)
+          getJoins = left.getJoins ++ List(Join(kind, right, cond)) ++ right.getJoins))
 
       def on(cond: U => Cond): JoinTable = on(cond(right))
 
