@@ -1,13 +1,12 @@
 package gospeak.core.domain
 
-import gospeak.core.domain.Contact.{FirstName, LastName}
 import gospeak.core.domain.utils.Info
 import gospeak.libs.scala.domain._
 
 final case class Contact(id: Contact.Id,
                          partner: Partner.Id,
-                         firstName: FirstName,
-                         lastName: LastName,
+                         firstName: Contact.FirstName,
+                         lastName: Contact.LastName,
                          email: EmailAddress,
                          notes: Markdown, // private infos for the group
                          info: Info) {
@@ -15,7 +14,7 @@ final case class Contact(id: Contact.Id,
 
   def users: List[User.Id] = info.users
 
-  def name = Contact.Name(s"${firstName.value} ${lastName.value}")
+  def name: Contact.Name = Contact.Name(s"${firstName.value} ${lastName.value}")
 }
 
 object Contact {

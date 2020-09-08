@@ -118,29 +118,30 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
 
   protected def mapFields(fields: String, f: String => String): String = RepoSpec.mapFields(fields, f)
 
-  protected def check[A](q: Query.Insert[A], req: String): Unit = {
-    q.fr.update.sql shouldBe req
-    check(q.fr.update)
+  protected def check[A](query: Query.Insert[A], sql: String): Unit = {
+    query.fr.update.sql shouldBe sql
+    check(query.fr.update)
   }
 
-  protected def check(q: Query.Update, req: String): Unit = {
-    q.fr.update.sql shouldBe req
-    check(q.fr.update)
+  protected def check(query: Query.Update, sql: String): Unit = {
+    query.fr.update.sql shouldBe sql
+    check(query.fr.update)
   }
 
-  protected def check(q: Query.Delete, req: String): Unit = {
-    q.fr.update.sql shouldBe req
-    check(q.fr.update)
+  protected def check(query: Query.Delete, sql: String): Unit = {
+    query.fr.update.sql shouldBe sql
+    check(query.fr.update)
   }
 
-  protected def check[A](q: Query.Select[A], req: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
-    q.fr.query.sql shouldBe req
-    check(q.query)
+  protected def check[A](query: Query.Select[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
+    query.runList(db.xa).unsafeRunSync()
   }
 
-  protected def check[A](q: Query.SelectPage[A], req: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
-    q.fr.query.sql shouldBe req
-    check(q.query)
+  protected def check[A](query: Query.SelectPage[A], sql: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
     if (checkCount) {
       // checkCount is here to avoid test errors with Timestamp type when in sub-query
       // ex: SELECT COUNT(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
@@ -148,7 +149,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
       //    Timestamp is not coercible to VARCHAR (VARCHAR) according to the
       //    JDBC specification. Expected schema type was TIMESTAMP.
       // => but e.start IS a TIMESTAMP type, it's just not recognized by doobie type-checker :(
-      check(q.countQuery)
+      check(query.countQuery)
     }
   }
 }
