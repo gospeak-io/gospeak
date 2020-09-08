@@ -33,7 +33,7 @@ object Query {
 
   object Insert {
 
-    case class Builder[T <: Table.SqlTable](table: T) {
+    case class Builder[T <: Table.SqlTable](private val table: T) {
       def values[A: Put](a: A): Insert[T] = build(1, fr0"$a")
 
       def values[A: Put, B: Put](a: A, b: B): Insert[T] = build(2, fr0"$a, $b")
@@ -99,8 +99,11 @@ object Query {
 
   object Update {
 
-    case class Builder[T <: Table.SqlTable](table: T, values: List[Fragment]) {
+    case class Builder[T <: Table.SqlTable](private val table: T,
+                                            private val values: List[Fragment]) {
       def set[A: Put](field: T => Field[A, _], value: A): Builder[T] = copy(values = values :+ (const0(field(table).name) ++ fr0"=$value"))
+
+      def setOpt[A: Put](field: T => Field[Option[A], _], value: A): Builder[T] = copy(values = values :+ (const0(field(table).name) ++ fr0"=$value"))
 
       def all: Update[T] = Update(table, values, WhereClause(None))
 
@@ -123,7 +126,7 @@ object Query {
 
   object Delete {
 
-    case class Builder[T <: Table.SqlTable](table: T) {
+    case class Builder[T <: Table.SqlTable](private val table: T) {
       def all: Delete[T] = Delete(table, WhereClause(None))
 
       def where(cond: Cond): Delete[T] = Delete(table, WhereClause(Some(cond)))
@@ -139,11 +142,11 @@ object Query {
 
   object Select {
 
-    class All[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[List[A]] {
+    case class All[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[List[A]] {
       def run(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
     }
 
-    class Paginated[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause, params: Page.Params) extends Select[A](table, fields, where, orderBy) with Query[Page[A]] {
+    case class Paginated[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause, params: Page.Params) extends Select[A](table, fields, where, orderBy) with Query[Page[A]] {
       override def fr: Fragment = super.fr ++ fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
 
       def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
@@ -154,22 +157,24 @@ object Query {
       } yield Page(elts, params, Page.Total(total)), xa)
     }
 
-    class Optional[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[Option[A]] {
+    case class Optional[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause, limit: Boolean) extends Select[A](table, fields, where, orderBy) with Query[Option[A]] {
+      override def fr: Fragment = super.fr ++ (if (limit) fr0" LIMIT 1" else fr0"")
+
       def run(xa: doobie.Transactor[IO]): IO[Option[A]] = exec(fr, _.query[A].option, xa)
     }
 
-    class One[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[A] {
+    case class One[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[A] {
       def run(xa: doobie.Transactor[IO]): IO[A] = exec(fr, _.query[A].unique, xa)
     }
 
-    class Exists[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[Boolean] {
+    case class Exists[A: Read](table: Table, fields: List[Field[_, _]], where: WhereClause, orderBy: OrderByClause) extends Select[A](table, fields, where, orderBy) with Query[Boolean] {
       def run(xa: doobie.Transactor[IO]): IO[Boolean] = exec(fr, _.query[A].option.map(_.isDefined), xa)
     }
 
-    case class Builder[T <: Table](table: T,
-                                   fields: List[Field[_, _]],
-                                   where: WhereClause,
-                                   orderBy: OrderByClause) {
+    case class Builder[T <: Table](private val table: T,
+                                   private val fields: List[Field[_, _]],
+                                   private val where: WhereClause,
+                                   private val orderBy: OrderByClause) {
       def fields(fields: Field[_, _]*): Builder[T] = copy(fields = fields.toList)
 
       def fields(fields: List[Field[_, _]]): Builder[T] = copy(fields = fields)
@@ -182,7 +187,9 @@ object Query {
 
       def page[A: Read](params: Page.Params): Select.Paginated[A] = build[A, Select.Paginated[A]](new Select.Paginated[A](table, fields, where, orderBy, params))
 
-      def option[A: Read]: Select.Optional[A] = build[A, Select.Optional[A]](new Select.Optional[A](table, fields, where, orderBy))
+      def option[A: Read](limit: Boolean = false): Select.Optional[A] = build[A, Select.Optional[A]](new Select.Optional[A](table, fields, where, orderBy, limit))
+
+      def option[A: Read]: Select.Optional[A] = option[A]()
 
       def one[A: Read]: Select.One[A] = build[A, Select.One[A]](new Select.One[A](table, fields, where, orderBy))
 

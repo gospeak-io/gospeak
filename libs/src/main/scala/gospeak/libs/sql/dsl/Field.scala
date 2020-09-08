@@ -72,13 +72,9 @@ class FieldOpt[A, T <: Table.SqlTable](override val table: T,
   override def toString: String = s"FieldOpt(${table.getName}.$name)"
 }
 
-class FieldRef[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: T,
-                                                            override val name: String,
-                                                            val references: Field[A, R]) extends Field[A, T](table, name) {
-  def join: Table.JoinTable = table.join(references.table).on(this.is(references))
-
-  def joinOpt: Table.JoinTable = table.joinOpt(references.table).on(this.is(references))
-
+class FieldRef[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
+                                                             override val name: String,
+                                                             val references: Field[A, T2]) extends Field[A, T](table, name) {
   override def toString: String = s"FieldRef(${table.getName}.$name, ${references.table.getName}.${references.name})"
 
   override def canEqual(other: Any): Boolean = other.isInstanceOf[FieldRef[_, _, _]]
@@ -99,13 +95,9 @@ class FieldRef[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: 
   }
 }
 
-class FieldRefOpt[A, T <: Table.SqlTable, R <: Table.SqlTable](override val table: T,
-                                                               override val name: String,
-                                                               val references: Field[A, R]) extends FieldOpt[A, T](table, name) {
-  def join: Table.JoinTable = table.join(references.table).on(this.isOpt(references))
-
-  def joinOpt: Table.JoinTable = table.joinOpt(references.table).on(this.isOpt(references))
-
+class FieldRefOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
+                                                                override val name: String,
+                                                                val references: Field[A, T2]) extends FieldOpt[A, T](table, name) {
   override def toString: String = s"FieldRefOpt(${table.getName}.$name, ${references.table.getName}.${references.name})"
 
   override def canEqual(other: Any): Boolean = other.isInstanceOf[FieldRefOpt[_, _, _]]
