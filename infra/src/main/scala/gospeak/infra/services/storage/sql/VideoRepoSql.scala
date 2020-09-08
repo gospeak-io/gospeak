@@ -8,20 +8,24 @@ import gospeak.core.domain._
 import gospeak.core.domain.utils.{AdminCtx, BasicCtx, UserAwareCtx}
 import gospeak.core.services.storage.VideoRepo
 import gospeak.infra.services.storage.sql.VideoRepoSql._
+import gospeak.infra.services.storage.sql.database.Tables.{VIDEOS, VIDEO_SOURCES}
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Done, Page, Url}
 import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
+import gospeak.libs.sql.dsl.AggField
+import gospeak.libs.sql.dsl.Expr.{Floor, Random, SubQuery}
 
 import scala.util.control.NonFatal
 
 class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with VideoRepo {
-  override def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done] = for {
+  override def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Video] = for {
     exists <- selectOne(video.id).runOption(xa)
-    _ <- exists.map(v => update(video, ctx.now).run(xa)).getOrElse(insert(Video(video, ctx.now)).run(xa))
+    v = Video(video, ctx.now)
+    _ <- exists.map(_ => update(video, ctx.now).run(xa).map(_ => v)).getOrElse(insert(v).run(xa))
     _ <- insert(video.id, event).run(xa)
-  } yield Done
+  } yield v
 
   override def edit(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done] =
     for {
@@ -66,58 +70,122 @@ object VideoRepoSql {
     .dropFields(_.prefix != table.prefix)
     .dropField(_.platform).get
     .dropField(_.id).get
+  private val VIDEOS_SELECT = VIDEOS.dropFields(VIDEOS.PLATFORM, VIDEOS.ID)
+  private val VIDEOS_WITH_SOURCES = VIDEOS.join(VIDEO_SOURCES).on(_.ID is _.VIDEO_ID).fields(VIDEOS_SELECT.getFields)
 
-  private[sql] def insert(v: Url.Video.Id, e: ExternalEvent.Id): Query.Insert[(Url.Video.Id, ExternalEvent.Id)] =
-    tableSources.insert[(Url.Video.Id, ExternalEvent.Id)](v -> e, _ => fr0"$v, NULL, NULL, NULL, $e")
+  private[sql] def insert(v: Url.Video.Id, e: ExternalEvent.Id): Query.Insert[(Url.Video.Id, ExternalEvent.Id)] = {
+    val q1 = tableSources.insert[(Url.Video.Id, ExternalEvent.Id)](v -> e, _ => fr0"$v, ${Option.empty[Talk.Id]}, ${Option.empty[Proposal.Id]}, ${Option.empty[ExternalProposal.Id]}, $e")
+    val q2 = VIDEO_SOURCES.insert.values(v, Option.empty[Talk.Id], Option.empty[Proposal.Id], Option.empty[ExternalProposal.Id], e)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def delete(v: Url.Video.Id, e: ExternalEvent.Id): Query.Delete =
-    tableSources.delete.where(fr0"video_id=$v AND external_event_id=$e")
+  private[sql] def delete(v: Url.Video.Id, e: ExternalEvent.Id): Query.Delete = {
+    val q1 = tableSources.delete.where(fr0"vis.video_id=$v AND vis.external_event_id=$e")
+    val q2 = VIDEO_SOURCES.delete.where(vis => vis.VIDEO_ID.is(v) and vis.EXTERNAL_EVENT_ID.is(e))
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOne(v: Url.Video.Id, e: ExternalEvent.Id): Query.Select[Video.Sources] =
-    tableSources.select[Video.Sources].where(fr0"video_id=$v AND external_event_id=$e")
+  private[sql] def selectOne(v: Url.Video.Id, e: ExternalEvent.Id): Query.Select[Video.Sources] = {
+    val q1 = tableSources.select[Video.Sources].where(fr0"vis.video_id=$v AND vis.external_event_id=$e")
+    val q2 = VIDEO_SOURCES.select.where(vis => vis.VIDEO_ID.is(v) and vis.EXTERNAL_EVENT_ID.is(e)).exists[Video.Sources]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def sum(v: Url.Video.Id): Query.Select[Long] =
-    tableSources.select[Long].fields(Field("COUNT(*)", "")).where(fr0"video_id=$v GROUP BY vis.video_id").one
+  private[sql] def sum(v: Url.Video.Id): Query.Select[Long] = {
+    val q1 = tableSources.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vis.video_id=$v GROUP BY vis.video_id").one
+    val q2 = VIDEO_SOURCES.select.fields(AggField("COUNT(*)")).where(_.VIDEO_ID is v).groupBy(VIDEO_SOURCES.VIDEO_ID).option[Long](limit = true)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def sum(event: ExternalEvent.Id): Query.Select[Long] =
-    tableSources.select[Long].fields(Field("COUNT(*)", "")).where(fr0"external_event_id=$event GROUP BY vis.external_event_id").sort(Table.Sort("external_event_id", "vis")).one
+  private[sql] def sum(event: ExternalEvent.Id): Query.Select[Long] = {
+    val q1 = tableSources.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vis.external_event_id=$event GROUP BY vis.external_event_id").sort(Table.Sort("external_event_id", "vis")).one
+    val q2 = VIDEO_SOURCES.select.fields(AggField("COUNT(*)")).where(_.EXTERNAL_EVENT_ID is event).groupBy(VIDEO_SOURCES.EXTERNAL_EVENT_ID).orderBy(VIDEO_SOURCES.EXTERNAL_EVENT_ID.asc).option[Long](limit = true)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
   private[sql] def insert(e: Video): Query.Insert[Video] = {
     val values = fr0"${e.url.platform}, ${e.url}, ${e.id}, ${e.channel.id}, ${e.channel.name}, ${e.playlist.map(_.id)}, ${e.playlist.map(_.name)}, ${e.title}, ${e.description}, ${e.tags}, ${e.publishedAt}, ${e.duration}, ${e.lang}, ${e.views}, ${e.likes}, ${e.dislikes}, ${e.comments}, ${e.updatedAt}"
-    table.insert[Video](e, _ => values)
+    val q1 = table.insert[Video](e, _ => values)
+    val q2 = VIDEOS.insert.values(e.url.platform, e.url, e.id, e.channel.id, e.channel.name, e.playlist.map(_.id), e.playlist.map(_.name), e.title, e.description, e.tags, e.publishedAt, e.duration, e.lang, e.views, e.likes, e.dislikes, e.comments, e.updatedAt)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
   }
 
   private[sql] def update(data: Video.Data, now: Instant): Query.Update = {
     val fields = fr0"title=${data.title}, description=${data.description}, tags=${data.tags}, duration=${data.duration}, lang=${data.lang}, views=${data.views}, likes=${data.likes}, dislikes=${data.dislikes}, comments=${data.comments}, updated_at=$now"
-    table.update(fields).where(fr0"id=${data.id}")
+    val q1 = table.update(fields).where(fr0"vi.id=${data.id}")
+    val q2 = VIDEOS.update.set(_.TITLE, data.title).set(_.DESCRIPTION, data.description).set(_.TAGS, data.tags).set(_.DURATION, data.duration).set(_.LANG, data.lang).set(_.VIEWS, data.views).set(_.LIKES, data.likes).set(_.DISLIKES, data.dislikes).set(_.COMMENTS, data.comments).set(_.UPDATED_AT, now).where(_.ID is data.id)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
   }
 
-  private[sql] def delete(url: Url.Video): Query.Delete =
-    table.delete.where(fr0"id=${url.videoId}")
+  private[sql] def delete(url: Url.Video): Query.Delete = {
+    val q1 = table.delete.where(fr0"vi.id=${url.videoId}")
+    val q2 = VIDEOS.delete.where(_.ID is url.videoId)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOne(video: Url.Video.Id): Query.Select[Video] =
-    tableSelect.select[Video].where(fr0"vi.id=$video").one
+  private[sql] def selectOne(video: Url.Video.Id): Query.Select[Video] = {
+    val q1 = tableSelect.select[Video].where(fr0"vi.id=$video").one
+    val q2 = VIDEOS_SELECT.select.where(VIDEOS.ID is video).option[Video](limit = true)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectOneRandom(): Query.Select[Video] =
-    tableSelect.select[Video].offset(fr0"FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))").one
+  private[sql] def selectOneRandom(): Query.Select[Video] = {
+    val q1 = tableSelect.select[Video].offset(fr0"FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos vi))").one
+    val q2 = VIDEOS_SELECT.select.offset(Floor(Random() * SubQuery(VIDEOS.select.fields(AggField("COUNT(*)")).orderBy().one[Long]))).option[Video](limit = true)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Video] =
-    tableSelect.selectPage[Video](params, adapt(ctx))
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[Video] = {
+    val q1 = tableSelect.selectPage[Video](params, adapt(ctx))
+    val q2 = VIDEOS_SELECT.select.page[Video](params, ctx.toDb)
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAll(event: ExternalEvent.Id): Query.Select[Video] =
-    tableWithSources.select[Video].where(fr0"vis.external_event_id=$event")
+  private[sql] def selectAll(event: ExternalEvent.Id): Query.Select[Video] = {
+    val q1 = tableWithSources.select[Video].where(fr0"vis.external_event_id=$event")
+    val q2 = VIDEOS_WITH_SOURCES.select.where(VIDEO_SOURCES.EXTERNAL_EVENT_ID is event).all[Video]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllForChannel(channelId: Url.Videos.Channel.Id): Query.Select[Video] =
-    tableSelect.select[Video].where(fr0"vi.channel_id=$channelId")
+  private[sql] def selectAllForChannel(channelId: Url.Videos.Channel.Id): Query.Select[Video] = {
+    val q1 = tableSelect.select[Video].where(fr0"vi.channel_id=$channelId")
+    val q2 = VIDEOS_SELECT.select.where(VIDEOS.CHANNEL_ID is channelId).all[Video]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def selectAllForPlaylist(playlistId: Url.Videos.Playlist.Id): Query.Select[Video] =
-    tableSelect.select[Video].where(fr0"vi.playlist_id=$playlistId")
+  private[sql] def selectAllForPlaylist(playlistId: Url.Videos.Playlist.Id): Query.Select[Video] = {
+    val q1 = tableSelect.select[Video].where(fr0"vi.playlist_id=$playlistId")
+    val q2 = VIDEOS_SELECT.select.where(VIDEOS.PLAYLIST_ID is playlistId).all[Video]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def countChannelId(channelId: Url.Videos.Channel.Id): Query.Select[Long] =
-    tableSelect.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vi.channel_id=$channelId GROUP BY vi.channel_id").sort(Table.Sort("channel_id", "vi"))
+  private[sql] def countChannelId(channelId: Url.Videos.Channel.Id): Query.Select[Long] = {
+    val q1 = tableSelect.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vi.channel_id=$channelId GROUP BY vi.channel_id").sort(Table.Sort("channel_id", "vi"))
+    val q2 = VIDEOS.select.fields(AggField("COUNT(*)")).where(_.CHANNEL_ID is channelId).groupBy(VIDEOS.CHANNEL_ID).orderBy(VIDEOS.CHANNEL_ID.asc).option[Long]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
-  private[sql] def countPlaylistId(playlistId: Url.Videos.Playlist.Id): Query.Select[Long] =
-    tableSelect.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vi.playlist_id=$playlistId GROUP BY vi.playlist_id").sort(Table.Sort("playlist_id", "vi"))
+  private[sql] def countPlaylistId(playlistId: Url.Videos.Playlist.Id): Query.Select[Long] = {
+    val q1 = tableSelect.select[Long].fields(Field("COUNT(*)", "")).where(fr0"vi.playlist_id=$playlistId GROUP BY vi.playlist_id").sort(Table.Sort("playlist_id", "vi"))
+    val q2 = VIDEOS.select.fields(AggField("COUNT(*)")).where(_.PLAYLIST_ID is playlistId).groupBy(VIDEOS.PLAYLIST_ID).orderBy(VIDEOS.PLAYLIST_ID.asc).option[Long]
+    GenericRepo.assertEqual(q1.fr, q2.fr)
+    q1
+  }
 
   private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)
 }

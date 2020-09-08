@@ -146,8 +146,8 @@
                 @example("") { _ =>
                     <div>
                         Try to change page size:
-                        <a href="@StyleguideCtrl.index(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
-                        <a href="@StyleguideCtrl.index(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
+                        <a href="@StyleguideCtrl.index(params.pageSize(10))">set page-size to 10</a>,
+                        <a href="@StyleguideCtrl.index(params.pageSize(100))">set page-size to 100</a>
                     </div>
                 }
             }

@@ -66,7 +66,7 @@ trait PublicGroupRepo {
 
   def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]]
 
-  def join(group: Group.Id)(user: User, now: Instant): IO[Done]
+  def join(group: Group.Id)(user: User, now: Instant): IO[Group.Member]
 
   def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done]
 }

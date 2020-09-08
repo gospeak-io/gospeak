@@ -68,7 +68,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def suggestVenues(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    makeSuggest[Venue.Full](venueRepo.listFull, v => SuggestedItem(v.id.value, s"${v.partner.name.value} - ${v.address.value}"))(group)
+    makeSuggest[Venue.Full](venueRepo.listAllFull, v => SuggestedItem(v.id.value, s"${v.partner.name.value} - ${v.address.value}"))(group)
   }
 
   def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>

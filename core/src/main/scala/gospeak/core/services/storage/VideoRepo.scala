@@ -14,7 +14,7 @@ trait PublicVideoRepo {
 }
 
 trait AdminVideoRepo {
-  def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done]
+  def create(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Video]
 
   def edit(video: Video.Data, event: ExternalEvent.Id)(implicit ctx: AdminCtx): IO[Done]
 

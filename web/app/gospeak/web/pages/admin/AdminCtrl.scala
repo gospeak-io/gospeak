@@ -152,7 +152,7 @@ class AdminCtrl(cc: ControllerComponents,
       // TODO talks with video
       // TODO proposals with video
       // TODO external proposals with video
-      extEvents <- extEventRepo.list(params.withFilter("video", "true"))
+      extEvents <- extEventRepo.list(params.addFilter("video", "true"))
       extEventsWithVideoCount <- extEvents.map(e => videoRepo.count(e.id).map(c => e -> c)).sequence
       jobs = updateExtEventVideosJobs.values.toList
       _ = updateExtEventVideosJobs.filter(_._2.finished.isDefined).foreach { case (id, _) => updateExtEventVideosJobs.remove(id) }

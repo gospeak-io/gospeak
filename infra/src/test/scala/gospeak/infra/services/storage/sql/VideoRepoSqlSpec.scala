@@ -1,82 +1,85 @@
 package gospeak.infra.services.storage.sql
 
+import gospeak.infra.services.storage.sql.VideoRepoSql._
 import gospeak.infra.services.storage.sql.VideoRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.libs.scala.domain.Url
 
 class VideoRepoSqlSpec extends RepoSpec {
   describe("VideoRepoSql") {
-    describe("Queries") {
-      describe("video_sources") {
-        it("should build insert") {
-          val q = VideoRepoSql.insert(video.id, externalEvent.id)
-          check(q, s"INSERT INTO ${tableSources.stripSuffix(" vis")} (${mapFields(fieldsSources, _.stripPrefix("vis."))}) VALUES (?, NULL, NULL, NULL, ?)")
-        }
-        it("should build delete") {
-          val q = VideoRepoSql.delete(video.id, externalEvent.id)
-          check(q, s"DELETE FROM $tableSources WHERE video_id=? AND external_event_id=?")
-        }
-        it("should build selectOne by id") {
-          val q = VideoRepoSql.selectOne(video.id, externalEvent.id)
-          check(q, s"SELECT $fieldsSources FROM $tableSources WHERE video_id=? AND external_event_id=? ORDER BY vis.video_id IS NULL, vis.video_id")
-        }
-        it("should build sum for video_id") {
-          val q = VideoRepoSql.sum(video.id)
-          check(q, s"SELECT COUNT(*) FROM $tableSources WHERE video_id=? GROUP BY vis.video_id ORDER BY vis.video_id IS NULL, vis.video_id LIMIT 1")
-        }
-        it("should build sum for external event") {
-          val q = VideoRepoSql.sum(externalEvent.id)
-          check(q, s"SELECT COUNT(*) FROM $tableSources WHERE external_event_id=? GROUP BY vis.external_event_id ORDER BY vis.external_event_id IS NULL, vis.external_event_id LIMIT 1")
-        }
-      }
-      describe("videos") {
-        it("should build insert") {
-          val q = VideoRepoSql.insert(video)
-          check(q, s"INSERT INTO ${table.stripSuffix(" vi")} (${mapFields(fieldsInsert, _.stripPrefix("vi."))}) VALUES (${mapFields(fieldsInsert, _ => "?")})")
-        }
-        it("should build update") {
-          val q = VideoRepoSql.update(video.data, now)
-          check(q, s"UPDATE $table SET title=?, description=?, tags=?, duration=?, lang=?, views=?, likes=?, dislikes=?, comments=?, updated_at=? WHERE id=?")
-        }
-        it("should build delete") {
-          val q = VideoRepoSql.delete(video.data.url)
-          check(q, s"DELETE FROM $table WHERE id=?")
-        }
-        it("should build selectOne by id") {
-          val q = VideoRepoSql.selectOne(video.id)
-          check(q, s"SELECT $fields FROM $table WHERE vi.id=? $orderBy LIMIT 1")
-        }
-        it("should build selectRandom") {
-          val q = VideoRepoSql.selectOneRandom()
-          val sql = s"SELECT $fields FROM $table $orderBy LIMIT 1 OFFSET FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos))"
-          q.fr.query.sql shouldBe sql
-          // check(q, sql)
-        }
-        it("should build selectPage") {
-          val q = VideoRepoSql.selectPage(params)
-          check(q, s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
-        }
-        it("should build selectAll") {
-          val q = VideoRepoSql.selectAll(externalEvent.id)
-          check(q, s"SELECT $fields FROM $tableWithSources WHERE vis.external_event_id=? $orderBy")
-        }
-        it("should build selectAllForChannel") {
-          val q = VideoRepoSql.selectAllForChannel(Url.Videos.Channel.Id("id"))
-          check(q, s"SELECT $fields FROM $table WHERE vi.channel_id=? $orderBy")
-        }
-        it("should build selectAllForPlaylist") {
-          val q = VideoRepoSql.selectAllForPlaylist(Url.Videos.Playlist.Id("id"))
-          check(q, s"SELECT $fields FROM $table WHERE vi.playlist_id=? $orderBy")
-        }
-        it("should build countChannelId") {
-          val q = VideoRepoSql.countChannelId(Url.Videos.Channel.Id("id"))
-          check(q, s"SELECT COUNT(*) FROM $table WHERE vi.channel_id=? GROUP BY vi.channel_id ORDER BY vi.channel_id IS NULL, vi.channel_id")
-        }
-        it("should build countPlaylistId") {
-          val q = VideoRepoSql.countPlaylistId(Url.Videos.Playlist.Id("id"))
-          check(q, s"SELECT COUNT(*) FROM $table WHERE vi.playlist_id=? GROUP BY vi.playlist_id ORDER BY vi.playlist_id IS NULL, vi.playlist_id")
-        }
-      }
+    it("should handle crud operations") {
+      val (user, ctx) = createAdmin().unsafeRunSync()
+      val externalEvent = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()
+      val video = videoRepo.create(videoData1, externalEvent.id)(ctx).unsafeRunSync()
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video)
+
+      val data = videoData2.copy(url = videoData1.url, channel = videoData1.channel, playlist = videoData1.playlist, publishedAt = videoData1.publishedAt)
+      videoRepo.edit(data, externalEvent.id)(ctx).unsafeRunSync()
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items.map(_.data) shouldBe List(data)
+
+      videoRepo.remove(videoData1, externalEvent.id)(ctx).unsafeRunSync() shouldBe true
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()
+    }
+    it("should merge identical video for different events") {
+      val (user, ctx) = createAdmin().unsafeRunSync()
+      val externalEvent1 = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
+      val externalEvent2 = externalEventRepo.create(externalEventData2)(ctx).unsafeRunSync()
+      val video1 = videoRepo.create(videoData1.copy(title = "aaa"), externalEvent1.id)(ctx).unsafeRunSync()
+      val video2 = videoRepo.create(videoData2.copy(title = "bbb"), externalEvent1.id)(ctx).unsafeRunSync()
+      videoRepo.create(videoData1.copy(title = "aaa"), externalEvent2.id)(ctx).unsafeRunSync()
+
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1, video2)
+      videoRepo.remove(videoData1, externalEvent2.id)(ctx).unsafeRunSync() shouldBe false
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1, video2)
+      videoRepo.remove(videoData1, externalEvent1.id)(ctx).unsafeRunSync() shouldBe true
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video2)
+    }
+    it("should select a page") {
+      val (user, ctx) = createAdmin().unsafeRunSync()
+      val externalEvent = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
+      val video1 = videoRepo.create(videoData1.copy(title = "aaa", lang = "fr"), externalEvent.id)(ctx).unsafeRunSync()
+      val video2 = videoRepo.create(videoData2.copy(title = "bbb", lang = "en"), externalEvent.id)(ctx).unsafeRunSync()
+
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1, video2)
+      videoRepo.list(params.page(2))(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()
+      videoRepo.list(params.pageSize(5))(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1, video2)
+      videoRepo.list(params.search(video1.title))(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1)
+      videoRepo.list(params.orderBy("lang"))(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video2, video1)
+    }
+    it("should be able to read correctly") {
+      val (user, ctx) = createAdmin().unsafeRunSync()
+      val externalEvent = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
+      val video = videoRepo.create(videoData1, externalEvent.id)(ctx).unsafeRunSync()
+
+      videoRepo.find(video.id).unsafeRunSync() shouldBe Some(video)
+      videoRepo.findRandom().unsafeRunSync() shouldBe Some(video)
+      videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video)
+      videoRepo.listAll(externalEvent.id).unsafeRunSync() shouldBe List(video)
+      videoRepo.listAllForChannel(video.channel.id).unsafeRunSync() shouldBe List(video)
+      video.playlist.foreach(p => videoRepo.listAllForPlaylist(p.id).unsafeRunSync() shouldBe List(video))
+      videoRepo.count(externalEvent.id).unsafeRunSync() shouldBe 1
+      videoRepo.countForChannel(video.channel.id).unsafeRunSync() shouldBe 1
+      video.playlist.foreach(p => videoRepo.countForPlaylist(p.id).unsafeRunSync() shouldBe 1)
+    }
+    it("should check queries") {
+      check(insert(video.id, externalEvent.id), s"INSERT INTO ${tableSources.stripSuffix(" vis")} (${mapFields(fieldsSources, _.stripPrefix("vis."))}) VALUES (?, ?, ?, ?, ?)")
+      check(delete(video.id, externalEvent.id), s"DELETE FROM $tableSources WHERE vis.video_id=? AND vis.external_event_id=?")
+      check(selectOne(video.id, externalEvent.id), s"SELECT $fieldsSources FROM $tableSources WHERE vis.video_id=? AND vis.external_event_id=? ORDER BY vis.video_id IS NULL, vis.video_id")
+      check(sum(video.id), s"SELECT COUNT(*) FROM $tableSources WHERE vis.video_id=? GROUP BY vis.video_id ORDER BY vis.video_id IS NULL, vis.video_id LIMIT 1")
+      check(sum(externalEvent.id), s"SELECT COUNT(*) FROM $tableSources WHERE vis.external_event_id=? GROUP BY vis.external_event_id ORDER BY vis.external_event_id IS NULL, vis.external_event_id LIMIT 1")
+
+      check(insert(video), s"INSERT INTO ${table.stripSuffix(" vi")} (${mapFields(fieldsInsert, _.stripPrefix("vi."))}) VALUES (${mapFields(fieldsInsert, _ => "?")})")
+      check(update(video.data, now), s"UPDATE $table SET title=?, description=?, tags=?, duration=?, lang=?, views=?, likes=?, dislikes=?, comments=?, updated_at=? WHERE vi.id=?")
+      check(delete(video.data.url), s"DELETE FROM $table WHERE vi.id=?")
+      check(selectOne(video.id), s"SELECT $fields FROM $table WHERE vi.id=? $orderBy LIMIT 1")
+      unsafeCheck(selectOneRandom(), s"SELECT $fields FROM $table $orderBy LIMIT 1 OFFSET FLOOR(RANDOM() * (SELECT COUNT(*) FROM videos vi))")
+      check(selectPage(params), s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
+      check(selectAll(externalEvent.id), s"SELECT $fields FROM $tableWithSources WHERE vis.external_event_id=? $orderBy")
+      check(selectAllForChannel(Url.Videos.Channel.Id("id")), s"SELECT $fields FROM $table WHERE vi.channel_id=? $orderBy")
+      check(selectAllForPlaylist(Url.Videos.Playlist.Id("id")), s"SELECT $fields FROM $table WHERE vi.playlist_id=? $orderBy")
+      check(countChannelId(Url.Videos.Channel.Id("id")), s"SELECT COUNT(*) FROM $table WHERE vi.channel_id=? GROUP BY vi.channel_id ORDER BY vi.channel_id IS NULL, vi.channel_id")
+      check(countPlaylistId(Url.Videos.Playlist.Id("id")), s"SELECT COUNT(*) FROM $table WHERE vi.playlist_id=? GROUP BY vi.playlist_id ORDER BY vi.playlist_id IS NULL, vi.playlist_id")
     }
   }
 }

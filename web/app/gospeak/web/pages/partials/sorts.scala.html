@@ -5,10 +5,10 @@
 @if(sorts.nonEmpty) {
     Sort by: @sorts.map { sort =>
         @page.params.sorts.headOption match {
-            case Some(s) if s == sort.key => {<a class="badge badge-success" href="@link(page.params.withOrderBy(sort.keyDesc))"><i class="fas fa-arrow-down"></i> @sort.label</a>}
-            case Some(s) if s == sort.keyDesc => {<a class="badge badge-danger" href="@link(page.params.withOrderBy(sort.key))"><i class="fas fa-arrow-up"></i> @sort.label</a>}
-            case Some(_) => {<a class="badge badge-secondary" href="@link(page.params.withOrderBy(sort.key))">@sort.label</a>}
-            case None => {<a class="badge badge-secondary" href="@link(page.params.withOrderBy(sort.key))">@sort.label</a>}
+            case Some(s) if s == sort.key => {<a class="badge badge-success" href="@link(page.params.orderBy(sort.keyDesc))"><i class="fas fa-arrow-down"></i> @sort.label</a>}
+            case Some(s) if s == sort.keyDesc => {<a class="badge badge-danger" href="@link(page.params.orderBy(sort.key))"><i class="fas fa-arrow-up"></i> @sort.label</a>}
+            case Some(_) => {<a class="badge badge-secondary" href="@link(page.params.orderBy(sort.key))">@sort.label</a>}
+            case None => {<a class="badge badge-secondary" href="@link(page.params.orderBy(sort.key))">@sort.label</a>}
         }
     }
 }

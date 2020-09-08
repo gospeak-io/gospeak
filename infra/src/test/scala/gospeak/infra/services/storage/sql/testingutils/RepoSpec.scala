@@ -14,40 +14,50 @@ import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.{Page, Tag, Url}
 import gospeak.libs.sql.doobie.Query
+import gospeak.libs.sql.dsl
 import org.scalatest.BeforeAndAfterEach
 
 class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
   protected val db: GsRepoSql = Values.db
   val transactor: doobie.Transactor[IO] = db.xa
   protected val userRepo: UserRepoSql = db.user
-  protected val userRequestRepo: UserRequestRepoSql = db.userRequest
   protected val talkRepo: TalkRepoSql = db.talk
   protected val groupRepo: GroupRepoSql = db.group
+  protected val groupSettingsRepo: GroupSettingsRepoSql = db.groupSettings
   protected val cfpRepo: CfpRepoSql = db.cfp
   protected val partnerRepo: PartnerRepoSql = db.partner
+  protected val contactRepo: ContactRepoSql = db.contact
   protected val venueRepo: VenueRepoSql = db.venue
+  protected val sponsorPackRepo: SponsorPackRepoSql = db.sponsorPack
+  protected val sponsorRepo: SponsorRepoSql = db.sponsor
   protected val eventRepo: EventRepoSql = db.event
   protected val proposalRepo: ProposalRepoSql = db.proposal
-  protected val contactRepo: ContactRepoSql = db.contact
   protected val commentRepo: CommentRepoSql = db.comment
-  protected val now: Instant = random[Instant]
-  protected val ldt: LocalDateTime = random[LocalDateTime]
+  protected val externalEventRepo: ExternalEventRepoSql = db.externalEvent
+  protected val externalCfpRepo: ExternalCfpRepoSql = db.externalCfp
+  protected val externalProposalRepo: ExternalProposalRepoSql = db.externalProposal
+  protected val userRequestRepo: UserRequestRepoSql = db.userRequest
+  protected val videoRepo: VideoRepoSql = db.video
+
+  protected val Seq(credentials, credentials2) = random[User.Credentials](2)
   protected val user: User = random[User]
-  protected val group: Group = random[Group]
-  protected val groupSettings: Group.Settings = random[Group.Settings]
-  protected val cfp: Cfp = random[Cfp]
-  protected val event: Event = random[Event].copy(cfp = None)
   protected val talk: Talk = random[Talk]
-  protected val proposal: Proposal = random[Proposal]
-  protected val rating: Proposal.Rating = random[Proposal.Rating]
+  protected val group: Group = random[Group]
+  protected val member: Group.Member = random[Group.Member]
+  protected val Seq(groupSettings, groupSettings2) = random[Group.Settings](2)
+  protected val cfp: Cfp = random[Cfp]
   protected val partner: Partner = random[Partner]
+  protected val contact: Contact = random[Contact]
   protected val venue: Venue = random[Venue]
-  protected val video: Video = random[Video]
   protected val sponsorPack: SponsorPack = random[SponsorPack]
   protected val sponsor: Sponsor = random[Sponsor]
-  protected val contact: Contact = random[Contact]
+  protected val event: Event = random[Event].copy(cfp = None)
+  protected val rsvp: Event.Rsvp = random[Event.Rsvp]
+  protected val proposal: Proposal = random[Proposal]
+  protected val rating: Proposal.Rating = random[Proposal.Rating]
   protected val comment: Comment = random[Comment]
   protected val externalEvent: ExternalEvent = random[ExternalEvent]
   protected val externalCfp: ExternalCfp = random[ExternalCfp]
@@ -56,26 +66,34 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val passwordResetRequest: PasswordResetRequest = random[PasswordResetRequest]
   protected val userAskToJoinAGroupRequest: UserAskToJoinAGroupRequest = random[UserAskToJoinAGroupRequest]
   protected val userRequest: UserRequest = accountValidationRequest
-  protected val member: Group.Member = random[Group.Member]
-  protected val rsvp: Event.Rsvp = random[Event.Rsvp]
-  protected val tag: Tag = random[Tag]
-
-  protected val urlSlides: Url.Slides = random[Url.Slides]
-  protected val urlVideo: Url.Video = random[Url.Video]
-  protected val urlVideos: Url.Videos = random[Url.Videos]
+  protected val video: Video = random[Video]
 
   protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
+  protected val Seq(talkData1, talkData2, talkData3) = random[Talk.Data](3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
-  protected val Seq(contactData1, contactData2) = random[Contact.Data](2)
+  protected val Seq(cfpData1, cfpData2) = random[Cfp.Data](2)
   protected val Seq(partnerData1, partnerData2) = random[Partner.Data](2)
+  protected val Seq(contactData1, contactData2) = random[Contact.Data](2)
   protected val Seq(venueData1, venueData2) = random[Venue.Data](2)
-  protected val cfpData1: Cfp.Data = random[Cfp.Data]
-  protected val eventData1: Event.Data = random[Event.Data].copy(cfp = None)
-  protected val Seq(talkData1, talkData2) = random[Talk.Data](2)
-  protected val proposalData1: Proposal.Data = random[Proposal.Data]
-  protected val speakers: NonEmptyList[User.Id] = random[User.Id](3).toNelUnsafe
+  protected val Seq(sponsorPackData1, sponsorPackData2) = random[SponsorPack.Data](2)
+  protected val Seq(sponsorData1, sponsorData2) = random[Sponsor.Data](2)
+  protected val Seq(eventData1, eventData2) = random[Event.Data](2).map(_.copy(cfp = None))
+  protected val Seq(proposalData1, proposalData2) = random[Proposal.Data](2)
   protected val Seq(commentData1, commentData2, commentData3) = random[Comment.Data](3)
-  protected val params: Page.Params = Page.Params()
+  protected val Seq(externalEventData1, externalEventData2) = random[ExternalEvent.Data](2)
+  protected val Seq(externalCfpData1, externalCfpData2) = random[ExternalCfp.Data](2)
+  protected val Seq(externalProposalData1, externalProposalData2) = random[ExternalProposal.Data](2)
+  protected val Seq(videoData1, videoData2) = random[Video.Data](2).map(v => v.copy(lang = v.lang.take(2)))
+
+  private val n: Instant = Instant.now()
+  protected val now: Instant = n.minusNanos(n.getNano)
+  protected val nowLDT: LocalDateTime = TimeUtils.toLocalDateTime(now)
+  protected val Seq(urlSlides, urlSlides2) = random[Url.Slides](2)
+  protected val Seq(urlVideo, urlVideo2) = random[Url.Video](2)
+  protected val urlVideos: Url.Videos = random[Url.Videos]
+  protected val speakers: NonEmptyList[User.Id] = random[User.Id](3).toNelUnsafe
+  protected val tag: Tag = random[Tag]
+  protected val params: Page.Params = Page.Params.defaults
 
   protected val adminCtx: FakeAdminCtx = FakeAdminCtx(now, user)
   protected implicit val orgaCtx: FakeOrgaCtx = FakeOrgaCtx(now, user, group)
@@ -86,30 +104,58 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
 
   override def afterEach(): Unit = db.dropTables().unsafeRunSync()
 
-  protected def createUserAndGroup(): IO[(User, Group, FakeOrgaCtx)] = for {
-    user <- userRepo.create(userData1, now, None)
-    group <- groupRepo.create(groupData1)(FakeCtx(now, user))
+  protected def createUser(credentials: User.Credentials = credentials,
+                           userData: User.Data = userData1): IO[(User, FakeUserCtx)] = for {
+    user <- userRepo.create(userData, now, None)
+    _ <- userRepo.createCredentials(credentials)
+    _ <- userRepo.createLoginRef(credentials.login, user.id)
+    ctx = FakeCtx(now, user)
+  } yield (user, ctx)
+
+  protected def createAdmin(credentials: User.Credentials = credentials,
+                            userData: User.Data = userData1): IO[(User, FakeAdminCtx)] =
+    createUser(credentials, userData).map { case (user, _) => (user, FakeAdminCtx(now, user)) }
+
+  protected def createOrga(credentials: User.Credentials = credentials,
+                           userData: User.Data = userData1,
+                           groupData: Group.Data = groupData1): IO[(User, Group, FakeOrgaCtx)] = for {
+    (user, _) <- createUser(credentials, userData)
+    group <- groupRepo.create(groupData)(FakeCtx(now, user))
     ctx = FakeCtx(now, user, group)
   } yield (user, group, ctx)
 
-  protected def createUserGroupCfpAndTalk(): IO[(User, Group, Cfp, Talk, FakeOrgaCtx)] = for {
-    (user, group, ctx) <- createUserAndGroup()
-    cfp <- cfpRepo.create(cfpData1)(ctx)
-    talk <- talkRepo.create(talkData1)(ctx)
+  protected def createCfpAndTalk(credentials: User.Credentials = credentials,
+                                 userData: User.Data = userData1,
+                                 groupData: Group.Data = groupData1,
+                                 cfpData: Cfp.Data = cfpData1,
+                                 talkData: Talk.Data = talkData1): IO[(User, Group, Cfp, Talk, FakeOrgaCtx)] = for {
+    (user, group, ctx) <- createOrga(credentials, userData, groupData)
+    cfp <- cfpRepo.create(cfpData)(ctx)
+    talk <- talkRepo.create(talkData)(ctx)
   } yield (user, group, cfp, talk, ctx)
 
-  protected def createPartnerAndVenue(user: User, group: Group)(implicit ctx: OrgaCtx): IO[(Partner, Venue, Option[Contact])] = for {
-    partner <- partnerRepo.create(partnerData1)(ctx)
-    contact <- venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))(ctx)).sequence
-    venue <- venueRepo.create(partner.id, venueData1.copy(contact = contact.map(_.id)))(ctx)
+  protected def createPartnerAndVenue(partnerData: Partner.Data = partnerData1,
+                                      contactData: Contact.Data = contactData1,
+                                      venueData: Venue.Data = venueData1)(implicit ctx: OrgaCtx): IO[(Partner, Venue, Option[Contact])] = for {
+    partner <- partnerRepo.create(partnerData)(ctx)
+    contact <- venueData.contact.map(_ => contactRepo.create(contactData.copy(partner = partner.id))(ctx)).sequence
+    venue <- venueRepo.create(partner.id, venueData.copy(contact = contact.map(_.id)))(ctx)
   } yield (partner, venue, contact)
 
-  protected def createProposal(): IO[(User, Group, Cfp, Partner, Venue, Option[Contact], Event, Talk, Proposal, FakeOrgaCtx)] = for {
-    (user, group, cfp, talk, ctx) <- createUserGroupCfpAndTalk()
-    (partner, venue, contact) <- createPartnerAndVenue(user, group)(ctx)
-    event <- eventRepo.create(eventData1.copy(cfp = Some(cfp.id), venue = Some(venue.id)))(ctx)
-    proposal <- proposalRepo.create(talk.id, cfp.id, proposalData1, talk.speakers)(ctx)
-
+  protected def createProposal(credentials: User.Credentials = credentials,
+                               userData: User.Data = userData1,
+                               groupData: Group.Data = groupData1,
+                               cfpData: Cfp.Data = cfpData1,
+                               talkData: Talk.Data = talkData1,
+                               partnerData: Partner.Data = partnerData1,
+                               contactData: Contact.Data = contactData1,
+                               venueData: Venue.Data = venueData1,
+                               eventData: Event.Data = eventData1,
+                               proposalData: Proposal.Data = proposalData1): IO[(User, Group, Cfp, Partner, Venue, Option[Contact], Event, Talk, Proposal, FakeOrgaCtx)] = for {
+    (user, group, cfp, talk, ctx) <- createCfpAndTalk(credentials, userData, groupData, cfpData, talkData)
+    (partner, venue, contact) <- createPartnerAndVenue(partnerData, contactData, venueData)(ctx)
+    event <- eventRepo.create(eventData.copy(cfp = Some(cfp.id), venue = Some(venue.id)))(ctx)
+    proposal <- proposalRepo.create(talk.id, cfp.id, proposalData, talk.speakers)(ctx)
     _ <- eventRepo.editTalks(event.slug, event.add(proposal.id).talks)(ctx)
     _ <- proposalRepo.accept(cfp.slug, proposal.id, event.id)
     eventWithProposal = event.copy(talks = List(proposal.id))
@@ -139,6 +185,12 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
     query.runList(db.xa).unsafeRunSync()
   }
 
+  // same as `check[A](query: Query.Select[A], sql: String)` but avoid type check (not null types become nullable on unions...)
+  protected def unsafeCheck[A](query: Query.Select[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
+    query.fr.query.sql shouldBe sql
+    query.runList(db.xa).unsafeRunSync()
+  }
+
   protected def check[A](query: Query.SelectPage[A], sql: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     query.fr.query.sql shouldBe sql
     check(query.query)
@@ -151,6 +203,16 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
       // => but e.start IS a TIMESTAMP type, it's just not recognized by doobie type-checker :(
       check(query.countQuery)
     }
+  }
+
+  // same as `check[A](query: Query.SelectPage[A], sql: String, checkCount: Boolean = true)` but avoid type check (not null types become nullable on unions...)
+  protected def unsafeCheck[A](query: Query.SelectPage[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+    query.fr.query.sql shouldBe sql
+  }
+
+  protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Insert[T], sql: String): Unit = {
+    query.fr.update.sql shouldBe sql
+    check(query.fr.update)
   }
 }
 

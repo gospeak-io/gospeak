@@ -159,8 +159,8 @@
                             @commentsIcon(proposal.orgaCommentCount, proposal.orgaLastComment, "orga")
                             @proposalRating(proposal, userRatings.find(_.proposal == proposal.id).map(_.grade), "badge")
                             <a href="@ProposalCtrl.detail(req.group.slug, cfp.slug, proposal.id)">@proposal.title.value</a>
-                            @proposal.tags.asBadgeLinks(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("tags", t.value)))
-                            @proposal.orgaTags.asBadgeLinks(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.withFilter("orga-tags", t.value)), color = "info", title = "orga tag")
+                            @proposal.tags.asBadgeLinks(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.addFilter("tags", t.value)))
+                            @proposal.orgaTags.asBadgeLinks(t => EventCtrl.detail(req.group.slug, event.slug, proposals.params.addFilter("orga-tags", t.value)), color = "info", title = "orga tag")
                             <small title="Proposal date">(since @proposal.info.createdAt.asDate)</small>
                         </div>
                         @avatars(proposal.speakers, speakers, Some(u => SpeakerCtrl.detail(req.group.slug, u.slug)))

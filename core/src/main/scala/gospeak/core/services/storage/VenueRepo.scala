@@ -36,9 +36,9 @@ trait OrgaVenueRepo {
 }
 
 trait PublicVenueRepo {
-  def listFull(group: Group.Id, venues: List[Venue.Id]): IO[List[Venue.Full]]
+  def listAllFull(group: Group.Id, venues: List[Venue.Id]): IO[List[Venue.Full]]
 }
 
 trait SuggestVenueRepo {
-  def listFull(group: Group.Id): IO[List[Venue.Full]]
+  def listAllFull(group: Group.Id): IO[List[Venue.Full]]
 }

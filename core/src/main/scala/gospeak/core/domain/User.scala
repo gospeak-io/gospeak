@@ -93,7 +93,9 @@ object User {
       new LoginRef(Login(ProviderId(providerId), ProviderKey(providerKey)), user)
   }
 
-  final case class Credentials(login: Login, pass: Password)
+  final case class Credentials(login: Login, pass: Password) {
+    def ref(user: User.Id): LoginRef = LoginRef(login, user)
+  }
 
   object Credentials {
     def apply(providerId: String, providerKey: String, hasher: String, password: String, salt: Option[String]): Credentials =

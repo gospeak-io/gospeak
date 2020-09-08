@@ -84,7 +84,7 @@
                 <p class="card-text">
                     Now find some groups to speak or make it public to receive some speaking requests
                 </p>
-                <a class="btn btn-success" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.withFilters("type" -> "conference"))">Show where you gave this talk</a>
+                <a class="btn btn-success" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.filters("type" -> "conference"))">Show where you gave this talk</a>
                 <a class="btn btn-success" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>
             </div>
         </div>
@@ -93,7 +93,7 @@
             <h5 class="card-header d-flex justify-content-between align-items-center">
                 <span>Talk proposed to @proposals.plural("CFP")</span>
                 <span>
-                    <a class="btn btn-primary btn-sm" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.withFilters("type" -> "conference"))">Show where you gave this talk</a>
+                    <a class="btn btn-primary btn-sm" href="@TalkCtrl.findExternalEvent(talk.slug, Page.Params.defaults.filters("type" -> "conference"))">Show where you gave this talk</a>
                     <a class="btn btn-primary btn-sm" href="@CfpCtrl.list(talk.slug)">Propose your talk to a CFP</a>
                 </span>
             </h5>
