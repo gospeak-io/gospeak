@@ -180,6 +180,8 @@ object Query {
 
       def fields(fields: List[Field[_, Table.SqlTable]]): Builder[T] = copy(fields = fields)
 
+      def withFields(fns: (T => Field[_, Table.SqlTable])*): Builder[T] = copy(fields = fns.map(f => f(table)).toList)
+
       def where(cond: Cond): Builder[T] = Exceptions.check(cond, table, copy(where = WhereClause(Some(cond))))
 
       def where(cond: T => Cond): Builder[T] = where(cond(table))

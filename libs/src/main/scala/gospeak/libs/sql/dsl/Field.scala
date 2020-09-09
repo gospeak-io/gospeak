@@ -17,6 +17,9 @@ class Field[A, +T <: Table.SqlTable](val table: T,
 
   def isOpt[T2 <: Table.SqlTable](field: Field[Option[A], T2]): Cond = Cond.isOpt(this, field)
 
+  // TODO restrict to string fields ?
+  def like(value: String): Cond = Cond.like(this, value)
+
   def gt(value: A)(implicit p: Put[A]): Cond = Cond.gt(this, value)
 
   def lt(value: A)(implicit p: Put[A]): Cond = Cond.lt(this, value)
