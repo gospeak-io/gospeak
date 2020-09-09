@@ -56,7 +56,7 @@ class ScalaWriter(directory: String,
        |class $tableName private() extends Table.SqlTable("${table.schema}", "${table.name}", $alias) {
        |${sortedFields.map(tableFieldAttr(table, _)).map("  " + _).mkString("\n")}
        |
-       |  override def getFields: List[Field[_, $tableName]] = List(${sortedFields.map(f => idf(f.name)).mkString(", ")})
+       |  override def getFields: List[SqlField[_, $tableName]] = List(${sortedFields.map(f => idf(f.name)).mkString(", ")})
        |
        |  override def getSorts: List[Sort] = List($sorts)${tableAutoJoins(table)}
        |}
@@ -102,11 +102,11 @@ class ScalaWriter(directory: String,
       .orElse(config.field(f).customType)
       .getOrElse(scalaType(f))
     f.ref.map { r =>
-      val fieldType = (if (f.nullable) "FieldRefOpt" else "FieldRef") + s"[$valueType, $tableName, ${idf(r.table)}]"
+      val fieldType = (if (f.nullable) "SqlFieldRefOpt" else "SqlFieldRef") + s"[$valueType, $tableName, ${idf(r.table)}]"
       val fieldRef = (if (r.schema == f.schema && r.table == f.table) "" else s"${idf(r.table)}.table.") + idf(r.field)
       s"""val $fieldName: $fieldType = new $fieldType(this, "${f.name}", $fieldRef) // ${f.`type`}"""
     }.getOrElse {
-      val fieldType = (if (f.nullable) "FieldOpt" else "Field") + s"[$valueType, $tableName]"
+      val fieldType = (if (f.nullable) "SqlFieldOpt" else "SqlField") + s"[$valueType, $tableName]"
       s"""val $fieldName: $fieldType = new $fieldType(this, "${f.name}") // ${f.`type`}"""
     }
   }
