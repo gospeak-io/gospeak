@@ -10,17 +10,9 @@ import gospeak.libs.sql.dsl.Table.Inner._
 import gospeak.libs.sql.dsl.Table.{Join, JoinTable, Sort}
 
 sealed trait Table {
-  def getSchema: String
-
-  def getName: String
-
-  def getAlias: Option[String]
-
   def getFields: List[Field[_, Table.SqlTable]]
 
   def getSorts: List[Sort]
-
-  def getJoins: List[Join[Table]]
 
   def has(f: Field[_, Table.SqlTable]): Boolean
 
@@ -49,20 +41,12 @@ sealed trait Table {
 
 object Table {
 
-  abstract class SqlTable(schema: String,
-                          name: String,
-                          alias: Option[String]) extends Table {
-    override def getSchema: String = schema
-
-    override def getName: String = name
-
-    override def getAlias: Option[String] = alias
-
-    override def getJoins: List[Join[Table]] = List()
-
+  abstract class SqlTable(val getSchema: String,
+                          val getName: String,
+                          val getAlias: Option[String]) extends Table {
     override def has(f: Field[_, Table.SqlTable]): Boolean = f.table == this
 
-    override def fr: Fragment = const0(getName + alias.map(" " + _).getOrElse(""))
+    override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse(""))
 
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => FieldRef[A, T, T2]): JoinTable = joinOn(f(this))
 
@@ -78,18 +62,16 @@ object Table {
 
     def delete: Delete.Builder[this.type] = Delete.Builder(this)
 
-    override def toString: String = s"SqlTable($schema, $name, $alias, $getFields)"
+    override def toString: String = s"SqlTable($getSchema, $getName, $getAlias, $getFields)"
   }
 
-  case class JoinTable(getSchema: String,
-                       getName: String,
-                       getAlias: Option[String],
+  case class JoinTable(table: Table.SqlTable,
+                       joins: List[Join[Table.SqlTable]],
                        getFields: List[Field[_, Table.SqlTable]],
-                       getSorts: List[Sort],
-                       getJoins: List[Join[Table]]) extends Table {
-    override def has(f: Field[_, Table.SqlTable]): Boolean = (f.table.getSchema == getSchema && f.table.getName == getName) || getJoins.exists(j => f.table.getSchema == j.table.getSchema && f.table.getName == j.table.getName)
+                       getSorts: List[Sort]) extends Table {
+    override def has(f: Field[_, Table.SqlTable]): Boolean = table.has(f) || joins.exists(_.table.has(f))
 
-    override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse("")) ++ getJoins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
+    override def fr: Fragment = const0(table.getName + table.getAlias.map(" " + _).getOrElse("")) ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
 
     def dropFields(p: Field[_, Table.SqlTable] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
 
@@ -98,7 +80,7 @@ object Table {
     def dropFields(fields: Field[_, Table.SqlTable]*): JoinTable = dropFields(fields.contains(_))
   }
 
-  case class Join[+T <: Table](kind: Join.Kind, table: T, on: Cond) {
+  case class Join[+T <: Table.SqlTable](kind: Join.Kind, table: T, on: Cond) {
     def fr: Fragment = const0(s"${kind.value} ") ++ table.fr ++ const0(" ON ") ++ on.fr
   }
 
@@ -122,13 +104,28 @@ object Table {
 
     case class JoinClause[T <: Table, U <: Table](left: T, kind: Join.Kind, right: U) {
       def on(cond: Cond): JoinTable =
-        Exceptions.check(cond, JoinTable(
-          getSchema = left.getSchema,
-          getName = left.getName,
-          getAlias = left.getAlias,
-          getFields = left.getFields ++ right.getFields,
-          getSorts = left.getSorts,
-          getJoins = left.getJoins ++ List(Join(kind, right, cond)) ++ right.getJoins))
+        Exceptions.check(cond, (left, right) match {
+          case (l: SqlTable, r: SqlTable) => JoinTable(
+            table = l,
+            joins = List(Join(kind, r, cond)),
+            getFields = l.getFields ++ r.getFields,
+            getSorts = l.getSorts)
+          case (l: JoinTable, r: SqlTable) => JoinTable(
+            table = l.table,
+            joins = l.joins :+ Join(kind, r, cond),
+            getFields = l.getFields ++ r.getFields,
+            getSorts = l.getSorts)
+          case (l: SqlTable, r: JoinTable) => JoinTable(
+            table = l,
+            joins = Join(kind, r.table, cond) :: r.joins,
+            getFields = l.getFields ++ r.getFields,
+            getSorts = l.getSorts)
+          case (l: JoinTable, r: JoinTable) => JoinTable(
+            table = l.table,
+            joins = l.joins ++ (Join(kind, r.table, cond) :: r.joins),
+            getFields = l.getFields ++ r.getFields,
+            getSorts = l.getSorts)
+        })
 
       def on(cond: U => Cond): JoinTable = on(cond(right))
 
