@@ -4,17 +4,17 @@ import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
-import gospeak.libs.sql.dsl.Query.Inner.{OrderByClause, WhereClause}
+import gospeak.libs.sql.dsl.Query.Inner.{GroupByClause, OrderByClause, WhereClause}
 import gospeak.libs.sql.dsl.Query.{Delete, Insert, Select, Update}
 import gospeak.libs.sql.dsl.Table.Inner._
 import gospeak.libs.sql.dsl.Table.{Join, JoinTable, Sort}
 
 sealed trait Table {
-  def getFields: List[Field[_, Table.SqlTable]]
+  def getFields: List[Field[_]]
 
   def getSorts: List[Sort]
 
-  def has(f: Field[_, Table.SqlTable]): Boolean
+  def has(f: SqlField[_, Table.SqlTable]): Boolean
 
   def fr: Fragment
 
@@ -23,19 +23,20 @@ sealed trait Table {
 
   def join[T <: Table](table: T, kind: Join.Kind.type => Join.Kind): JoinClause[this.type, T] = JoinClause(this, kind(Join.Kind), table)
 
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: FieldRef[A, T, T2]): JoinTable = join(ref.references.table).on(ref.is(ref.references))
+  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2]): JoinTable = join(ref.references.table).on(ref.is(ref.references))
 
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: FieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = join(ref.references.table, kind).on(ref.is(ref.references))
+  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = join(ref.references.table, kind).on(ref.is(ref.references))
 
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: FieldRefOpt[A, T, T2]): JoinTable = join(ref.references.table).on(ref.isOpt(ref.references))
+  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2]): JoinTable = join(ref.references.table).on(ref.isOpt(ref.references))
 
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: FieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = join(ref.references.table, kind).on(ref.isOpt(ref.references))
+  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = join(ref.references.table, kind).on(ref.isOpt(ref.references))
 
   def select: Select.Builder[this.type] =
     Select.Builder(
       table = this,
       fields = getFields,
       where = WhereClause(None),
+      groupBy = GroupByClause(List()),
       orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List())))
 }
 
@@ -44,17 +45,19 @@ object Table {
   abstract class SqlTable(val getSchema: String,
                           val getName: String,
                           val getAlias: Option[String]) extends Table {
-    override def has(f: Field[_, Table.SqlTable]): Boolean = f.table == this
+    override def getFields: List[SqlField[_, SqlTable]] // to specialize return type as SqlField
+
+    override def has(f: SqlField[_, Table.SqlTable]): Boolean = f.table == this
 
     override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse(""))
 
-    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => FieldRef[A, T, T2]): JoinTable = joinOn(f(this))
+    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(this))
 
-    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => FieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(this), kind)
+    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(this), kind)
 
-    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => FieldRefOpt[A, T, T2]): JoinTable = joinOn(f(this))
+    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRefOpt[A, T, T2]): JoinTable = joinOn(f(this))
 
-    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => FieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(this), kind)
+    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(this), kind)
 
     def insert: Insert.Builder[this.type] = Insert.Builder(this)
 
@@ -67,17 +70,17 @@ object Table {
 
   case class JoinTable(table: Table.SqlTable,
                        joins: List[Join[Table.SqlTable]],
-                       getFields: List[Field[_, Table.SqlTable]],
+                       getFields: List[Field[_]],
                        getSorts: List[Sort]) extends Table {
-    override def has(f: Field[_, Table.SqlTable]): Boolean = table.has(f) || joins.exists(_.table.has(f))
+    override def has(f: SqlField[_, Table.SqlTable]): Boolean = table.has(f) || joins.exists(_.table.has(f))
 
     override def fr: Fragment = const0(table.getName + table.getAlias.map(" " + _).getOrElse("")) ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
 
-    def dropFields(p: Field[_, Table.SqlTable] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
+    def dropFields(p: Field[_] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
 
-    def dropFields(fields: List[Field[_, Table.SqlTable]]): JoinTable = dropFields(fields.contains(_))
+    def dropFields(fields: List[Field[_]]): JoinTable = dropFields(fields.contains(_))
 
-    def dropFields(fields: Field[_, Table.SqlTable]*): JoinTable = dropFields(fields.contains(_))
+    def dropFields(fields: Field[_]*): JoinTable = dropFields(fields.contains(_))
   }
 
   case class Join[+T <: Table.SqlTable](kind: Join.Kind, table: T, on: Cond) {

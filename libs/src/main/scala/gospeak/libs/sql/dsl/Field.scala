@@ -7,15 +7,29 @@ import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import gospeak.libs.sql.dsl.Field.Order
 
-class Field[A, +T <: Table.SqlTable](val table: T,
-                                     val name: String) {
+sealed trait Field[A] {
+  val name: String
+
+  def fr: Fragment
+}
+
+object Field {
+
+  case class Order[A, T <: Table.SqlTable](field: SqlField[A, T], asc: Boolean) {
+    def fr: Fragment = field.fr ++ fr0" IS NULL, " ++ field.fr ++ (if (asc) fr0"" else fr0" DESC")
+  }
+
+}
+
+class SqlField[A, +T <: Table.SqlTable](val table: T,
+                                        val name: String) extends Field[A] {
   def fr: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
   def is(value: A)(implicit p: Put[A]): Cond = Cond.is(this, value)
 
-  def is[T2 <: Table.SqlTable](field: Field[A, T2]): Cond = Cond.is(this, field)
+  def is[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = Cond.is(this, field)
 
-  def isOpt[T2 <: Table.SqlTable](field: Field[Option[A], T2]): Cond = Cond.isOpt(this, field)
+  def isOpt[T2 <: Table.SqlTable](field: SqlField[Option[A], T2]): Cond = Cond.isOpt(this, field)
 
   // TODO restrict to string fields ?
   def like(value: String): Cond = Cond.like(this, value)
@@ -44,10 +58,10 @@ class Field[A, +T <: Table.SqlTable](val table: T,
 
   override def toString: String = s"Field($value)"
 
-  def canEqual(other: Any): Boolean = other.isInstanceOf[Field[_, _]]
+  def canEqual(other: Any): Boolean = other.isInstanceOf[SqlField[_, _]]
 
   override def equals(other: Any): Boolean = other match {
-    case that: Field[_, _] =>
+    case that: SqlField[_, _] =>
       (that canEqual this) &&
         table == that.table &&
         name == that.name
@@ -60,32 +74,24 @@ class Field[A, +T <: Table.SqlTable](val table: T,
   }
 }
 
-object Field {
-
-  case class Order[A, T <: Table.SqlTable](field: Field[A, T], asc: Boolean) {
-    def fr: Fragment = field.fr ++ fr0" IS NULL, " ++ field.fr ++ (if (asc) fr0"" else fr0" DESC")
-  }
-
-}
-
-class FieldOpt[A, T <: Table.SqlTable](override val table: T,
-                                       override val name: String) extends Field[Option[A], T](table, name) {
+class SqlFieldOpt[A, T <: Table.SqlTable](override val table: T,
+                                          override val name: String) extends SqlField[Option[A], T](table, name) {
   def isOpt(value: A)(implicit p: Put[A]): Cond = Cond.isOpt(this, value)
 
-  def isOpt[T2 <: Table.SqlTable](field: Field[A, T2]): Cond = Cond.isOpt(this, field)
+  def isOpt[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = Cond.isOpt(this, field)
 
   override def toString: String = s"FieldOpt(${table.getName}.$name)"
 }
 
-class FieldRef[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
-                                                             override val name: String,
-                                                             val references: Field[A, T2]) extends Field[A, T](table, name) {
+class SqlFieldRef[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
+                                                                override val name: String,
+                                                                val references: SqlField[A, T2]) extends SqlField[A, T](table, name) {
   override def toString: String = s"FieldRef(${table.getName}.$name, ${references.table.getName}.${references.name})"
 
-  override def canEqual(other: Any): Boolean = other.isInstanceOf[FieldRef[_, _, _]]
+  override def canEqual(other: Any): Boolean = other.isInstanceOf[SqlFieldRef[_, _, _]]
 
   override def equals(other: Any): Boolean = other match {
-    case that: FieldRef[_, _, _] =>
+    case that: SqlFieldRef[_, _, _] =>
       super.equals(that) &&
         (that canEqual this) &&
         table == that.table &&
@@ -100,15 +106,15 @@ class FieldRef[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table:
   }
 }
 
-class FieldRefOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
-                                                                override val name: String,
-                                                                val references: Field[A, T2]) extends FieldOpt[A, T](table, name) {
+class SqlFieldRefOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
+                                                                   override val name: String,
+                                                                   val references: SqlField[A, T2]) extends SqlFieldOpt[A, T](table, name) {
   override def toString: String = s"FieldRefOpt(${table.getName}.$name, ${references.table.getName}.${references.name})"
 
-  override def canEqual(other: Any): Boolean = other.isInstanceOf[FieldRefOpt[_, _, _]]
+  override def canEqual(other: Any): Boolean = other.isInstanceOf[SqlFieldRefOpt[_, _, _]]
 
   override def equals(other: Any): Boolean = other match {
-    case that: FieldRefOpt[_, _, _] =>
+    case that: SqlFieldRefOpt[_, _, _] =>
       super.equals(that) &&
         (that canEqual this) &&
         table == that.table &&
@@ -121,4 +127,12 @@ class FieldRefOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val tab
     val state = List(super.hashCode(), table, name, references)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+}
+
+case class AggField[A](formula: String, name: String) extends Field[A] {
+  def fr: Fragment = if (name == formula) const0(formula) else const0(formula + " as " + name)
+}
+
+object AggField {
+  def apply[A](formula: String): AggField[A] = new AggField(formula, formula)
 }
