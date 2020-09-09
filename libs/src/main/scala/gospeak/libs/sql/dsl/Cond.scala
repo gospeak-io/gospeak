@@ -30,6 +30,8 @@ object Cond {
 
   def isOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: Field[A, T], g: Field[Option[A], T2]): IsFieldRightOpt[T, A, T2] = IsFieldRightOpt(f, g)
 
+  def like[T <: Table.SqlTable, A](f: Field[A, T], value: String): Like[T, A] = Like(f, value)
+
   def gt[T <: Table.SqlTable, A: Put](f: Field[A, T], v: A): GtValue[T, A] = GtValue(f, v)
 
   def lt[T <: Table.SqlTable, A: Put](f: Field[A, T], v: A): LtValue[T, A] = LtValue(f, v)
@@ -74,6 +76,12 @@ object Cond {
     override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
 
     override def getFields: List[Field[_, Table.SqlTable]] = List(f1, f2)
+  }
+
+  case class Like[T <: Table.SqlTable, A](f: Field[A, T], value: String) extends Cond {
+    override def fr: Fragment = f.fr ++ fr0" LIKE $value"
+
+    override def getFields: List[Field[_, Table.SqlTable]] = List(f)
   }
 
   case class GtValue[T <: Table.SqlTable, A: Put](f: Field[A, T], value: A) extends Cond {
