@@ -11,6 +11,7 @@ import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.dsl.Exceptions.{FailedQuery, InvalidNumberOfFields, InvalidNumberOfValues}
 import gospeak.libs.sql.dsl.Extensions._
 import gospeak.libs.sql.dsl.Query.Inner.{GroupByClause, OrderByClause, WhereClause}
+import gospeak.libs.sql.dsl.Table.Sort
 
 import scala.util.control.NonFatal
 
@@ -137,17 +138,23 @@ object Query {
 
   }
 
-  sealed abstract class Select[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) {
+  sealed trait Select[A] {
+    val table: Table
+    val fields: List[Field[_]]
+    val where: WhereClause
+    val groupBy: GroupByClause
+    val orderBy: OrderByClause
+
     def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ where.fr ++ groupBy.fr ++ orderBy.fr
   }
 
   object Select {
 
-    case class All[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A](table, fields, where, groupBy, orderBy) with Query[List[A]] {
+    case class All[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A] with Query[List[A]] {
       def run(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
     }
 
-    case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, params: Page.Params) extends Select[A](table, fields, where, groupBy, orderBy) with Query[Page[A]] {
+    case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, params: Page.Params) extends Select[A] with Query[Page[A]] {
       override def fr: Fragment = super.fr ++ fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
 
       def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
@@ -158,17 +165,17 @@ object Query {
       } yield Page(elts, params, Page.Total(total)), xa)
     }
 
-    case class Optional[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: Boolean) extends Select[A](table, fields, where, groupBy, orderBy) with Query[Option[A]] {
+    case class Optional[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: Boolean) extends Select[A] with Query[Option[A]] {
       override def fr: Fragment = super.fr ++ (if (limit) fr0" LIMIT 1" else fr0"")
 
       def run(xa: doobie.Transactor[IO]): IO[Option[A]] = exec(fr, _.query[A].option, xa)
     }
 
-    case class One[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A](table, fields, where, groupBy, orderBy) with Query[A] {
+    case class One[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A] with Query[A] {
       def run(xa: doobie.Transactor[IO]): IO[A] = exec(fr, _.query[A].unique, xa)
     }
 
-    case class Exists[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A](table, fields, where, groupBy, orderBy) with Query[Boolean] {
+    case class Exists[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A] with Query[Boolean] {
       def run(xa: doobie.Transactor[IO]): IO[Boolean] = exec(fr, _.query[A].option.map(_.isDefined), xa)
     }
 
@@ -183,13 +190,32 @@ object Query {
 
       def withFields(fns: (T => Field[_])*): Builder[T] = this.fields(fns.map(f => f(table)).toList)
 
+      def addFields(fields: Field[_]*): Builder[T] = this.fields(this.fields ++ fields.toList)
+
       def where(cond: Cond): Builder[T] = Exceptions.check(cond, table, copy(where = WhereClause(Some(cond))))
 
       def where(cond: T => Cond): Builder[T] = where(cond(table))
 
       def groupBy(fields: SqlField[_, Table.SqlTable]*): Builder[T] = Exceptions.check(fields.toList, table, copy(groupBy = GroupByClause(fields.toList)))
 
-      def orderBy(fields: Field.Order[_, Table.SqlTable]*): Builder[T] = Exceptions.check(fields.map(_.field).toList, table, copy(orderBy = OrderByClause(fields.toList)))
+      def orderBy(fields: Field.Order[_]*): Builder[T] = Exceptions.check(fields.map(_.field).toList, table, copy(orderBy = OrderByClause(fields.toList)))
+
+      def union[T2 <: Table](other: Builder[T2], alias: Option[String] = None, sorts: List[(String, String, List[String])] = List()): Table.UnionTable = {
+        if (fields.length != other.fields.length) throw new Exception(s"Field number do not match (${fields.length} vs ${other.fields.length})")
+        val invalidFields = fields.zip(other.fields).filter { case (f1, f2) => f1.alias.getOrElse(f1.name) != f2.alias.getOrElse(f2.name) } // TODO check also match of sql type (should be added)
+        if (invalidFields.nonEmpty) throw new Exception(s"Some fields do not match: ${invalidFields.map { case (f1, f2) => f1.name + " != " + f2.name }.mkString(", ")}")
+
+        val (invalidSorts, validSorts) = sorts.partition(s => s._3.isEmpty || s._3.exists(name => !fields.exists(f => f.alias.getOrElse(f.name) == name.stripPrefix("-"))))
+        if (invalidSorts.nonEmpty) throw new Exception(s"Sorts ${invalidSorts.map(_._1).mkString(", ")} can't have empty list")
+        val s = validSorts.map { case (slug, label, fields) => Sort(slug, label, NonEmptyList.fromListUnsafe(fields).map(name => Field.Order(TableField(name.stripPrefix("-"), alias), !name.startsWith("-")))) }
+
+        Table.UnionTable(
+          select1 = this.select,
+          select2 = other.select,
+          alias = alias,
+          getFields = fields.map(f => TableField(f.alias.getOrElse(f.name), alias)),
+          getSorts = s)
+      }
 
       def all[A: Read]: Select.All[A] = build[A, Select.All[A]](new Select.All[A](table, fields, where, groupBy, orderBy))
 
@@ -202,6 +228,17 @@ object Query {
       def one[A: Read]: Select.One[A] = build[A, Select.One[A]](new Select.One[A](table, fields, where, groupBy, orderBy))
 
       def exists[A: Read]: Select.Exists[A] = build[A, Select.Exists[A]](new Select.Exists[A](table, fields, where, groupBy, orderBy))
+
+      private def select[A: Read]: Select[_] = {
+        val that = this
+        new Select[Nothing] {
+          override val table: Table = that.table
+          override val fields: List[Field[_]] = that.fields
+          override val where: WhereClause = that.where
+          override val groupBy: GroupByClause = that.groupBy
+          override val orderBy: OrderByClause = that.orderBy
+        }
+      }
 
       private def build[A: Read, S <: Select[A]](res: => S): S =
         if (implicitly[Read[A]].length == fields.length) res else throw InvalidNumberOfFields(implicitly[Read[A]], fields)
@@ -221,7 +258,7 @@ object Query {
 
     // HAVING
 
-    case class OrderByClause(fields: List[Field.Order[_, Table.SqlTable]]) {
+    case class OrderByClause(fields: List[Field.Order[_]]) {
       def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
     }
 
