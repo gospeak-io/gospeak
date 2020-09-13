@@ -77,9 +77,40 @@ class DslSpec extends SqlSpec {
         fieldJoin shouldBe basicJoin
       }
     }
+    describe("unions") {
+      it("should build a union table") {
+        val users = USERS.select.withFields(_.ID, _.NAME, _ => TableField[String]("'user'", alias = Some("kind")))
+        val cats = CATEGORIES.select.addFields(TableField[String]("'category'", alias = Some("kind"))).orderBy()
+        val union = users.union(cats, alias = Some("e"), sorts = List(("kind", "kind", List("-kind", "id"))))
+        val res = union.select.where(_.id[Int].is(1)).all[(Int, String, String)]
+        val exp = fr0"SELECT e.id, e.name, e.kind " ++
+          fr0"FROM ((SELECT u.id, u.name, 'user' as kind FROM users u) UNION (SELECT c.id, c.name, 'category' as kind FROM categories c)) e " ++
+          fr0"WHERE e.id=? ORDER BY e.kind IS NULL, e.kind DESC, e.id IS NULL, e.id"
+        res.fr.query.sql shouldBe exp.query.sql
+        res.run(xa).unsafeRunSync() shouldBe List(
+          (User.loic.id.value, User.loic.name, "user"),
+          (Category.tech.id.value, Category.tech.name, "category"))
+
+        union.select.where(_.field[Int]("id").is(1)).all[(Int, String, String)] shouldBe res
+        union.select.where(TableField[Int]("id", Some("e")).is(1)).all[(Int, String, String)] shouldBe res
+      }
+      it("should fail on not matching field count") {
+        an[Exception] should be thrownBy USERS.select.union(CATEGORIES.select)
+      }
+      it("should fail when field names do not match") {
+        an[Exception] should be thrownBy USERS.select.withFields(_.ID, _.EMAIL).union(CATEGORIES.select)
+        USERS.select.withFields(_.ID, _.EMAIL.as("name")).union(CATEGORIES.select)
+      }
+      it("should fail when sorts do not have fields or unknown fields") {
+        an[Exception] should be thrownBy USERS.select.withFields(_.ID, _.NAME).union(CATEGORIES.select, sorts = List(("s", "s", List())))
+        an[Exception] should be thrownBy USERS.select.withFields(_.ID, _.NAME).union(CATEGORIES.select, sorts = List(("s", "s", List("email"))))
+        USERS.select.withFields(_.ID, _.NAME).union(CATEGORIES.select, sorts = List(("s", "s", List("name"))))
+      }
+    }
     describe("query validations") {
-      it("should check that join and where clause have fields belong to table") {
+      it("should check that used fields belong to tables") {
         an[Exception] should be thrownBy USERS.joinOn(POSTS.CATEGORY)
+        an[Exception] should be thrownBy POSTS.joinOn(POSTS.AUTHOR).fields(CATEGORIES.ID)
         an[Exception] should be thrownBy USERS.select.fields(POSTS.CATEGORY)
         an[Exception] should be thrownBy USERS.select.where(POSTS.CATEGORY.isNull)
         an[Exception] should be thrownBy USERS.select.groupBy(POSTS.CATEGORY)

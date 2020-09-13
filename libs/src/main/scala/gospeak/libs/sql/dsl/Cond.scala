@@ -7,7 +7,7 @@ import doobie.util.fragment.Fragment
 import gospeak.libs.sql.dsl.Cond.{And, Or, Parentheses}
 import gospeak.libs.sql.dsl.Extensions._
 
-sealed abstract class Cond(fields: List[SqlField[_, Table.SqlTable]]) {
+sealed abstract class Cond(fields: List[Field[_]]) {
   def fr: Fragment
 
   def and(c: Cond): Cond = And(this, c)
@@ -16,91 +16,103 @@ sealed abstract class Cond(fields: List[SqlField[_, Table.SqlTable]]) {
 
   def par: Cond = Parentheses(this)
 
-  def getFields: List[SqlField[_, Table.SqlTable]] = fields
+  def getFields: List[Field[_]] = fields
 }
 
 object Cond {
-  def is[T <: Table.SqlTable, A: Put](f: SqlField[A, T], v: A): IsValue[T, A] = IsValue(f, v)
+  def is[A: Put](f: Field[A], v: A): IsValue[A] = IsValue(f, v)
 
-  def is[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: SqlField[A, T], g: SqlField[A, T2]): IsField[T, A, T2] = IsField(f, g)
+  def is[A](f: Field[A], g: Field[A]): IsField[A] = IsField(f, g)
 
-  def isOpt[T <: Table.SqlTable, A: Put](f: SqlField[Option[A], T], v: A): IsValueOpt[T, A] = IsValueOpt(f, v)
+  def isOpt[A: Put](f: Field[Option[A]], v: A): IsValueOpt[A] = IsValueOpt(f, v)
 
-  def isOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: SqlField[Option[A], T], g: SqlField[A, T2]): IsFieldLeftOpt[T, A, T2] = IsFieldLeftOpt(f, g)
+  def isOpt[A](f: Field[Option[A]], g: Field[A]): IsFieldLeftOpt[A] = IsFieldLeftOpt(f, g)
 
-  def isOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f: SqlField[A, T], g: SqlField[Option[A], T2]): IsFieldRightOpt[T, A, T2] = IsFieldRightOpt(f, g)
+  def isOpt[A](f: Field[A], g: Field[Option[A]]): IsFieldRightOpt[A] = IsFieldRightOpt(f, g)
 
-  def like[T <: Table.SqlTable, A](f: SqlField[A, T], value: String): Like[T, A] = Like(f, value)
+  def like[A](f: Field[A], value: String): Like[A] = Like(f, value)
 
-  def gt[T <: Table.SqlTable, A: Put](f: SqlField[A, T], v: A): GtValue[T, A] = GtValue(f, v)
+  def gt[A: Put](f: Field[A], v: A): GtValue[A] = GtValue(f, v)
 
-  def lt[T <: Table.SqlTable, A: Put](f: SqlField[A, T], v: A): LtValue[T, A] = LtValue(f, v)
+  def gte[A: Put](f: Field[A], v: A): GteValue[A] = GteValue(f, v)
 
-  def isNull[T <: Table.SqlTable, A](f: SqlField[A, T]): IsNull[T, A] = IsNull(f)
+  def lt[A: Put](f: Field[A], v: A): LtValue[A] = LtValue(f, v)
 
-  def notNull[T <: Table.SqlTable, A](f: SqlField[A, T]): NotNull[T, A] = NotNull(f)
+  def lte[A: Put](f: Field[A], v: A): LteValue[A] = LteValue(f, v)
 
-  def in[T <: Table.SqlTable, A: Put](f: SqlField[A, T], v: NonEmptyList[A]): InValues[T, A] = InValues(f, v)
+  def isNull[A](f: Field[A]): IsNull[A] = IsNull(f)
 
-  def notIn[T <: Table.SqlTable, A: Put](f: SqlField[A, T], v: NonEmptyList[A]): NotInValues[T, A] = NotInValues(f, v)
+  def notNull[A](f: Field[A]): NotNull[A] = NotNull(f)
 
-  def in[T <: Table.SqlTable, A](f: SqlField[A, T], q: Query.Select[A]): InQuery[T, A] = InQuery(f, q)
+  def in[A: Put](f: Field[A], v: NonEmptyList[A]): InValues[A] = InValues(f, v)
 
-  def notIn[T <: Table.SqlTable, A](f: SqlField[A, T], q: Query.Select[A]): NotInQuery[T, A] = NotInQuery(f, q)
+  def notIn[A: Put](f: Field[A], v: NonEmptyList[A]): NotInValues[A] = NotInValues(f, v)
 
-  case class IsValue[T <: Table.SqlTable, A: Put](f: SqlField[A, T], value: A) extends Cond(List(f)) {
+  def in[A](f: Field[A], q: Query.Select[A]): InQuery[A] = InQuery(f, q)
+
+  def notIn[A](f: Field[A], q: Query.Select[A]): NotInQuery[A] = NotInQuery(f, q)
+
+  case class IsValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0"=$value"
   }
 
-  case class IsValueOpt[T <: Table.SqlTable, A: Put](f: SqlField[Option[A], T], value: A) extends Cond(List(f)) {
+  case class IsValueOpt[A: Put](f: Field[Option[A]], value: A) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0"=$value"
   }
 
-  case class IsField[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f1: SqlField[A, T], f2: SqlField[A, T2]) extends Cond(List(f1, f2)) {
+  case class IsField[A](f1: Field[A], f2: Field[A]) extends Cond(List(f1, f2)) {
     override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
   }
 
-  case class IsFieldLeftOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f1: SqlField[Option[A], T], f2: SqlField[A, T2]) extends Cond(List(f1, f2)) {
+  case class IsFieldLeftOpt[A](f1: Field[Option[A]], f2: Field[A]) extends Cond(List(f1, f2)) {
     override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
   }
 
-  case class IsFieldRightOpt[T <: Table.SqlTable, A, T2 <: Table.SqlTable](f1: SqlField[A, T], f2: SqlField[Option[A], T2]) extends Cond(List(f1, f2)) {
+  case class IsFieldRightOpt[A](f1: Field[A], f2: Field[Option[A]]) extends Cond(List(f1, f2)) {
     override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
   }
 
-  case class Like[T <: Table.SqlTable, A](f: SqlField[A, T], value: String) extends Cond(List(f)) {
+  case class Like[A](f: Field[A], value: String) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" LIKE $value"
   }
 
-  case class GtValue[T <: Table.SqlTable, A: Put](f: SqlField[A, T], value: A) extends Cond(List(f)) {
+  case class GtValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" > $value"
   }
 
-  case class LtValue[T <: Table.SqlTable, A: Put](f: SqlField[A, T], value: A) extends Cond(List(f)) {
+  case class GteValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
+    override def fr: Fragment = f.fr ++ fr0" >= $value"
+  }
+
+  case class LtValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" < $value"
   }
 
-  case class IsNull[T <: Table.SqlTable, A](f: SqlField[A, T]) extends Cond(List(f)) {
+  case class LteValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
+    override def fr: Fragment = f.fr ++ fr0" <= $value"
+  }
+
+  case class IsNull[A](f: Field[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" IS NULL"
   }
 
-  case class NotNull[T <: Table.SqlTable, A](f: SqlField[A, T]) extends Cond(List(f)) {
+  case class NotNull[A](f: Field[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" IS NOT NULL"
   }
 
-  case class InValues[T <: Table.SqlTable, A: Put](f: SqlField[A, T], values: NonEmptyList[A]) extends Cond(List(f)) {
+  case class InValues[A: Put](f: Field[A], values: NonEmptyList[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0") " // TODO remove last space when migration is done
   }
 
-  case class NotInValues[T <: Table.SqlTable, A: Put](f: SqlField[A, T], values: NonEmptyList[A]) extends Cond(List(f)) {
+  case class NotInValues[A: Put](f: Field[A], values: NonEmptyList[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0") " // TODO remove last space when migration is done
   }
 
-  case class InQuery[T <: Table.SqlTable, A](f: SqlField[A, T], q: Query.Select[A]) extends Cond(List(f)) {
+  case class InQuery[A](f: Field[A], q: Query.Select[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" IN (" ++ q.fr ++ fr0")"
   }
 
-  case class NotInQuery[T <: Table.SqlTable, A](f: SqlField[A, T], q: Query.Select[A]) extends Cond(List(f)) {
+  case class NotInQuery[A](f: Field[A], q: Query.Select[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ q.fr ++ fr0")"
   }
 

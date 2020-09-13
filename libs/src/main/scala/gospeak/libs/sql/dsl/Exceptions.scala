@@ -16,7 +16,7 @@ object Exceptions {
 
   def check[T <: Table](cond: Cond, table: T): T = check(cond.getFields, table, table)
 
-  case class UnknownTableFields[T <: Table](table: T, unknownFields: NonEmptyList[SqlField[_, Table.SqlTable]]) extends Exception(s"Fields ${unknownFields.toList.map(_.value).mkString(", ")} do not belong to the table") // TODO improve message with sql tables
+  case class UnknownTableFields[T <: Table](table: T, unknownFields: NonEmptyList[Field[_]]) extends Exception(s"Fields ${unknownFields.toList.mkString(", ")} do not belong to the table") // TODO improve message with sql tables
 
   case class InvalidNumberOfValues[T <: Table.SqlTable](table: T, expectedLength: Int) extends Exception(s"Insert expects ${table.getFields.length} fields but got $expectedLength")
 

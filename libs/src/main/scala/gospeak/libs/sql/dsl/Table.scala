@@ -4,10 +4,13 @@ import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
+import gospeak.libs.sql.dsl.Exceptions.UnknownTableFields
 import gospeak.libs.sql.dsl.Query.Inner.{GroupByClause, OrderByClause, WhereClause}
 import gospeak.libs.sql.dsl.Query.{Delete, Insert, Select, Update}
 import gospeak.libs.sql.dsl.Table.Inner._
 import gospeak.libs.sql.dsl.Table.{Join, JoinTable, Sort}
+
+import scala.language.dynamics
 
 sealed trait Table {
   def getFields: List[Field[_]]
@@ -76,11 +79,31 @@ object Table {
 
     override def fr: Fragment = const0(table.getName + table.getAlias.map(" " + _).getOrElse("")) ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
 
+    def fields(fields: Field[_]*): JoinTable = Exceptions.check(fields.toList, this, copy(getFields = fields.toList))
+
     def dropFields(p: Field[_] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
 
     def dropFields(fields: List[Field[_]]): JoinTable = dropFields(fields.contains(_))
 
     def dropFields(fields: Field[_]*): JoinTable = dropFields(fields.contains(_))
+  }
+
+  case class UnionTable(select1: Select[_],
+                        select2: Select[_],
+                        alias: Option[String],
+                        getFields: List[TableField[_]],
+                        getSorts: List[Sort]) extends Table with Dynamic {
+    override def has(f: SqlField[_, SqlTable]): Boolean = false
+
+    override def fr: Fragment = fr0"((" ++ select1.fr ++ fr0") UNION (" ++ select2.fr ++ fr0"))" ++ alias.map(a => const0(s" $a")).getOrElse(fr0"")
+
+    def field[A](name: String): TableField[A] =
+      getFields
+        .find(_.name == name)
+        .map(_.asInstanceOf[TableField[A]])
+        .getOrElse(throw UnknownTableFields(this, NonEmptyList.of(TableField(name))))
+
+    def selectDynamic[A](name: String): TableField[A] = field[A](name)
   }
 
   case class Join[+T <: Table.SqlTable](kind: Join.Kind, table: T, on: Cond) {
@@ -101,7 +124,7 @@ object Table {
 
   }
 
-  case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_, Table.SqlTable]])
+  case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_]])
 
   object Inner {
 
