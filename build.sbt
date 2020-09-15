@@ -100,7 +100,7 @@ val scalaTest = Seq(
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
-  "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
+  "com.danielasfregola" %% "random-data-generator" % "2.9").map(_ % Test)
 
 val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
