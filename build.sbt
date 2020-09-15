@@ -74,7 +74,7 @@ val play = Seq(
 val playTest = Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0").map(_ % Test)
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.34")
-val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.2")
+val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.7.0")
 val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.1")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
