@@ -24,6 +24,10 @@ object Cond {
 
   def is[A](f: Field[A], g: Field[A]): IsField[A] = IsField(f, g)
 
+  def is[A](f: Field[A], g: SqlFieldRefOpt[A, _, _]): IsFieldRightOpt[A] = IsFieldRightOpt(f, g)
+
+  def is[A](f: Field[A], s: Query.Select[A]): IsQuery[A] = IsQuery(f, s)
+
   def isOpt[A: Put](f: Field[Option[A]], v: A): IsValueOpt[A] = IsValueOpt(f, v)
 
   def isOpt[A](f: Field[Option[A]], g: Field[A]): IsFieldLeftOpt[A] = IsFieldLeftOpt(f, g)
@@ -31,6 +35,8 @@ object Cond {
   def isOpt[A](f: Field[A], g: Field[Option[A]]): IsFieldRightOpt[A] = IsFieldRightOpt(f, g)
 
   def like[A](f: Field[A], value: String): Like[A] = Like(f, value)
+
+  def notLike[A](f: Field[A], value: String): NotLike[A] = NotLike(f, value)
 
   def gt[A: Put](f: Field[A], v: A): GtValue[A] = GtValue(f, v)
 
@@ -52,6 +58,8 @@ object Cond {
 
   def notIn[A](f: Field[A], q: Query.Select[A]): NotInQuery[A] = NotInQuery(f, q)
 
+  def cond[A](f: Field[A], fr: Fragment): CustomCond[A] = CustomCond(f, fr)
+
   case class IsValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0"=$value"
   }
@@ -72,8 +80,16 @@ object Cond {
     override def fr: Fragment = f1.fr ++ fr0"=" ++ f2.fr
   }
 
+  case class IsQuery[A](f: Field[A], s: Query.Select[A]) extends Cond(List(f)) {
+    override def fr: Fragment = f.fr ++ fr0"=(" ++ s.fr ++ fr0")"
+  }
+
   case class Like[A](f: Field[A], value: String) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" LIKE $value"
+  }
+
+  case class NotLike[A](f: Field[A], value: String) extends Cond(List(f)) {
+    override def fr: Fragment = f.fr ++ fr0" NOT LIKE $value"
   }
 
   case class GtValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
@@ -101,11 +117,11 @@ object Cond {
   }
 
   case class InValues[A: Put](f: Field[A], values: NonEmptyList[A]) extends Cond(List(f)) {
-    override def fr: Fragment = f.fr ++ fr0" IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0") " // TODO remove last space when migration is done
+    override def fr: Fragment = f.fr ++ fr0" IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0")"
   }
 
   case class NotInValues[A: Put](f: Field[A], values: NonEmptyList[A]) extends Cond(List(f)) {
-    override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0") " // TODO remove last space when migration is done
+    override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ values.map(v => fr0"$v").mkFragment(", ") ++ fr0")"
   }
 
   case class InQuery[A](f: Field[A], q: Query.Select[A]) extends Cond(List(f)) {
@@ -114,6 +130,10 @@ object Cond {
 
   case class NotInQuery[A](f: Field[A], q: Query.Select[A]) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" NOT IN (" ++ q.fr ++ fr0")"
+  }
+
+  case class CustomCond[A](f: Field[A], cond: Fragment) extends Cond(List(f)) {
+    override def fr: Fragment = f.fr ++ cond
   }
 
   case class And(left: Cond, right: Cond) extends Cond(left.getFields ++ right.getFields) {

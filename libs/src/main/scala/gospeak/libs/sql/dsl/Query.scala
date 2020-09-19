@@ -15,6 +15,12 @@ import gospeak.libs.sql.dsl.Table.Sort
 
 import scala.util.control.NonFatal
 
+/*
+ * Package as a lib:
+ *  - template: https://github.com/ChristopherDavenport/library.g8
+ *  - exemple: https://github.com/ChristopherDavenport/fuuid
+ */
+
 sealed trait Query[A] {
   def fr: Fragment
 
@@ -82,7 +88,23 @@ object Query {
 
       def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X): Insert[T] = build(23, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x")
 
-      private def build(size: Int, fr: Fragment) =
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y): Insert[T] = build(24, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z): Insert[T] = build(25, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA): Insert[T] = build(26, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put, AB: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA, ab: AB): Insert[T] = build(27, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa, $ab")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put, AB: Put, AC: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA, ab: AB, ac: AC): Insert[T] = build(28, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa, $ab, $ac")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put, AB: Put, AC: Put, AD: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA, ab: AB, ac: AC, ad: AD): Insert[T] = build(29, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa, $ab, $ac, $ad")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put, AB: Put, AC: Put, AD: Put, AE: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA, ab: AB, ac: AC, ad: AD, ae: AE): Insert[T] = build(30, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa, $ab, $ac, $ad, $ae")
+
+      def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put, AB: Put, AC: Put, AD: Put, AE: Put, AF: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA, ab: AB, ac: AC, ad: AD, ae: AE, af: AF): Insert[T] = build(31, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa, $ab, $ac, $ad, $ae, $af")
+
+      private def build(size: Int, fr: Fragment): Insert[T] =
         if (size == table.getFields.length) Insert(table, fr)
         else throw InvalidNumberOfValues(table, size)
     }
@@ -188,13 +210,24 @@ object Query {
 
       def fields(fields: Field[_]*): Builder[T] = this.fields(fields.toList)
 
-      def withFields(fns: (T => Field[_])*): Builder[T] = this.fields(fns.map(f => f(table)).toList)
-
       def addFields(fields: Field[_]*): Builder[T] = this.fields(this.fields ++ fields.toList)
 
-      def where(cond: Cond): Builder[T] = Exceptions.check(cond, table, copy(where = WhereClause(Some(cond))))
+      def dropFields(p: Field[_] => Boolean): Builder[T] = this.fields(fields.filterNot(p))
+
+      def dropFields(fields: List[Field[_]]): Builder[T] = dropFields(fields.contains(_))
+
+      def dropFields(fields: Field[_]*): Builder[T] = dropFields(fields.contains(_))
+
+      def withFields(fns: (T => Field[_])*): Builder[T] = this.fields(fns.map(f => f(table)).toList)
+
+      def withoutFields(fns: (T => Field[_])*): Builder[T] = dropFields(fns.map(f => f(table)).toList)
+
+      def where(cond: Cond, unsafe: Boolean = false): Builder[T] =
+        if (unsafe) copy(where = WhereClause(Some(cond))) else Exceptions.check(cond, table, copy(where = WhereClause(Some(cond))))
 
       def where(cond: T => Cond): Builder[T] = where(cond(table))
+
+      def where(cond: T => Cond, unsafe: Boolean): Builder[T] = where(cond(table), unsafe)
 
       def groupBy(fields: SqlField[_, Table.SqlTable]*): Builder[T] = Exceptions.check(fields.toList, table, copy(groupBy = GroupByClause(fields.toList)))
 
@@ -207,7 +240,7 @@ object Query {
 
         val (invalidSorts, validSorts) = sorts.partition(s => s._3.isEmpty || s._3.exists(name => !fields.exists(f => f.alias.getOrElse(f.name) == name.stripPrefix("-"))))
         if (invalidSorts.nonEmpty) throw new Exception(s"Sorts ${invalidSorts.map(_._1).mkString(", ")} can't have empty list")
-        val s = validSorts.map { case (slug, label, fields) => Sort(slug, label, NonEmptyList.fromListUnsafe(fields).map(name => Field.Order(TableField(name.stripPrefix("-"), alias), !name.startsWith("-")))) }
+        val s = validSorts.map { case (slug, label, fields) => Sort(slug, label, NonEmptyList.fromListUnsafe(fields).map(name => Field.Order(name, alias))) }
 
         Table.UnionTable(
           select1 = this.select,
@@ -252,7 +285,7 @@ object Query {
       def fr: Fragment = cond.map(fr0" WHERE " ++ _.fr).getOrElse(fr0"")
     }
 
-    case class GroupByClause(fields: List[SqlField[_, Table.SqlTable]]) {
+    case class GroupByClause(fields: List[Field[_]]) {
       def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" GROUP BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
     }
 

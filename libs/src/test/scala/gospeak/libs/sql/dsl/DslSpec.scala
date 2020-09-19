@@ -11,6 +11,7 @@ import gospeak.libs.sql.testingutils.database.Tables._
  * TODO :
  *  - rename `SqlTable.joinOnOpt` to `joinOn` (should find polymorphism trick to avoid double definition)
  *  - rename `Cond.isOpt` to `is` (should find polymorphism trick to avoid indistinct overloaded methods)
+ *  - rename `Builder.Builder.withFields` to `fields` (same here, polymorphism problem...)
  *  - keep typed fields after joins (in JoinTable)
  */
 class DslSpec extends SqlSpec {

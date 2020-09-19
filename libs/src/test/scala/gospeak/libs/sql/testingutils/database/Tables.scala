@@ -2,7 +2,6 @@ package gospeak.libs.sql.testingutils.database
 
 import gospeak.libs.sql.dsl.Table.SqlTable
 
-
 /**
  * Hello
  *
