@@ -22,4 +22,30 @@ object StringUtils {
       .replaceAll("[ _+'\"]", "-")
       .replaceAll("--+", "-")
       .replaceAll("[^a-z0-9-]", "")
+
+  def stripIdenticalPrefix(s1: String, s2: String): (String, String) = {
+    var i = 0
+    while (i < s1.length && i < s2.length && s1(i) == s2(i)) {
+      i += 1
+    }
+    if (i > 0) {
+      val prefix = s"[..$i..]"
+      (prefix + s1.drop(i), prefix + s2.drop(i))
+    } else {
+      (s1, s2)
+    }
+  }
+
+  def stripIdenticalSuffix(s1: String, s2: String): (String, String) = {
+    var i = 0
+    while (i < s1.length && i < s2.length && s1(s1.length - 1 - i) == s2(s2.length - 1 - i)) {
+      i += 1
+    }
+    if (i > 0) {
+      val suffix = s"[..$i..]"
+      (s1.dropRight(i) + suffix, s2.dropRight(i) + suffix)
+    } else {
+      (s1, s2)
+    }
+  }
 }

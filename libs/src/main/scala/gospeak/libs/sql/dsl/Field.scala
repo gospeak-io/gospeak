@@ -11,7 +11,11 @@ sealed trait Field[A] {
   val name: String
   val alias: Option[String]
 
-  def fr: Fragment
+  def fr: Fragment = fr()
+
+  def fr(alias: Boolean = true): Fragment = value ++ const0(this.alias.filter(_ => alias).map(" as " + _).getOrElse(""))
+
+  protected def value: Fragment
 
   def as(alias: String): Field[A]
 
@@ -19,10 +23,16 @@ sealed trait Field[A] {
 
   def is(field: Field[A]): Cond = Cond.is(this, field)
 
+  def is(field: SqlFieldRefOpt[A, _, _]): Cond = Cond.is(this, field)
+
+  def is(select: Query.Select[A]): Cond = Cond.is(this, select)
+
   def isOpt(field: Field[Option[A]]): Cond = Cond.isOpt(this, field)
 
   // TODO restrict to fields with sql string type
   def like(value: String): Cond = Cond.like(this, value)
+
+  def notLike(value: String): Cond = Cond.notLike(this, value)
 
   def gt(value: A)(implicit p: Put[A]): Cond = Cond.gt(this, value)
 
@@ -44,15 +54,26 @@ sealed trait Field[A] {
 
   def notIn(q: Query.Select[A]): Cond = Cond.notIn(this, q)
 
-  def asc: Order[A] = Order(this, asc = true)
+  def cond(fr: Fragment): Cond = Cond.cond(this, fr)
 
-  def desc: Order[A] = Order(this, asc = false)
+  def asc: Order[A] = Order(this, asc = true, expr = None)
+
+  def desc: Order[A] = Order(this, asc = false, expr = None)
 }
 
 object Field {
+  def apply[A](query: Query[A], alias: String): QueryField[A] = QueryField(query, Some(alias))
 
-  case class Order[A](field: Field[A], asc: Boolean) {
-    def fr: Fragment = field.fr ++ fr0" IS NULL, " ++ field.fr ++ (if (asc) fr0"" else fr0" DESC")
+  case class Order[A](field: Field[A], asc: Boolean, expr: Option[String]) {
+    def fr: Fragment = {
+      val value = expr.map(e => const0(e.replaceFirst("\\?", field.fr(alias = false).query.sql))).getOrElse(field.fr(alias = false))
+      value ++ fr0" IS NULL, " ++ value ++ (if (asc) fr0"" else fr0" DESC")
+    }
+  }
+
+  object Order {
+    def apply[A](field: String, alias: Option[String] = None): Order[A] =
+      new Order(TableField(field.stripPrefix("-"), alias), !field.startsWith("-"), expr = None)
   }
 
 }
@@ -60,18 +81,16 @@ object Field {
 class SqlField[A, +T <: Table.SqlTable](val table: T,
                                         val name: String,
                                         val alias: Option[String] = None) extends Field[A] {
-  def fr: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name${alias.map(" as " + _).getOrElse("")}")
+  override protected def value: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
   def as(alias: String): SqlField[A, T] = new SqlField[A, T](table, name, Some(alias))
 
   // create a null TableField based on a sql field, useful on union when a field is available on one side only
-  def asNull: TableField[A] = TableField[A]("null", alias = Some(alias.getOrElse(name)))
+  def asNull: NullField[A] = NullField[A](alias.getOrElse(name))
 
-  def asNull(alias: String): TableField[A] = TableField[A]("null", alias = Some(alias))
+  def asNull(name: String): NullField[A] = NullField[A](name)
 
-  def value: String = s"${table.getName}.$name"
-
-  override def toString: String = s"SqlField($value)"
+  override def toString: String = s"SqlField(${table.getName}.$name)"
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[SqlField[_, _]]
 
@@ -145,7 +164,35 @@ class SqlFieldRefOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val 
 }
 
 case class TableField[A](name: String, table: Option[String] = None, alias: Option[String] = None) extends Field[A] {
-  override def fr: Fragment = const0(table.map(_ + ".").getOrElse("") + name + alias.map(" as " + _).getOrElse(""))
+  override protected def value: Fragment = const0(table.map(_ + ".").getOrElse("") + name)
 
   override def as(alias: String): TableField[A] = copy(alias = Some(alias))
+}
+
+// Null fields, useful for UNION tables when a field is on one side
+case class NullField[A](name: String) extends Field[A] {
+  override val alias: Option[String] = Some(name)
+
+  override protected def value: Fragment = fr0"null"
+
+  override def as(alias: String): NullField[A] = copy(name = alias)
+}
+
+// Aggregation field such as "COUNT(*)" or other
+case class AggField[A](name: String, alias: Option[String] = None) extends Field[A] {
+  override protected def value: Fragment = const0(name)
+
+  override def as(alias: String): AggField[A] = copy(alias = Some(alias))
+}
+
+object AggField {
+  def apply[A](name: String, alias: String): AggField[A] = new AggField(name, Some(alias))
+}
+
+case class QueryField[A](query: Query[A], alias: Option[String] = None) extends Field[A] {
+  override val name: String = "(" + query.fr.query.sql + ")"
+
+  override protected def value: Fragment = fr0"(" ++ query.fr ++ fr0")"
+
+  override def as(alias: String): QueryField[A] = copy(alias = Some(alias))
 }

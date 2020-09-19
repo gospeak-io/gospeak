@@ -16,12 +16,19 @@ object Exceptions {
 
   def check[T <: Table](cond: Cond, table: T): T = check(cond.getFields, table, table)
 
-  case class UnknownTableFields[T <: Table](table: T, unknownFields: NonEmptyList[Field[_]]) extends Exception(s"Fields ${unknownFields.toList.mkString(", ")} do not belong to the table") // TODO improve message with sql tables
+  case class UnknownTableFields[T <: Table](table: T, unknownFields: NonEmptyList[Field[_]])
+    extends Exception(s"Fields ${unknownFields.toList.map("'" + _.fr.query.sql + "'").mkString(", ")} do not belong to the table '${table.fr.query.sql}'")
 
-  case class InvalidNumberOfValues[T <: Table.SqlTable](table: T, expectedLength: Int) extends Exception(s"Insert expects ${table.getFields.length} fields but got $expectedLength")
+  case class ConflictingTableFields[T <: Table](table: T, name: String, conflictingFields: NonEmptyList[Field[_]])
+    extends Exception(s"Table '${table.fr.query.sql}' has multiple fields with name '$name': ${conflictingFields.toList.map("'" + _.fr.query.sql + "'").mkString(", ")}")
 
-  case class InvalidNumberOfFields[A](read: Read[A], fields: List[Field[_]]) extends Exception(s"Expects ${read.length} fields but got ${fields.length}")
+  case class InvalidNumberOfValues[T <: Table.SqlTable](table: T, expectedLength: Int)
+    extends Exception(s"Insert expects ${table.getFields.length} fields but got $expectedLength")
 
-  case class FailedQuery(fr: Fragment, cause: Throwable) extends Exception(s"Fail on ${fr.query.sql}: ${cause.getMessage}", cause)
+  case class InvalidNumberOfFields[A](read: Read[A], fields: List[Field[_]])
+    extends Exception(s"Expects ${read.length} fields but got ${fields.length}: ${fields.map(_.name).mkString(", ")}")
+
+  case class FailedQuery(fr: Fragment, cause: Throwable)
+    extends Exception(s"Fail on ${fr.query.sql}: ${cause.getMessage}", cause)
 
 }

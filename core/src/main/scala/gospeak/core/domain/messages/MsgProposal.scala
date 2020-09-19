@@ -37,7 +37,7 @@ object MsgProposal {
       title = Talk.Title("Unknown talk"),
       duration = 0.minute,
       description = Markdown(""),
-      speakers = NonEmptyList.of(MsgUser.Embed.unknown(User.Id.from("00000000-0000-0000-0000-000000000000").get)),
+      speakers = NonEmptyList.of(MsgUser.Embed.unknown(User.Id.empty)),
       slides = None,
       video = None,
       tags = List(),

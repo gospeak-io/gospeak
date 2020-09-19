@@ -33,6 +33,8 @@ trait IId {
 }
 
 abstract class UuidIdBuilder[A <: IId](clazz: String, build: String => A) {
+  val empty: A = build(UUID.fromString("00000000-0000-0000-0000-000000000000").toString)
+
   def generate(): A = build(UUID.randomUUID().toString)
 
   def from(id: IId): A = build(id.value)

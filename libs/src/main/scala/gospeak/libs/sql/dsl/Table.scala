@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
-import gospeak.libs.sql.dsl.Exceptions.UnknownTableFields
+import gospeak.libs.sql.dsl.Exceptions.{ConflictingTableFields, UnknownTableFields}
 import gospeak.libs.sql.dsl.Query.Inner.{GroupByClause, OrderByClause, WhereClause}
 import gospeak.libs.sql.dsl.Query.{Delete, Insert, Select, Update}
 import gospeak.libs.sql.dsl.Table.Inner._
@@ -17,7 +17,9 @@ sealed trait Table {
 
   def getSorts: List[Sort]
 
-  def has(f: SqlField[_, Table.SqlTable]): Boolean
+  def field[A](name: String): Field[A]
+
+  def has(f: Field[_]): Boolean
 
   def fr: Fragment
 
@@ -34,25 +36,55 @@ sealed trait Table {
 
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = join(ref.references.table, kind).on(ref.isOpt(ref.references))
 
-  def select: Select.Builder[this.type] =
+  def select: Select.Builder[this.type] = {
+    val hasAggregation = getFields.exists {
+      case _: AggField[_] => true
+      case _ => false
+    }
     Select.Builder(
       table = this,
       fields = getFields,
       where = WhereClause(None),
-      groupBy = GroupByClause(List()),
+      groupBy = GroupByClause(if (hasAggregation) getFields.collect { case f: SqlField[_, _] => f } else List()),
       orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List())))
+  }
 }
 
 object Table {
 
   abstract class SqlTable(val getSchema: String,
                           val getName: String,
-                          val getAlias: Option[String]) extends Table {
+                          val getAlias: Option[String]) extends Table with Dynamic {
     override def getFields: List[SqlField[_, SqlTable]] // to specialize return type as SqlField
 
-    override def has(f: SqlField[_, Table.SqlTable]): Boolean = f.table == this
+    override def field[A](name: String): SqlField[A, this.type] =
+      getFields.filter(_.name == name) match {
+        case List() => throw UnknownTableFields(this, NonEmptyList.of(TableField(name)))
+        case List(field) => field.asInstanceOf[SqlField[A, this.type]]
+        case fields => throw ConflictingTableFields(this, name, NonEmptyList.fromListUnsafe(fields))
+      }
+
+    override def has(f: Field[_]): Boolean = f match {
+      case f: SqlField[_, Table.SqlTable] => f.table.getSchema == getSchema && f.table.getName == getName
+      case _ => false
+    }
 
     override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse(""))
+
+    def selectDynamic[A](name: String): SqlField[A, this.type] = field[A](name)
+
+    def dropFields(p: SqlField[_, SqlTable] => Boolean): SqlTable = {
+      val that = this
+      new SqlTable(getSchema, getName, getAlias) {
+        override def getFields: List[SqlField[_, SqlTable]] = that.getFields.filterNot(p)
+
+        override def getSorts: List[Sort] = that.getSorts
+      }
+    }
+
+    def dropFields(fields: List[SqlField[_, SqlTable]]): SqlTable = dropFields(fields.contains(_))
+
+    def dropFields(fields: SqlField[_, SqlTable]*): SqlTable = dropFields(fields.contains(_))
 
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(this))
 
@@ -74,12 +106,25 @@ object Table {
   case class JoinTable(table: Table.SqlTable,
                        joins: List[Join[Table.SqlTable]],
                        getFields: List[Field[_]],
-                       getSorts: List[Sort]) extends Table {
-    override def has(f: SqlField[_, Table.SqlTable]): Boolean = table.has(f) || joins.exists(_.table.has(f))
+                       getSorts: List[Sort]) extends Table with Dynamic {
+    override def field[A](name: String): SqlField[A, SqlTable] =
+      (table :: joins.map(_.table)).flatMap(_.getFields).filter(_.name == name) match {
+        case List() => throw UnknownTableFields(this, NonEmptyList.of(TableField(name)))
+        case List(field) => field.asInstanceOf[SqlField[A, SqlTable]]
+        case fields => throw ConflictingTableFields(this, name, NonEmptyList.fromListUnsafe(fields))
+      }
+
+    override def has(f: Field[_]): Boolean = table.has(f) || joins.exists(_.table.has(f))
 
     override def fr: Fragment = const0(table.getName + table.getAlias.map(" " + _).getOrElse("")) ++ joins.foldLeft(fr0"")(_ ++ fr0" " ++ _.fr)
 
-    def fields(fields: Field[_]*): JoinTable = Exceptions.check(fields.toList, this, copy(getFields = fields.toList))
+    def selectDynamic[A](name: String): SqlField[A, SqlTable] = field[A](name)
+
+    def fields(fields: List[Field[_]]): JoinTable = Exceptions.check(fields, this, copy(getFields = fields))
+
+    def fields(fields: Field[_]*): JoinTable = this.fields(fields.toList)
+
+    def addFields(fields: Field[_]*): JoinTable = this.fields(this.getFields ++ fields.toList)
 
     def dropFields(p: Field[_] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
 
@@ -93,15 +138,19 @@ object Table {
                         alias: Option[String],
                         getFields: List[TableField[_]],
                         getSorts: List[Sort]) extends Table with Dynamic {
-    override def has(f: SqlField[_, SqlTable]): Boolean = false
+    override def field[A](name: String): TableField[A] =
+      getFields.filter(_.name == name) match {
+        case List() => throw UnknownTableFields(this, NonEmptyList.of(TableField(name)))
+        case List(field) => field.asInstanceOf[TableField[A]]
+        case fields => throw ConflictingTableFields(this, name, NonEmptyList.fromListUnsafe(fields))
+      }
 
-    override def fr: Fragment = fr0"((" ++ select1.fr ++ fr0") UNION (" ++ select2.fr ++ fr0"))" ++ alias.map(a => const0(s" $a")).getOrElse(fr0"")
+    override def has(f: Field[_]): Boolean = f match {
+      case f: TableField[_] => getFields.exists(_.name == f.name)
+      case _ => false
+    }
 
-    def field[A](name: String): TableField[A] =
-      getFields
-        .find(_.name == name)
-        .map(_.asInstanceOf[TableField[A]])
-        .getOrElse(throw UnknownTableFields(this, NonEmptyList.of(TableField(name))))
+    override def fr: Fragment = fr0"((" ++ select1.fr ++ fr0") UNION (" ++ select2.fr ++ fr0"))" ++ const0(alias.map(" " + _).getOrElse(""))
 
     def selectDynamic[A](name: String): TableField[A] = field[A](name)
   }
@@ -126,6 +175,12 @@ object Table {
 
   case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_]])
 
+  object Sort {
+    def apply(slug: String, field: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, slug, NonEmptyList.of(field, other: _*))
+
+    def apply(slug: String, label: String, field: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, label, NonEmptyList.of(field, other: _*))
+  }
+
   object Inner {
 
     case class JoinClause[T <: Table, U <: Table](left: T, kind: Join.Kind, right: U) {
@@ -136,14 +191,15 @@ object Table {
             joins = List(Join(kind, r, cond)),
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts)
-          case (l: JoinTable, r: SqlTable) => JoinTable(
-            table = l.table,
-            joins = l.joins :+ Join(kind, r, cond),
-            getFields = l.getFields ++ r.getFields,
-            getSorts = l.getSorts)
           case (l: SqlTable, r: JoinTable) => JoinTable(
             table = l,
             joins = Join(kind, r.table, cond) :: r.joins,
+            getFields = l.getFields ++ r.getFields,
+            getSorts = l.getSorts)
+          case (l: SqlTable, r: UnionTable) => ???
+          case (l: JoinTable, r: SqlTable) => JoinTable(
+            table = l.table,
+            joins = l.joins :+ Join(kind, r, cond),
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts)
           case (l: JoinTable, r: JoinTable) => JoinTable(
@@ -151,6 +207,10 @@ object Table {
             joins = l.joins ++ (Join(kind, r.table, cond) :: r.joins),
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts)
+          case (l: JoinTable, r: UnionTable) => ???
+          case (l: UnionTable, r: SqlTable) => ???
+          case (l: UnionTable, r: JoinTable) => ???
+          case (l: UnionTable, r: UnionTable) => ???
         })
 
       def on(cond: U => Cond): JoinTable = on(cond(right))
