@@ -54,6 +54,8 @@ class ScalaWriter(directory: String,
        |
        |${writeScaladoc(Some(table))}
        |class $tableName private(getAlias: Option[String] = $alias) extends Table.SqlTable("${table.schema}", "${table.name}", getAlias) {
+       |  type Self = $tableName
+       |
        |${sortedFields.map(tableFieldAttr(table, _)).map("  " + _).mkString("\n")}
        |
        |  override def getFields: List[SqlField[_, $tableName]] = List(${sortedFields.map(f => idf(f.name)).mkString(", ")})

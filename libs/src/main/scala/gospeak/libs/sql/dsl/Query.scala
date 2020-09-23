@@ -10,7 +10,7 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.dsl.Exceptions.{FailedQuery, InvalidNumberOfFields, InvalidNumberOfValues}
 import gospeak.libs.sql.dsl.Extensions._
-import gospeak.libs.sql.dsl.Query.Inner.{GroupByClause, OrderByClause, WhereClause}
+import gospeak.libs.sql.dsl.Query.Inner._
 import gospeak.libs.sql.dsl.Table.Sort
 
 import scala.util.control.NonFatal
@@ -29,8 +29,8 @@ sealed trait Query[A] {
 
 object Query {
 
-  case class Insert[T <: Table.SqlTable](table: T, values: Fragment) extends Query[Unit] {
-    def fr: Fragment = const0(s"INSERT INTO ${table.getName} (${table.getFields.map(_.name).mkString(", ")}) VALUES (") ++ values ++ fr0")"
+  case class Insert[T <: Table.SqlTable](table: T, fields: List[SqlField[_, T]], values: Fragment) extends Query[Unit] {
+    def fr: Fragment = const0(s"INSERT INTO ${table.getName} (${fields.map(_.name).mkString(", ")}) VALUES (") ++ values ++ fr0")"
 
     def run(xa: doobie.Transactor[IO]): IO[Unit] =
       exec(fr, _.update.run, xa).flatMap {
@@ -41,7 +41,9 @@ object Query {
 
   object Insert {
 
-    case class Builder[T <: Table.SqlTable](private val table: T) {
+    case class Builder[T <: Table.SqlTable](private val table: T, private val fields: List[SqlField[_, T]]) {
+      def fields(fields: List[SqlField[_, T]]): Builder[T] = copy(fields = fields)
+
       def values[A: Put](a: A): Insert[T] = build(1, fr0"$a")
 
       def values[A: Put, B: Put](a: A, b: B): Insert[T] = build(2, fr0"$a, $b")
@@ -105,8 +107,8 @@ object Query {
       def values[A: Put, B: Put, C: Put, D: Put, E: Put, F: Put, G: Put, H: Put, I: Put, J: Put, K: Put, L: Put, M: Put, N: Put, O: Put, P: Put, Q: Put, R: Put, S: Put, U: Put, V: Put, W: Put, X: Put, Y: Put, Z: Put, AA: Put, AB: Put, AC: Put, AD: Put, AE: Put, AF: Put](a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L, m: M, n: N, o: O, p: P, q: Q, r: R, s: S, u: U, v: V, w: W, x: X, y: Y, z: Z, aa: AA, ab: AB, ac: AC, ad: AD, ae: AE, af: AF): Insert[T] = build(31, fr0"$a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n, $o, $p, $q, $r, $s, $u, $v, $w, $x, $y, $z, $aa, $ab, $ac, $ad, $ae, $af")
 
       private def build(size: Int, fr: Fragment): Insert[T] =
-        if (size == table.getFields.length) Insert(table, fr)
-        else throw InvalidNumberOfValues(table, size)
+        if (size == fields.length) Insert(table, fields, fr)
+        else throw InvalidNumberOfValues(table, fields, size)
     }
 
   }
@@ -166,19 +168,19 @@ object Query {
     val where: WhereClause
     val groupBy: GroupByClause
     val orderBy: OrderByClause
+    val limit: LimitClause
+    val offset: OffsetClause
 
-    def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ where.fr ++ groupBy.fr ++ orderBy.fr
+    def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ where.fr ++ groupBy.fr ++ orderBy.fr ++ limit.fr ++ offset.fr
   }
 
   object Select {
 
-    case class All[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A] with Query[List[A]] {
+    case class All[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[List[A]] {
       def run(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
     }
 
-    case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, params: Page.Params) extends Select[A] with Query[Page[A]] {
-      override def fr: Fragment = super.fr ++ fr0" LIMIT " ++ const0(params.pageSize.value.toString) ++ fr0" OFFSET " ++ const0(params.offset.value.toString)
-
+    case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause, params: Page.Params) extends Select[A] with Query[Page[A]] {
       def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
 
       def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
@@ -187,17 +189,15 @@ object Query {
       } yield Page(elts, params, Page.Total(total)), xa)
     }
 
-    case class Optional[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: Boolean) extends Select[A] with Query[Option[A]] {
-      override def fr: Fragment = super.fr ++ (if (limit) fr0" LIMIT 1" else fr0"")
-
+    case class Optional[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[Option[A]] {
       def run(xa: doobie.Transactor[IO]): IO[Option[A]] = exec(fr, _.query[A].option, xa)
     }
 
-    case class One[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A] with Query[A] {
+    case class One[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[A] {
       def run(xa: doobie.Transactor[IO]): IO[A] = exec(fr, _.query[A].unique, xa)
     }
 
-    case class Exists[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause) extends Select[A] with Query[Boolean] {
+    case class Exists[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[Boolean] {
       def run(xa: doobie.Transactor[IO]): IO[Boolean] = exec(fr, _.query[A].option.map(_.isDefined), xa)
     }
 
@@ -205,12 +205,16 @@ object Query {
                                    private val fields: List[Field[_]],
                                    private val where: WhereClause,
                                    private val groupBy: GroupByClause,
-                                   private val orderBy: OrderByClause) {
+                                   private val orderBy: OrderByClause,
+                                   private val limit: LimitClause,
+                                   private val offset: OffsetClause) {
       def fields(fields: List[Field[_]]): Builder[T] = Exceptions.check(fields, table, copy(fields = fields))
 
       def fields(fields: Field[_]*): Builder[T] = this.fields(fields.toList)
 
-      def addFields(fields: Field[_]*): Builder[T] = this.fields(this.fields ++ fields.toList)
+      def prependFields(fields: Field[_]*): Builder[T] = this.fields(fields.toList ++ this.fields)
+
+      def appendFields(fields: Field[_]*): Builder[T] = this.fields(this.fields ++ fields.toList)
 
       def dropFields(p: Field[_] => Boolean): Builder[T] = this.fields(fields.filterNot(p))
 
@@ -233,6 +237,14 @@ object Query {
 
       def orderBy(fields: Field.Order[_]*): Builder[T] = Exceptions.check(fields.map(_.field).toList, table, copy(orderBy = OrderByClause(fields.toList)))
 
+      def limit(e: Expr): Builder[T] = copy(limit = LimitClause(Some(e)))
+
+      def limit(i: Long): Builder[T] = limit(Expr.Value(i))
+
+      def offset(e: Expr): Builder[T] = copy(offset = OffsetClause(Some(e)))
+
+      def offset(i: Long): Builder[T] = offset(Expr.Value(i))
+
       def union[T2 <: Table](other: Builder[T2], alias: Option[String] = None, sorts: List[(String, String, List[String])] = List()): Table.UnionTable = {
         if (fields.length != other.fields.length) throw new Exception(s"Field number do not match (${fields.length} vs ${other.fields.length})")
         val invalidFields = fields.zip(other.fields).filter { case (f1, f2) => f1.alias.getOrElse(f1.name) != f2.alias.getOrElse(f2.name) } // TODO check also match of sql type (should be added)
@@ -250,17 +262,17 @@ object Query {
           getSorts = s)
       }
 
-      def all[A: Read]: Select.All[A] = build[A, Select.All[A]](new Select.All[A](table, fields, where, groupBy, orderBy))
+      def all[A: Read]: Select.All[A] = build[A, Select.All[A]](new Select.All[A](table, fields, where, groupBy, orderBy, limit, offset))
 
-      def page[A: Read](params: Page.Params): Select.Paginated[A] = build[A, Select.Paginated[A]](new Select.Paginated[A](table, fields, where, groupBy, orderBy, params))
+      def page[A: Read](params: Page.Params): Select.Paginated[A] = build[A, Select.Paginated[A]](new Select.Paginated[A](table, fields, where, groupBy, orderBy, LimitClause(params.pageSize.value), OffsetClause(params.offset.value), params))
 
-      def option[A: Read](limit: Boolean = false): Select.Optional[A] = build[A, Select.Optional[A]](new Select.Optional[A](table, fields, where, groupBy, orderBy, limit))
+      def option[A: Read](limit: Boolean = false): Select.Optional[A] = build[A, Select.Optional[A]](new Select.Optional[A](table, fields, where, groupBy, orderBy, if (limit) LimitClause(1) else this.limit, offset))
 
       def option[A: Read]: Select.Optional[A] = option[A]()
 
-      def one[A: Read]: Select.One[A] = build[A, Select.One[A]](new Select.One[A](table, fields, where, groupBy, orderBy))
+      def one[A: Read]: Select.One[A] = build[A, Select.One[A]](new Select.One[A](table, fields, where, groupBy, orderBy, limit, offset))
 
-      def exists[A: Read]: Select.Exists[A] = build[A, Select.Exists[A]](new Select.Exists[A](table, fields, where, groupBy, orderBy))
+      def exists[A: Read]: Select.Exists[A] = build[A, Select.Exists[A]](new Select.Exists[A](table, fields, where, groupBy, orderBy, limit, offset))
 
       private def select[A: Read]: Select[_] = {
         val that = this
@@ -270,6 +282,8 @@ object Query {
           override val where: WhereClause = that.where
           override val groupBy: GroupByClause = that.groupBy
           override val orderBy: OrderByClause = that.orderBy
+          override val limit: LimitClause = that.limit
+          override val offset: OffsetClause = that.offset
         }
       }
 
@@ -286,7 +300,7 @@ object Query {
     }
 
     case class GroupByClause(fields: List[Field[_]]) {
-      def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" GROUP BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
+      def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" GROUP BY " ++ _.map(_.ref).mkFragment(", ")).getOrElse(fr0"")
     }
 
     // HAVING
@@ -295,9 +309,27 @@ object Query {
       def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
     }
 
-    // LIMIT
+    case class LimitClause(expr: Option[Expr]) {
+      def fr: Fragment = expr.map {
+        case Expr.Value(v: Long) => fr0" LIMIT " ++ const0(v.toString)
+        case e => fr0" LIMIT " ++ e.fr
+      }.getOrElse(fr0"")
+    }
 
-    // OFFSET
+    object LimitClause {
+      def apply(v: Long): LimitClause = new LimitClause(Some(Expr.Value(v)))
+    }
+
+    case class OffsetClause(expr: Option[Expr]) {
+      def fr: Fragment = expr.map {
+        case Expr.Value(v: Long) => fr0" OFFSET " ++ const0(v.toString)
+        case e => fr0" OFFSET " ++ e.fr
+      }.getOrElse(fr0"")
+    }
+
+    object OffsetClause {
+      def apply(v: Long): OffsetClause = new OffsetClause(Some(Expr.Value(v)))
+    }
 
   }
 
