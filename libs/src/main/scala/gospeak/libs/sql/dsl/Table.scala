@@ -5,7 +5,7 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import gospeak.libs.sql.dsl.Exceptions.{ConflictingTableFields, UnknownTableFields}
-import gospeak.libs.sql.dsl.Query.Inner.{GroupByClause, OrderByClause, WhereClause}
+import gospeak.libs.sql.dsl.Query.Inner._
 import gospeak.libs.sql.dsl.Query.{Delete, Insert, Select, Update}
 import gospeak.libs.sql.dsl.Table.Inner._
 import gospeak.libs.sql.dsl.Table.{Join, JoinTable, Sort}
@@ -37,7 +37,7 @@ sealed trait Table {
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = join(ref.references.table, kind).on(ref.isOpt(ref.references))
 
   def select: Select.Builder[this.type] = {
-    val hasAggregation = getFields.exists {
+    val (aggFields, otherFields) = getFields.partition {
       case _: AggField[_] => true
       case _ => false
     }
@@ -45,8 +45,10 @@ sealed trait Table {
       table = this,
       fields = getFields,
       where = WhereClause(None),
-      groupBy = GroupByClause(if (hasAggregation) getFields.collect { case f: SqlField[_, _] => f } else List()),
-      orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List())))
+      groupBy = GroupByClause(if (aggFields.nonEmpty) otherFields else List()),
+      orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List())),
+      limit = LimitClause(None),
+      offset = OffsetClause(None))
   }
 }
 
@@ -55,12 +57,15 @@ object Table {
   abstract class SqlTable(val getSchema: String,
                           val getName: String,
                           val getAlias: Option[String]) extends Table with Dynamic {
+    type Self <: SqlTable
+    private val self: Self = this.asInstanceOf[Self]
+
     override def getFields: List[SqlField[_, SqlTable]] // to specialize return type as SqlField
 
-    override def field[A](name: String): SqlField[A, this.type] =
+    override def field[A](name: String): SqlField[A, Self] =
       getFields.filter(_.name == name) match {
         case List() => throw UnknownTableFields(this, NonEmptyList.of(TableField(name)))
-        case List(field) => field.asInstanceOf[SqlField[A, this.type]]
+        case List(field) => field.asInstanceOf[SqlField[A, Self]]
         case fields => throw ConflictingTableFields(this, name, NonEmptyList.fromListUnsafe(fields))
       }
 
@@ -71,7 +76,7 @@ object Table {
 
     override def fr: Fragment = const0(getName + getAlias.map(" " + _).getOrElse(""))
 
-    def selectDynamic[A](name: String): SqlField[A, this.type] = field[A](name)
+    def selectDynamic[A](name: String): SqlField[A, Self] = field[A](name)
 
     def dropFields(p: SqlField[_, SqlTable] => Boolean): SqlTable = {
       val that = this
@@ -86,19 +91,19 @@ object Table {
 
     def dropFields(fields: SqlField[_, SqlTable]*): SqlTable = dropFields(fields.contains(_))
 
-    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(this))
+    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(self))
 
-    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(this), kind)
+    def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(self), kind)
 
-    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRefOpt[A, T, T2]): JoinTable = joinOn(f(this))
+    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2]): JoinTable = joinOn(f(self))
 
-    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: this.type => SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(this), kind)
+    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(self), kind)
 
-    def insert: Insert.Builder[this.type] = Insert.Builder(this)
+    def insert: Insert.Builder[Self] = Insert.Builder(self, getFields.asInstanceOf[List[SqlField[_, Self]]])
 
-    def update: Update.Builder[this.type] = Update.Builder(this, List())
+    def update: Update.Builder[Self] = Update.Builder(self, List())
 
-    def delete: Delete.Builder[this.type] = Delete.Builder(this)
+    def delete: Delete.Builder[Self] = Delete.Builder(self)
 
     override def toString: String = s"SqlTable($getSchema, $getName, $getAlias, $getFields)"
   }
@@ -176,9 +181,11 @@ object Table {
   case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_]])
 
   object Sort {
-    def apply(slug: String, field: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, slug, NonEmptyList.of(field, other: _*))
+    def apply(order: Field.Order[_]): Sort = new Sort(order.field.name, order.field.name, NonEmptyList.of(order))
 
-    def apply(slug: String, label: String, field: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, label, NonEmptyList.of(field, other: _*))
+    def apply(slug: String, order: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, slug, NonEmptyList.of(order, other: _*))
+
+    def apply(slug: String, label: String, order: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, label, NonEmptyList.of(order, other: _*))
   }
 
   object Inner {

@@ -81,7 +81,7 @@ class DslSpec extends SqlSpec {
     describe("unions") {
       it("should build a union table") {
         val users = USERS.select.withFields(_.ID, _.NAME, _ => TableField[String]("'user'", alias = Some("kind")))
-        val cats = CATEGORIES.select.addFields(TableField[String]("'category'", alias = Some("kind"))).orderBy()
+        val cats = CATEGORIES.select.appendFields(TableField[String]("'category'", alias = Some("kind"))).orderBy()
         val union = users.union(cats, alias = Some("e"), sorts = List(("kind", "kind", List("-kind", "id"))))
         val res = union.select.where(_.id[Int].is(1)).all[(Int, String, String)]
         val exp = fr0"SELECT e.id, e.name, e.kind " ++
