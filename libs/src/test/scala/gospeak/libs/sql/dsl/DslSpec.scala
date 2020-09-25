@@ -27,10 +27,10 @@ class DslSpec extends SqlSpec {
       val update = USERS.update.set(_.NAME, u2.name).set(_.EMAIL, u2.email).where(_.ID is u.id)
       val delete = USERS.delete.where(_.ID is u.id)
 
-      select.fr.query.sql shouldBe "SELECT u.id, u.name, u.email FROM users u WHERE u.id=?"
-      insert.fr.query.sql shouldBe "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
-      update.fr.query.sql shouldBe "UPDATE users u SET name=?, email=? WHERE u.id=?"
-      delete.fr.query.sql shouldBe "DELETE FROM users u WHERE u.id=?"
+      select.sql shouldBe "SELECT u.id, u.name, u.email FROM users u WHERE u.id=?"
+      insert.sql shouldBe "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
+      update.sql shouldBe "UPDATE users u SET name=?, email=? WHERE u.id=?"
+      delete.sql shouldBe "DELETE FROM users u WHERE u.id=?"
 
       select.run(xa).unsafeRunSync() shouldBe None
       insert.run(xa).unsafeRunSync()
@@ -42,12 +42,12 @@ class DslSpec extends SqlSpec {
     }
     it("should add default sort on select") {
       val select = CATEGORIES.select.all[Category]
-      select.fr.query.sql shouldBe "SELECT c.id, c.name FROM categories c ORDER BY c.name IS NULL, c.name DESC, c.id IS NULL, c.id"
+      select.sql shouldBe "SELECT c.id, c.name FROM categories c ORDER BY c.name IS NULL, c.name DESC, c.id IS NULL, c.id"
     }
     describe("pagination") {
       it("should build paginated select") {
         val select = USERS.select.page[User](params)
-        select.fr.query.sql shouldBe "SELECT u.id, u.name, u.email FROM users u LIMIT 2 OFFSET 0"
+        select.sql shouldBe "SELECT u.id, u.name, u.email FROM users u LIMIT 2 OFFSET 0"
         select.countFr.query.sql shouldBe "SELECT COUNT(*) FROM (SELECT u.id FROM users u) as cnt"
 
         val userPage = select.run(xa).unsafeRunSync()
@@ -64,7 +64,7 @@ class DslSpec extends SqlSpec {
           fr0"INNER JOIN users u ON p.author=u.id " ++
           fr0"LEFT OUTER JOIN categories c ON p.category=c.id " ++
           fr0"WHERE u.id=${User.loic.id}"
-        res.fr.query.sql shouldBe exp.query.sql
+        res.sql shouldBe exp.query.sql
         res.run(xa).unsafeRunSync() shouldBe List(Post.newYear, Post.first2020)
       }
       it("should have auto joins") {
@@ -87,7 +87,7 @@ class DslSpec extends SqlSpec {
         val exp = fr0"SELECT e.id, e.name, e.kind " ++
           fr0"FROM ((SELECT u.id, u.name, 'user' as kind FROM users u) UNION (SELECT c.id, c.name, 'category' as kind FROM categories c)) e " ++
           fr0"WHERE e.id=? ORDER BY e.kind IS NULL, e.kind DESC, e.id IS NULL, e.id"
-        res.fr.query.sql shouldBe exp.query.sql
+        res.sql shouldBe exp.query.sql
         res.run(xa).unsafeRunSync() shouldBe List(
           (User.loic.id.value, User.loic.name, "user"),
           (Category.tech.id.value, Category.tech.name, "category"))

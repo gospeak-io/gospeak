@@ -18,6 +18,8 @@ sealed trait Field[A] {
 
   def fr: Fragment = value ++ const0(this.alias.map(" as " + _).getOrElse(""))
 
+  def sql: String = fr.query.sql
+
   def as(alias: String): Field[A]
 
   def is(value: A)(implicit p: Put[A]): Cond = IsValue(this, value)
@@ -119,6 +121,8 @@ class SqlFieldOpt[A, T <: Table.SqlTable](override val table: T,
 
   def isOpt[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = IsFieldLeftOpt(this, field)
 
+  def is[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = IsFieldLeftOpt(this, field)
+
   override def toString: String = s"SqlFieldOpt(${table.getName}.$name)"
 }
 
@@ -188,7 +192,7 @@ case class NullField[A](name: String) extends Field[A] {
 }
 
 case class QueryField[A](query: Query[A], alias: Option[String] = None) extends Field[A] {
-  override val name: String = "(" + query.fr.query.sql + ")"
+  override val name: String = "(" + query.sql + ")"
 
   override def ref: Fragment = alias.map(const0(_)).getOrElse(query.fr)
 
@@ -217,7 +221,7 @@ case class SimpleAggField[A](name: String, alias: Option[String]) extends AggFie
 }
 
 case class QueryAggField[A](query: Query[A], alias: Option[String]) extends AggField[A] {
-  override val name: String = "(" + query.fr.query.sql + ")"
+  override val name: String = "(" + query.sql + ")"
 
   override def ref: Fragment = alias.map(const0(_)).getOrElse(query.fr)
 

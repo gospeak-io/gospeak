@@ -35,6 +35,15 @@ VALUES (1, 'Happy new year', 'The awful year', TIMESTAMP '2019-12-31 23:59:00', 
        (2, 'First 2020 post', 'bla bla', TIMESTAMP '2020-01-01 12:00:00', 1, null),
        (3, 'SQL Queries', 'Using jOOQ and Doobie', TIMESTAMP '2020-07-18 16:32:00', 2, 1);
 
+CREATE TABLE featured
+(
+    post_id INT       NOT NULL REFERENCES posts (id),
+    by      INT       NOT NULL REFERENCES users (id),
+    start   TIMESTAMP NOT NULL,
+    stop    TIMESTAMP NOT NULL,
+    UNIQUE (post_id, by)
+);
+
 CREATE TABLE kinds
 (
     char        CHAR(4),

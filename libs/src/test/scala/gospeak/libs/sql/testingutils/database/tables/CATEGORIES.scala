@@ -20,6 +20,8 @@ class CATEGORIES private(getAlias: Option[String] = Some("c")) extends Table.Sql
 
   override def getSorts: List[Sort] = List(Sort("name", "name", NonEmptyList.of(NAME.desc, ID.asc)))
 
+  override def searchOn: List[SqlField[_, CATEGORIES]] = List(NAME)
+
   def alias(alias: String): CATEGORIES = new CATEGORIES(Some(alias))
 }
 
