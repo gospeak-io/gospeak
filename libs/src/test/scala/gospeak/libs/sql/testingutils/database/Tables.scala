@@ -9,9 +9,10 @@ import gospeak.libs.sql.dsl.Table.SqlTable
  */
 object Tables {
   val CATEGORIES: tables.CATEGORIES = tables.CATEGORIES.table
+  val FEATURED: tables.FEATURED = tables.FEATURED.table
   val KINDS: tables.KINDS = tables.KINDS.table
   val POSTS: tables.POSTS = tables.POSTS.table
   val USERS: tables.USERS = tables.USERS.table
 
-  def getTables: List[SqlTable] = List(CATEGORIES, KINDS, POSTS, USERS)
+  def getTables: List[SqlTable] = List(CATEGORIES, FEATURED, KINDS, POSTS, USERS)
 }

@@ -24,6 +24,8 @@ import scala.util.control.NonFatal
 sealed trait Query[A] {
   def fr: Fragment
 
+  def sql: String = fr.query.sql
+
   def run(xa: doobie.Transactor[IO]): IO[A]
 }
 
@@ -181,7 +183,11 @@ object Query {
     }
 
     case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause, params: Page.Params) extends Select[A] with Query[Page[A]] {
-      def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
+      override def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ whereFr ++ groupBy.fr ++ orderBy.fr ++ limit.fr ++ offset.fr
+
+      def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ whereFr ++ fr0") as cnt"
+
+      private def whereFr: Fragment = where.fr(params.search, table.searchOn)
 
       def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
         elts <- fr.query[A].to[List]
@@ -259,7 +265,8 @@ object Query {
           select2 = other.select,
           alias = alias,
           getFields = fields.map(f => TableField(f.alias.getOrElse(f.name), alias)),
-          getSorts = s)
+          getSorts = s,
+          searchOn = table.searchOn.map(f => TableField(f.alias.getOrElse(f.name), alias)))
       }
 
       def all[A: Read]: Select.All[A] = build[A, Select.All[A]](new Select.All[A](table, fields, where, groupBy, orderBy, limit, offset))
@@ -296,7 +303,19 @@ object Query {
   object Inner {
 
     case class WhereClause(cond: Option[Cond]) {
-      def fr: Fragment = cond.map(fr0" WHERE " ++ _.fr).getOrElse(fr0"")
+      def fr: Fragment = fr(None, List())
+
+      def fr(search: Option[Page.Search], searchOn: List[Field[_]]): Fragment = {
+        List(
+          cond.map(_.fr),
+          search.map(s => searchOn.map(_.ref ++ fr0" ILIKE ${s.value}").mkFragment(" OR "))
+        ).flatten match {
+          case List() => fr0""
+          case List(clause) => fr0" WHERE " ++ clause
+          case List(cond, search) => fr0" WHERE " ++ cond ++ fr0" AND (" ++ search ++ fr0")" // FIXME tmp hack to generate the same sql than before, remove it after migration
+          case clauses => fr0" WHERE " ++ clauses.map(fr0"(" ++ _ ++ fr0")").mkFragment(" AND ")
+        }
+      }
     }
 
     case class GroupByClause(fields: List[Field[_]]) {

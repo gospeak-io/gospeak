@@ -48,6 +48,7 @@ class ScalaWriter(directory: String,
     val alias = tableConf.alias.map(a => s"""Some("$a")""").getOrElse("None")
     val sorts = tableConf.sorts.map(tableSort).mkString(", ")
     val sortedFields = table.fields.zipWithIndex.map { case (f, i) => (f, config.field(f).index.getOrElse(i)) }.sortBy(_._2).map(_._1)
+    val searchFields = tableConf.search.headOption.map(_ => tableConf.search.flatMap(f => table.fields.find(_.name == f))).getOrElse(sortedFields)
     s"""package $packageName.tables
        |
        |${tableImports(table)}
@@ -61,6 +62,8 @@ class ScalaWriter(directory: String,
        |  override def getFields: List[SqlField[_, $tableName]] = List(${sortedFields.map(f => idf(f.name)).mkString(", ")})
        |
        |  override def getSorts: List[Sort] = List($sorts)
+       |
+       |  override def searchOn: List[SqlField[_, $tableName]] = List(${searchFields.map(f => idf(f.name)).mkString(", ")})
        |
        |  def alias(alias: String): $tableName = new $tableName(Some(alias))${tableAutoJoins(table)}
        |}
@@ -194,13 +197,16 @@ object ScalaWriter {
         db.schemas.find(_.name == schemaName).fold(List(s"Schema '$schemaName' declared in conf does not exist in Database")) { schema =>
           schemaConf.tables.toList.flatMap { case (tableName, tableConf) =>
             schema.tables.find(_.name == tableName).fold(List(s"Table '$schemaName.$tableName' declared in conf does not exist in Database")) { table =>
-              val missingSorts = tableConf.sorts.flatMap(sort => sort.fields.map(_.name).toList.flatMap(fieldName =>
-                table.fields.find(_.name == fieldName).fold(List(s"Field '$fieldName' in sort '${sort.label}' of table '$schemaName.$tableName' does not exist in Database"))(_ => List())
-              ))
               val missingFields = tableConf.fields.toList.flatMap { case (fieldName, _) =>
                 table.fields.find(_.name == fieldName).fold(List(s"Field '$schemaName.$tableName.$fieldName' declared in conf does not exist in Database"))(_ => List())
               }
-              missingSorts ++ missingFields
+              val missingSorts = tableConf.sorts.flatMap(sort => sort.fields.map(_.name).toList.flatMap(fieldName =>
+                table.fields.find(_.name == fieldName).fold(List(s"Field '$fieldName' in sort '${sort.label}' of table '$schemaName.$tableName' does not exist in Database"))(_ => List())
+              ))
+              val missingSearch = tableConf.search.flatMap(fieldName =>
+                table.fields.find(_.name == fieldName).fold(List(s"Field '$fieldName' in search of table '$schemaName.$tableName' does not exist in Database"))(_ => List())
+              )
+              missingFields ++ missingSorts ++ missingSearch
             }
           }
         }
@@ -212,6 +218,7 @@ object ScalaWriter {
 
   case class TableConfig(alias: Option[String] = None, // table alias, should be unique
                          sorts: List[TableConfig.Sort] = List(), // available sorts for the table, first one is the default one
+                         search: List[String] = List(), // fields to use on search, if not specified, all fields will be used
                          fields: Map[String, FieldConfig] = Map())
 
   object TableConfig {
@@ -220,11 +227,17 @@ object ScalaWriter {
 
     def apply(alias: String, sort: TableConfig.Sort): TableConfig = new TableConfig(Some(alias), List(sort))
 
-    def apply(alias: String, fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(), fields)
+    def apply(alias: String, sort: TableConfig.Sort, search: List[String]): TableConfig = new TableConfig(Some(alias), List(sort), search)
 
-    def apply(alias: String, sort: String, fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(TableConfig.Sort(sort)), fields)
+    def apply(alias: String, fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(), List(), fields)
 
-    def apply(alias: String, sort: TableConfig.Sort, fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(sort), fields)
+    def apply(alias: String, sort: String, fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(TableConfig.Sort(sort)), List(), fields)
+
+    def apply(alias: String, sort: String, search: List[String], fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(TableConfig.Sort(sort)), search, fields)
+
+    def apply(alias: String, sort: TableConfig.Sort, fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(sort), List(), fields)
+
+    def apply(alias: String, sort: TableConfig.Sort, search: List[String], fields: Map[String, FieldConfig]): TableConfig = new TableConfig(Some(alias), List(sort), search, fields)
 
     case class Sort(slug: String, label: String, fields: NonEmptyList[Sort.Field])
 

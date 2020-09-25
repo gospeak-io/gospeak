@@ -25,6 +25,8 @@ class POSTS private(getAlias: Option[String] = Some("p")) extends Table.SqlTable
 
   override def getSorts: List[Sort] = List()
 
+  override def searchOn: List[SqlField[_, POSTS]] = List(ID, TITLE, TEXT, DATE, AUTHOR, CATEGORY)
+
   def alias(alias: String): POSTS = new POSTS(Some(alias))
 
   def AUTHORJoin: Table.JoinTable = join(USERS.table).on(_.AUTHOR is _.ID)
