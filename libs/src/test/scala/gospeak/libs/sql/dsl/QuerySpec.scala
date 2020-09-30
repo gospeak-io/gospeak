@@ -35,15 +35,31 @@ class QuerySpec extends BaseSpec {
             USERS.select.where(_.ID lt User.Id(10)).page[User](p).sql shouldBe
               "SELECT u.id, u.name, u.email FROM users u WHERE u.id < ? LIMIT 20 OFFSET 0"
             USERS.select.where(_.ID lt User.Id(10)).page[User](p.copy(search = Some(Page.Search("q")))).sql shouldBe
-              "SELECT u.id, u.name, u.email FROM users u WHERE (u.id < ?) AND (u.id ILIKE ? OR u.name ILIKE ? OR u.email ILIKE ?) LIMIT 20 OFFSET 0"
+              "SELECT u.id, u.name, u.email FROM users u WHERE u.id < ? AND (u.id ILIKE ? OR u.name ILIKE ? OR u.email ILIKE ?) LIMIT 20 OFFSET 0"
           }
           it("should search on fields specified on table") {
             CATEGORIES.select.orderBy().page[Category](p.copy(search = Some(Page.Search("q")))).sql shouldBe
               "SELECT c.id, c.name FROM categories c WHERE c.name ILIKE ? LIMIT 20 OFFSET 0"
           }
         }
-        it("should handle custom order") {
-          USERS.select.page[User](p.copy(orderBy = Some(Page.OrderBy("q")))).sql shouldBe ""
+        describe("order") {
+          it("should handle custom order") {
+            USERS.select.page[User](p).sql shouldBe
+              "SELECT u.id, u.name, u.email FROM users u LIMIT 20 OFFSET 0"
+            USERS.select.page[User](p.copy(orderBy = Some(Page.OrderBy("name", "-id")))).sql shouldBe
+              "SELECT u.id, u.name, u.email FROM users u ORDER BY u.name IS NULL, u.name, u.id IS NULL, u.id DESC LIMIT 20 OFFSET 0"
+          }
+          it("should use table orders when exists") {
+            val users = USERS.addSort(Table.Sort("test", USERS.NAME.asc, USERS.ID.desc))
+            users.select.page[User](p.copy(orderBy = Some(Page.OrderBy("test")))).sql shouldBe
+              "SELECT u.id, u.name, u.email FROM users u ORDER BY u.name IS NULL, u.name, u.id IS NULL, u.id DESC LIMIT 20 OFFSET 0"
+            users.select.page[User](p.copy(orderBy = Some(Page.OrderBy("-test")))).sql shouldBe
+              "SELECT u.id, u.name, u.email FROM users u ORDER BY u.name IS NULL, u.name DESC, u.id IS NULL, u.id LIMIT 20 OFFSET 0"
+          }
+          it("should ignore invalid orders") {
+            USERS.select.page[User](p.copy(orderBy = Some(Page.OrderBy("name", "toto")))).sql shouldBe
+              "SELECT u.id, u.name, u.email FROM users u ORDER BY u.name IS NULL, u.name LIMIT 20 OFFSET 0"
+          }
         }
         it("should handle custom filters") {
           USERS.select.page[User](p.copy(filters = Map())).sql shouldBe ""

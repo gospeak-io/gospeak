@@ -26,10 +26,6 @@ class FEATURED private(getAlias: Option[String] = None) extends Table.SqlTable("
   override def searchOn: List[SqlField[_, FEATURED]] = List(POST_ID, BY, START, STOP)
 
   def alias(alias: String): FEATURED = new FEATURED(Some(alias))
-
-  def POST_IDJoin: Table.JoinTable = join(POSTS.table).on(_.POST_ID is _.ID)
-
-  def BYJoin: Table.JoinTable = join(USERS.table).on(_.BY is _.ID)
 }
 
 private[database] object FEATURED {

@@ -70,6 +70,8 @@ object Field {
   def apply[A](query: Query[A], alias: String): QueryField[A] = QueryField(query, Some(alias))
 
   case class Order[A](field: Field[A], asc: Boolean, expr: Option[String]) {
+    def reverse: Order[A] = copy(asc = !asc)
+
     def fr: Fragment = {
       val value = expr.map(e => const0(e.replaceFirst("\\?", field.value.query.sql))).getOrElse(field.value)
       value ++ fr0" IS NULL, " ++ value ++ (if (asc) fr0"" else fr0" DESC")
@@ -77,6 +79,8 @@ object Field {
   }
 
   object Order {
+    def apply[A](field: Field[A], asc: Boolean): Order[A] = new Order(field, asc, None)
+
     def apply[A](field: String, alias: Option[String] = None): Order[A] =
       new Order(TableField(field.stripPrefix("-"), alias), !field.startsWith("-"), expr = None)
   }

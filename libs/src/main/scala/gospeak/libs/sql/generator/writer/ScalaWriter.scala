@@ -65,7 +65,7 @@ class ScalaWriter(directory: String,
        |
        |  override def searchOn: List[SqlField[_, $tableName]] = List(${searchFields.map(f => idf(f.name)).mkString(", ")})
        |
-       |  def alias(alias: String): $tableName = new $tableName(Some(alias))${tableAutoJoins(table)}
+       |  def alias(alias: String): $tableName = new $tableName(Some(alias))
        |}
        |
        |private[${packageName.split('.').last}] object $tableName {
@@ -125,11 +125,6 @@ class ScalaWriter(directory: String,
 
     s"""Sort("${s.slug}", "${s.label}", NonEmptyList.of(${s.fields.map(fieldOrder).toList.mkString(", ")}))"""
   }
-
-  protected def tableAutoJoins(table: Table): String =
-    table.fields.filter(_.ref.isDefined)
-      .map(f => s"\n\n  def ${idf(f.name)}Join: Table.JoinTable = join(${idf(f.ref.get.table)}.table).on(_.${idf(f.name)} is${if (f.nullable) "Opt" else ""} _.${idf(f.ref.get.field)})")
-      .mkString
 
   /*
    * Utils functions
