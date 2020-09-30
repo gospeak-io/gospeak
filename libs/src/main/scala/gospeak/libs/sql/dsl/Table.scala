@@ -101,6 +101,20 @@ object Table {
 
     def dropFields(fields: SqlField[_, SqlTable]*): SqlTable = dropFields(fields.contains(_))
 
+    def sorts(getSorts: List[Sort]): SqlTable = {
+      val that = this
+      val s = getSorts
+      new SqlTable(getSchema, getName, getAlias) {
+        override def getFields: List[SqlField[_, SqlTable]] = that.getFields
+
+        override def searchOn: List[SqlField[_, SqlTable]] = that.searchOn
+
+        override def getSorts: List[Sort] = s
+      }
+    }
+
+    def addSort(s: Sort): SqlTable = sorts(getSorts :+ s)
+
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(self))
 
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(self), kind)

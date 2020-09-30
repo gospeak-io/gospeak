@@ -12,6 +12,7 @@ import gospeak.libs.sql.dsl.Exceptions.{FailedQuery, InvalidNumberOfFields, Inva
 import gospeak.libs.sql.dsl.Extensions._
 import gospeak.libs.sql.dsl.Query.Inner._
 import gospeak.libs.sql.dsl.Table.Sort
+import gospeak.libs.sql.dsl.Field.Order
 
 import scala.util.control.NonFatal
 
@@ -183,11 +184,13 @@ object Query {
     }
 
     case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause, params: Page.Params) extends Select[A] with Query[Page[A]] {
-      override def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ whereFr ++ groupBy.fr ++ orderBy.fr ++ limit.fr ++ offset.fr
+      override def fr: Fragment = fr0"SELECT " ++ fields.map(_.fr).mkFragment(", ") ++ fr0" FROM " ++ table.fr ++ whereFr ++ groupBy.fr ++ orderByFr ++ limit.fr ++ offset.fr
 
       def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ whereFr ++ fr0") as cnt"
 
       private def whereFr: Fragment = where.fr(params.search, table.searchOn)
+
+      private def orderByFr: Fragment = orderBy.fr(params.orderBy, table.getSorts, table.getFields)
 
       def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
         elts <- fr.query[A].to[List]
@@ -251,22 +254,28 @@ object Query {
 
       def offset(i: Long): Builder[T] = offset(Expr.Value(i))
 
-      def union[T2 <: Table](other: Builder[T2], alias: Option[String] = None, sorts: List[(String, String, List[String])] = List()): Table.UnionTable = {
+      def union[T2 <: Table](other: Builder[T2], alias: Option[String] = None, sorts: List[(String, String, List[String])] = List(), search: List[String] = List()): Table.UnionTable = {
         if (fields.length != other.fields.length) throw new Exception(s"Field number do not match (${fields.length} vs ${other.fields.length})")
         val invalidFields = fields.zip(other.fields).filter { case (f1, f2) => f1.alias.getOrElse(f1.name) != f2.alias.getOrElse(f2.name) } // TODO check also match of sql type (should be added)
         if (invalidFields.nonEmpty) throw new Exception(s"Some fields do not match: ${invalidFields.map { case (f1, f2) => f1.name + " != " + f2.name }.mkString(", ")}")
 
-        val (invalidSorts, validSorts) = sorts.partition(s => s._3.isEmpty || s._3.exists(name => !fields.exists(f => f.alias.getOrElse(f.name) == name.stripPrefix("-"))))
+        val getFields = fields.map(f => TableField(f.alias.getOrElse(f.name), alias))
+
+        val (invalidSorts, validSorts) = sorts.partition(s => s._3.isEmpty || s._3.exists(name => !getFields.exists(_.name == name.stripPrefix("-"))))
         if (invalidSorts.nonEmpty) throw new Exception(s"Sorts ${invalidSorts.map(_._1).mkString(", ")} can't have empty list")
-        val s = validSorts.map { case (slug, label, fields) => Sort(slug, label, NonEmptyList.fromListUnsafe(fields).map(name => Field.Order(name, alias))) }
+        val getSorts = validSorts.map { case (slug, label, fields) => Sort(slug, label, NonEmptyList.fromListUnsafe(fields).map(name => Field.Order(name, alias))) }
+
+        val (validSearch, invalidSearch) = search.partition(s => getFields.exists(_.name == s))
+        if (invalidSearch.nonEmpty) throw new Exception(s"Search fields ${invalidSearch.mkString(", ")} does not exists in table ${table.sql}")
+        val searchOn = validSearch.flatMap(s => getFields.find(_.name == s))
 
         Table.UnionTable(
           select1 = this.select,
           select2 = other.select,
           alias = alias,
-          getFields = fields.map(f => TableField(f.alias.getOrElse(f.name), alias)),
-          getSorts = s,
-          searchOn = table.searchOn.map(f => TableField(f.alias.getOrElse(f.name), alias)))
+          getFields = getFields,
+          getSorts = getSorts,
+          searchOn = searchOn)
       }
 
       def all[A: Read]: Select.All[A] = build[A, Select.All[A]](new Select.All[A](table, fields, where, groupBy, orderBy, limit, offset))
@@ -308,7 +317,7 @@ object Query {
       def fr(search: Option[Page.Search], searchOn: List[Field[_]]): Fragment = {
         List(
           cond.map(_.fr),
-          search.map(s => searchOn.map(_.ref ++ fr0" ILIKE ${s.value}").mkFragment(" OR "))
+          search.filter(_ => searchOn.nonEmpty).map(s => searchOn.map(_.ref ++ fr0" ILIKE ${s.value}").mkFragment(" OR "))
         ).flatten match {
           case List() => fr0""
           case List(clause) => fr0" WHERE " ++ clause
@@ -325,7 +334,23 @@ object Query {
     // HAVING
 
     case class OrderByClause(fields: List[Field.Order[_]]) {
-      def fr: Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
+      def fr: Fragment = fr(None, List(), List())
+
+      def fr(orderBy: Option[Page.OrderBy], sorts: List[Sort], fields: List[Field[_]]): Fragment = {
+        orderBy.map { orders =>
+          build(orders.values.toList.flatMap { order =>
+            val name = order.stripPrefix("-")
+            val asc = !order.startsWith("-")
+            sorts.find(_.slug == name).map { sort =>
+              sort.fields.map(o => if (asc) o else o.reverse).toList
+            }.getOrElse {
+              fields.find(_.name == name).map(Order(_, asc)).toList
+            }
+          })
+        }.getOrElse(build(this.fields))
+      }
+
+      private def build(fields: List[Field.Order[_]]): Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
     }
 
     case class LimitClause(expr: Option[Expr]) {
