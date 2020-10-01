@@ -27,6 +27,8 @@ class POSTS private(getAlias: Option[String] = Some("p")) extends Table.SqlTable
 
   override def searchOn: List[SqlField[_, POSTS]] = List(ID, TITLE, TEXT, DATE, AUTHOR, CATEGORY)
 
+  override def getFilters: List[Filter] = List()
+
   def alias(alias: String): POSTS = new POSTS(Some(alias))
 }
 

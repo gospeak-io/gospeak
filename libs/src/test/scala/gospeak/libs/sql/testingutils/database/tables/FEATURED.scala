@@ -25,6 +25,8 @@ class FEATURED private(getAlias: Option[String] = None) extends Table.SqlTable("
 
   override def searchOn: List[SqlField[_, FEATURED]] = List(POST_ID, BY, START, STOP)
 
+  override def getFilters: List[Filter] = List()
+
   def alias(alias: String): FEATURED = new FEATURED(Some(alias))
 }
 

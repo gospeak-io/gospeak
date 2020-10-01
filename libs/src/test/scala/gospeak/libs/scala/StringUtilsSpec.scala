@@ -27,6 +27,18 @@ class StringUtilsSpec extends BaseSpec {
         slugify("HumanTalks + Paris") shouldBe "humantalks-paris"
       }
     }
+    describe("identicalPrefix") {
+      it("should compute length of identical prefix") {
+        identicalPrefix("Hello Lou", "Hello Tom") shouldBe 6
+        identicalPrefix("1 jambon", "2 jambon") shouldBe 0
+      }
+    }
+    describe("identicalSuffix") {
+      it("should compute length of identical suffix") {
+        identicalSuffix("1 jambon", "2 jambon") shouldBe 7
+        identicalSuffix("Hello Lou", "Hello Tom") shouldBe 0
+      }
+    }
     describe("stripIdenticalPrefix") {
       it("should remove the identical prefix") {
         val res = stripIdenticalPrefix("Hello Lou", "Hello Tom")

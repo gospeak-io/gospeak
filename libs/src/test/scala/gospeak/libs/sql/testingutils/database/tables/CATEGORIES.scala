@@ -22,6 +22,8 @@ class CATEGORIES private(getAlias: Option[String] = Some("c")) extends Table.Sql
 
   override def searchOn: List[SqlField[_, CATEGORIES]] = List(NAME)
 
+  override def getFilters: List[Filter] = List()
+
   def alias(alias: String): CATEGORIES = new CATEGORIES(Some(alias))
 }
 

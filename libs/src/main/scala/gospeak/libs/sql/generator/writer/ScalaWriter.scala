@@ -65,6 +65,8 @@ class ScalaWriter(directory: String,
        |
        |  override def searchOn: List[SqlField[_, $tableName]] = List(${searchFields.map(f => idf(f.name)).mkString(", ")})
        |
+       |  override def getFilters: List[Filter] = List()
+       |
        |  def alias(alias: String): $tableName = new $tableName(Some(alias))
        |}
        |

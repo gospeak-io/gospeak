@@ -82,6 +82,8 @@ final case class Table(name: String,
 
   def setSorts(first: Table.Sort, others: Table.Sort*): Table = copy(sorts = Table.Sorts(first, others: _*))
 
+  def filters(f: Table.Filter*): Table = copy(filters = f.toList)
+
   def insert[A](elt: A, build: A => Fragment): Query.Insert[A] = Query.Insert[A](name, fields, elt, build)
 
   def insertPartial[A](fields: List[Field], elt: A, build: A => Fragment): Query.Insert[A] = Query.Insert[A](name, fields, elt, build)
@@ -208,16 +210,18 @@ object Table {
 
     object Bool {
       def fromNullable(key: String, label: String, field: String, aggregation: Boolean = false): Bool =
-        new Bool(key, label, aggregation, onTrue = _ => const0(s"$field IS NOT NULL"), onFalse = _ => const0(s"$field IS NULL"))
+        new Bool(key, label, aggregation, onTrue = _ => const0(s"($field IS NOT NULL)"), onFalse = _ => const0(s"($field IS NULL)"))
 
       def fromCount(key: String, label: String, field: String): Bool =
         fromCountExpr(key, label, s"COALESCE(COUNT(DISTINCT $field), 0)")
 
       def fromCountExpr(key: String, label: String, expression: String): Bool =
-        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"$expression > 0"), onFalse = _ => const0(s"$expression = 0"))
+        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"($expression > ") ++ fr0"${0})", onFalse = _ => const0(s"($expression = ") ++ fr0"${0})")
 
       def fromNow(key: String, label: String, startField: String, endField: String, aggregation: Boolean = false): Bool =
-        new Filter.Bool(key, label, aggregation, onTrue = ctx => const0(startField) ++ fr0" < ${ctx.now} AND ${ctx.now} < " ++ const0(endField), onFalse = ctx => fr0"${ctx.now}" ++ const0(s" < $startField OR $endField < ") ++ fr0"${ctx.now}")
+        new Filter.Bool(key, label, aggregation,
+          onTrue = ctx => fr0"(" ++ const0(startField) ++ fr0" < ${ctx.now} AND " ++ const0(endField) ++ fr0" > ${ctx.now})",
+          onFalse = ctx => fr0"(" ++ const0(startField) ++ fr0" > ${ctx.now} OR " ++ const0(endField) ++ fr0" < ${ctx.now})")
     }
 
     final case class Enum(key: String, label: String, aggregation: Boolean, values: List[(String, DbCtx => Fragment)]) extends Filter {
@@ -226,7 +230,7 @@ object Table {
 
     object Enum {
       def fromEnum(key: String, label: String, field: String, values: List[(String, String)], aggregation: Boolean = false): Enum =
-        new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: DbCtx) => const0(s"$field='$fieldValue'")) })
+        new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: DbCtx) => const0(s"$field=") ++ fr0"$fieldValue") })
     }
 
     final case class Value(key: String, label: String, aggregation: Boolean, f: String => Fragment) extends Filter {
@@ -235,12 +239,12 @@ object Table {
 
     object Value {
       def fromField(key: String, label: String, field: String, aggregation: Boolean = false): Value =
-        new Value(key, label, aggregation, v => v.toLowerCase
+        new Value(key, label, aggregation, v => fr0"(" ++ v.toLowerCase
           .split(",")
           .map(_.trim)
           .filter(_.nonEmpty)
           .map(f => const0(s"LOWER($field) LIKE ") ++ fr0"${"%" + f + "%"}")
-          .reduce((acc, cur) => acc ++ fr0" AND " ++ cur))
+          .reduce((acc, cur) => acc ++ fr0" AND " ++ cur) ++ fr0")")
     }
 
   }

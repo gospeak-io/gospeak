@@ -54,10 +54,20 @@ object Extensions {
     def toNelUnsafe: NonEmptyList[A] = NonEmptyList.fromListUnsafe(in.toList)
   }
 
+  implicit class NonEmptyListExtension[A](val in: NonEmptyList[A]) extends AnyVal {
+    def mk(concat: (A, A) => A): A = in.tail.foldLeft(in.head)(concat)
+  }
+
   implicit class TraversableOnceExtension[A, M[X] <: TraversableOnce[X]](val in: M[A]) extends AnyVal {
     def toNel: Either[CustomException, NonEmptyList[A]] = NonEmptyList.fromList(in.toList).toEither(CustomException("List should not be empty"))
 
     def toNelUnsafe: NonEmptyList[A] = NonEmptyList.fromListUnsafe(in.toList)
+
+    def mk(concat: (A, A) => A): Option[A] = in.toList match {
+      case Nil => None
+      case head :: Nil => Some(head)
+      case head :: tail => Some(tail.foldLeft(head)(concat))
+    }
 
     def one: Either[Int, A] = in.toList match {
       case head :: Nil => Right(head)

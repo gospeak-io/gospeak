@@ -30,6 +30,8 @@ class KINDS private(getAlias: Option[String] = None) extends Table.SqlTable("PUB
 
   override def searchOn: List[SqlField[_, KINDS]] = List(CHAR, VARCHAR, TIMESTAMP, DATE, BOOLEAN, INT, BIGINT, DOUBLE, A_LONG_NAME)
 
+  override def getFilters: List[Filter] = List()
+
   def alias(alias: String): KINDS = new KINDS(Some(alias))
 }
 

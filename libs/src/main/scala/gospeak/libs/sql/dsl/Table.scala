@@ -1,7 +1,10 @@
 package gospeak.libs.sql.dsl
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
 import doobie.implicits._
+import doobie.util.Put
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
 import gospeak.libs.sql.dsl.Exceptions.{ConflictingTableFields, NotImplementedJoin, UnknownTableFields}
@@ -19,6 +22,8 @@ sealed trait Table {
 
   def searchOn: List[Field[_]]
 
+  def getFilters: List[Table.Filter]
+
   def field[A](name: String): Field[A]
 
   def has(f: Field[_]): Boolean
@@ -33,12 +38,12 @@ sealed trait Table {
   def join[T <: Table](table: T): JoinClause[this.type, T] = join(table, _.Inner)
 
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable =
-    if (has(ref)) join(ref.references.table, kind).on(ref.is(ref.references)) else join(ref.table, kind).on(ref.references.is(ref))
+    if (has(ref)) join(ref.references.table, kind).on(ref is ref.references) else join(ref.table, kind).on(ref.references is ref)
 
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2]): JoinTable = joinOn(ref, _.Inner)
 
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable =
-    if (has(ref)) join(ref.references.table, kind).on(ref.isOpt(ref.references)) else join(ref.table, kind).on(ref.references.is(ref))
+    if (has(ref)) join(ref.references.table, kind).on(ref is ref.references) else join(ref.table, kind).on(ref.references is ref)
 
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2]): JoinTable = joinOn(ref, _.LeftOuter)
 
@@ -50,9 +55,10 @@ sealed trait Table {
     Select.Builder(
       table = this,
       fields = getFields,
-      where = WhereClause(None),
+      where = WhereClause(None, None, None),
       groupBy = GroupByClause(if (aggFields.nonEmpty) otherFields else List()),
-      orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List())),
+      having = HavingClause(None, None),
+      orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List()), None),
       limit = LimitClause(None),
       offset = OffsetClause(None))
   }
@@ -89,11 +95,15 @@ object Table {
     def dropFields(p: SqlField[_, SqlTable] => Boolean): SqlTable = {
       val that = this
       new SqlTable(getSchema, getName, getAlias) {
+        override type Self = that.Self
+
         override def getFields: List[SqlField[_, SqlTable]] = that.getFields.filterNot(p)
 
-        override def searchOn: List[SqlField[_, SqlTable]] = that.searchOn
+        override def searchOn: List[SqlField[_, SqlTable]] = that.searchOn.filterNot(p)
 
         override def getSorts: List[Sort] = that.getSorts
+
+        override def getFilters: List[Filter] = that.getFilters
       }
     }
 
@@ -101,27 +111,47 @@ object Table {
 
     def dropFields(fields: SqlField[_, SqlTable]*): SqlTable = dropFields(fields.contains(_))
 
-    def sorts(getSorts: List[Sort]): SqlTable = {
+    def sorts(s: List[Sort]): SqlTable = {
       val that = this
-      val s = getSorts
       new SqlTable(getSchema, getName, getAlias) {
+        override type Self = that.Self
+
         override def getFields: List[SqlField[_, SqlTable]] = that.getFields
 
         override def searchOn: List[SqlField[_, SqlTable]] = that.searchOn
 
         override def getSorts: List[Sort] = s
+
+        override def getFilters: List[Filter] = that.getFilters
       }
     }
 
     def addSort(s: Sort): SqlTable = sorts(getSorts :+ s)
 
+    def filters(f: List[Filter]): SqlTable = {
+      val that = this
+      new SqlTable(getSchema, getName, getAlias) {
+        override type Self = that.Self
+
+        override def getFields: List[SqlField[_, SqlTable]] = that.getFields
+
+        override def searchOn: List[SqlField[_, SqlTable]] = that.searchOn
+
+        override def getSorts: List[Sort] = that.getSorts
+
+        override def getFilters: List[Filter] = f
+      }
+    }
+
+    def filters(f: Filter*): SqlTable = filters(f.toList)
+
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(self))
 
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(self), kind)
 
-    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2]): JoinTable = joinOn(f(self))
+    def joinOn[A, B, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2])(implicit ev: B =:= Option[A]): JoinTable = joinOn(f(self))
 
-    def joinOnOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(self), kind)
+    def joinOn[A, B, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind)(implicit ev: B =:= Option[A]): JoinTable = joinOn(f(self), kind)
 
     def insert: Insert.Builder[Self] = Insert.Builder(self, getFields.asInstanceOf[List[SqlField[_, Self]]])
 
@@ -136,7 +166,8 @@ object Table {
                        joins: List[Join[Table.SqlTable]],
                        getFields: List[Field[_]],
                        getSorts: List[Sort],
-                       searchOn: List[Field[_]]) extends Table with Dynamic {
+                       searchOn: List[Field[_]],
+                       getFilters: List[Filter]) extends Table with Dynamic {
     override def field[A](name: String): SqlField[A, SqlTable] =
       (table :: joins.map(_.table)).flatMap(_.getFields).filter(_.name == name) match {
         case List() => throw UnknownTableFields(this, NonEmptyList.of(TableField(name)))
@@ -156,11 +187,17 @@ object Table {
 
     def addFields(fields: Field[_]*): JoinTable = this.fields(this.getFields ++ fields.toList)
 
-    def dropFields(p: Field[_] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p))
+    def dropFields(p: Field[_] => Boolean): JoinTable = copy(getFields = getFields.filterNot(p), searchOn = searchOn.filterNot(p))
 
     def dropFields(fields: List[Field[_]]): JoinTable = dropFields(fields.contains(_))
 
     def dropFields(fields: Field[_]*): JoinTable = dropFields(fields.contains(_))
+
+    def sorts(s: Sort*): JoinTable = copy(getSorts = s.toList)
+
+    def filters(f: List[Filter]): JoinTable = copy(getFilters = f)
+
+    def filters(f: Filter*): JoinTable = filters(f.toList)
   }
 
   case class UnionTable(select1: Select[_],
@@ -168,7 +205,8 @@ object Table {
                         alias: Option[String],
                         getFields: List[TableField[_]],
                         getSorts: List[Sort],
-                        searchOn: List[TableField[_]]) extends Table with Dynamic {
+                        searchOn: List[TableField[_]],
+                        getFilters: List[Filter]) extends Table with Dynamic {
     override def field[A](name: String): TableField[A] =
       getFields.filter(_.name == name) match {
         case List() => throw UnknownTableFields(this, NonEmptyList.of(TableField(name)))
@@ -184,6 +222,10 @@ object Table {
     override def fr: Fragment = fr0"((" ++ select1.fr ++ fr0") UNION (" ++ select2.fr ++ fr0"))" ++ const0(alias.map(" " + _).getOrElse(""))
 
     def selectDynamic[A](name: String): TableField[A] = field[A](name)
+
+    def filters(f: List[Filter]): UnionTable = copy(getFilters = f)
+
+    def filters(f: Filter*): UnionTable = filters(f.toList)
   }
 
   case class Join[+T <: Table.SqlTable](kind: Join.Kind, table: T, on: Cond) {
@@ -214,6 +256,60 @@ object Table {
     def apply(slug: String, label: String, order: Field.Order[_], other: Field.Order[_]*): Sort = new Sort(slug, label, NonEmptyList.of(order, other: _*))
   }
 
+  sealed trait Filter {
+    val key: String
+    val label: String
+    val aggregation: Boolean
+
+    def filter(value: String)(implicit ctx: Query.Ctx): Option[Cond]
+  }
+
+  object Filter {
+
+    final case class Bool(key: String, label: String, aggregation: Boolean, onTrue: Query.Ctx => Cond, onFalse: Query.Ctx => Cond) extends Filter {
+      override def filter(value: String)(implicit ctx: Query.Ctx): Option[Cond] = value match {
+        case "true" => Some(onTrue(ctx))
+        case "false" => Some(onFalse(ctx))
+        case _ => None
+      }
+    }
+
+    object Bool {
+      def fromNullable(key: String, label: String, field: Field[_], aggregation: Boolean = false): Bool =
+        new Bool(key, label, aggregation, onTrue = _ => field.notNull, onFalse = _ => field.isNull)
+
+      def fromCount(key: String, label: String, field: Field[_]): Bool =
+        fromCountExpr(key, label, AggField(s"COALESCE(COUNT(DISTINCT ${field.sql}), 0)"))
+
+      def fromCountExpr(key: String, label: String, field: Field[_]): Bool =
+        new Bool(key, label, aggregation = true, onTrue = _ => field.asInstanceOf[Field[Long]].gt(0), onFalse = _ => field.asInstanceOf[Field[Long]].is(0))
+
+      def fromNow(key: String, label: String, startField: Field[_], endField: Field[_], aggregation: Boolean = false)(implicit i: Put[Instant]): Bool =
+        new Filter.Bool(key, label, aggregation,
+          onTrue = ctx => startField.asInstanceOf[Field[Instant]].lt(ctx.now) and endField.asInstanceOf[Field[Instant]].gt(ctx.now),
+          onFalse = ctx => startField.asInstanceOf[Field[Instant]].gt(ctx.now) or endField.asInstanceOf[Field[Instant]].lt(ctx.now))
+    }
+
+    final case class Enum(key: String, label: String, aggregation: Boolean, values: List[(String, Query.Ctx => Cond)]) extends Filter {
+      override def filter(value: String)(implicit ctx: Query.Ctx): Option[Cond] = values.find(_._1 == value).map(_._2(ctx))
+    }
+
+    object Enum {
+      def fromValues[A: Put](key: String, label: String, field: Field[A], values: List[(String, A)], aggregation: Boolean = false): Enum =
+        new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: Query.Ctx) => field.is(fieldValue)) })
+    }
+
+    final case class Value(key: String, label: String, aggregation: Boolean, f: String => Cond) extends Filter {
+      override def filter(value: String)(implicit ctx: Query.Ctx): Option[Cond] = Some(f(value))
+    }
+
+    object Value {
+      def fromField(key: String, label: String, field: Field[_], aggregation: Boolean = false): Value =
+        new Value(key, label, aggregation, _.toLowerCase.split(",").map(_.trim).filter(_.nonEmpty).map(v => field.ilike("%" + v + "%")).reduce(_ and _))
+    }
+
+  }
+
   object Inner {
 
     case class JoinClause[T <: Table, U <: Table](left: T, kind: Join.Kind, right: U) {
@@ -224,26 +320,30 @@ object Table {
             joins = List(Join(kind, r, cond)),
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts,
-            searchOn = l.searchOn ++ r.searchOn)
+            searchOn = l.searchOn ++ r.searchOn,
+            getFilters = l.getFilters ++ r.getFilters)
           case (l: SqlTable, r: JoinTable) => JoinTable(
             table = l,
             joins = Join(kind, r.table, cond) :: r.joins,
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts,
-            searchOn = l.searchOn ++ r.searchOn)
+            searchOn = l.searchOn ++ r.searchOn,
+            getFilters = l.getFilters ++ r.getFilters)
           case (l: SqlTable, r: UnionTable) => throw NotImplementedJoin(l, r)
           case (l: JoinTable, r: SqlTable) => JoinTable(
             table = l.table,
             joins = l.joins :+ Join(kind, r, cond),
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts,
-            searchOn = l.searchOn ++ r.searchOn)
+            searchOn = l.searchOn ++ r.searchOn,
+            getFilters = l.getFilters ++ r.getFilters)
           case (l: JoinTable, r: JoinTable) => JoinTable(
             table = l.table,
             joins = l.joins ++ (Join(kind, r.table, cond) :: r.joins),
             getFields = l.getFields ++ r.getFields,
             getSorts = l.getSorts,
-            searchOn = l.searchOn ++ r.searchOn)
+            searchOn = l.searchOn ++ r.searchOn,
+            getFilters = l.getFilters ++ r.getFilters)
           case (l: JoinTable, r: UnionTable) => throw NotImplementedJoin(l, r)
           case (l: UnionTable, r: SqlTable) => throw NotImplementedJoin(l, r)
           case (l: UnionTable, r: JoinTable) => throw NotImplementedJoin(l, r)
