@@ -17,9 +17,9 @@ final case class Page[+A](items: List[A], params: Page.Params, total: Page.Total
 
   def isLast: Boolean = params.offsetEnd >= total.value
 
-  def previous: Page.Params = params.copy(page = Page.No(math.max(params.page.value - 1, 1)))
+  def previous: Page.Params = params.page(math.max(params.page.value - 1, 1))
 
-  def next: Page.Params = params.copy(page = Page.No(math.min(params.page.value + 1, last)))
+  def next: Page.Params = params.page(math.min(params.page.value + 1, last))
 
   def isCurrent(i: Page.Params): Boolean = params.page == i.page
 
@@ -29,14 +29,14 @@ final case class Page[+A](items: List[A], params: Page.Params, total: Page.Total
   private val middleStart: Int = (params.page.value - width).max(1)
   private val middleEnd: Int = (params.page.value + width).min(last)
 
-  def firstPages: Option[List[Page.Params]] = if (middleStart > width + 2) Some((1 to width).map(i => params.copy(page = Page.No(i))).toList) else None
+  def firstPages: Option[List[Page.Params]] = if (middleStart > width + 2) Some((1 to width).map(i => params.page(i)).toList) else None
 
-  def lastPages: Option[List[Page.Params]] = if (middleEnd < last - width - 1) Some((last - width + 1 to last).map(i => params.copy(page = Page.No(i))).toList) else None
+  def lastPages: Option[List[Page.Params]] = if (middleEnd < last - width - 1) Some((last - width + 1 to last).map(i => params.page(i)).toList) else None
 
   def middlePages: List[Page.Params] = {
     val start = if (middleStart > width + 2) middleStart else 1
     val end = if (middleEnd < last - width - 1) middleEnd else last
-    (start to end).map(i => params.copy(page = Page.No(i))).toList
+    (start to end).map(i => params.page(i)).toList
   }
 }
 
@@ -121,26 +121,32 @@ object Page {
     val offset: Offset = Offset((page.value - 1) * pageSize.value)
     val offsetEnd: Int = page.value * pageSize.value
 
-    def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this
+    def page(p: Int): Params = copy(page = No(p))
+
+    def pageSize(s: Int): Params = copy(pageSize = Size(s))
 
     def search(q: String): Params = copy(search = Some(Search(q)))
 
+    def orderBy(o: String*): Params = copy(orderBy = OrderBy.parse(o.mkString(",")))
+
+    def filters(f: Map[String, String]): Params = copy(filters = f)
+
+    def filters(f: (String, String)*): Params = filters(f.toMap)
+
+    def defaultSize(size: Int): Params = if (pageSize == Params.defaults.pageSize) copy(pageSize = Size(size)) else this
+
+    def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) orderBy(fields: _*) else this
+
     def sorts: List[String] = orderBy.map(_.values.toList).getOrElse(List())
 
-    def defaultOrderBy(fields: String*): Params = if (orderBy == Params.defaults.orderBy) withOrderBy(fields: _*) else this
+    def addFilter(key: String, value: String): Params = filters(filters + (key -> value))
 
-    def withOrderBy(fields: String*): Params = copy(orderBy = OrderBy.parse(fields.mkString(",")))
-
-    def withFilter(key: String, value: String): Params = copy(filters = filters + (key -> value))
-
-    def withFilters(f: (String, String)*): Params = copy(filters = f.toMap)
-
-    def dropFilter(key: String): Params = copy(filters = filters - key)
+    def dropFilter(key: String): Params = filters(filters - key)
 
     def toggleFilter(key: String): Params = filters.get(key) match {
-      case Some("true") => withFilter(key, "false")
-      case Some("false") => withFilter(key, "true")
-      case _ => withFilter(key, "true")
+      case Some("true") => addFilter(key, "false")
+      case Some("false") => addFilter(key, "true")
+      case _ => addFilter(key, "true")
     }
 
     def withNullsFirst: Params = copy(nullsFirst = true)
@@ -151,7 +157,7 @@ object Page {
   object Params {
     val defaults: Params = Params(No(1), Size(20), None, None, Map(), nullsFirst = false)
 
-    def no(n: Int): Params = defaults.copy(page = No(n))
+    def no(n: Int): Params = defaults.page(n)
   }
 
 }

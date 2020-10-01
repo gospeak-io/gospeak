@@ -10,16 +10,22 @@ import gospeak.libs.sql.dsl.Extensions._
 sealed abstract class Cond(fields: List[Field[_]]) {
   def fr: Fragment
 
+  def sql: String = fr.query.sql
+
+  def getFields: List[Field[_]] = fields
+
   def and(c: Cond): Cond = And(this, c)
 
   def or(c: Cond): Cond = Or(this, c)
 
-  def par: Cond = Parentheses(this)
-
-  def getFields: List[Field[_]] = fields
+  def par: Cond = this match {
+    case p: Parentheses => p
+    case c => Parentheses(c)
+  }
 }
 
 object Cond {
+
   final case class IsValue[A: Put](f: Field[A], value: A) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0"=$value"
   }
@@ -50,6 +56,14 @@ object Cond {
 
   final case class Like[A](f: Field[A], value: String) extends Cond(List(f)) {
     override def fr: Fragment = f.fr ++ fr0" LIKE $value"
+  }
+
+  final case class ILike[A](f: Field[A], value: String) extends Cond(List(f)) {
+    override def fr: Fragment = f.fr ++ fr0" ILIKE $value"
+  }
+
+  final case class LikeExpr(e: Expr, value: String) extends Cond(e.getFields) {
+    override def fr: Fragment = e.fr ++ fr0" LIKE $value"
   }
 
   final case class NotLike[A](f: Field[A], value: String) extends Cond(List(f)) {

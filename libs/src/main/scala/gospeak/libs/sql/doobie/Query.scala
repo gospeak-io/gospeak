@@ -31,7 +31,7 @@ object Query {
     def run(xa: doobie.Transactor[IO]): IO[Done] =
       exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(Done)
-        case code => IO.raiseError(CustomException(s"Failed to update ${fr.update} (code: $code)"))
+        case code => IO.raiseError(CustomException(s"Failed to update ${fr.update.sql} (code: $code)"))
       }
   }
 
@@ -43,7 +43,7 @@ object Query {
     def run(xa: doobie.Transactor[IO]): IO[Done] =
       exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(Done)
-        case code => IO.raiseError(CustomException(s"Failed to delete ${fr.update} (code: $code)"))
+        case code => IO.raiseError(CustomException(s"Failed to delete ${fr.update.sql} (code: $code)"))
       }
   }
 

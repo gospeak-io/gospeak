@@ -42,7 +42,7 @@ class TableSpec extends BaseSpec {
           POSTS.joinOn(POSTS.AUTHOR).sql shouldBe "posts p INNER JOIN users u ON p.author=u.id"
           POSTS.joinOn(POSTS.CATEGORY).sql shouldBe "posts p LEFT OUTER JOIN categories c ON p.category=c.id"
           POSTS.joinOn(_.AUTHOR).sql shouldBe "posts p INNER JOIN users u ON p.author=u.id"
-          POSTS.joinOnOpt(_.CATEGORY).sql shouldBe "posts p LEFT OUTER JOIN categories c ON p.category=c.id"
+          POSTS.joinOn(_.CATEGORY).sql shouldBe "posts p LEFT OUTER JOIN categories c ON p.category=c.id"
         }
       }
     }

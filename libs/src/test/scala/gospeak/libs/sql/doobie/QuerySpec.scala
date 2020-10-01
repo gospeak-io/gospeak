@@ -93,11 +93,11 @@ class QuerySpec extends BaseSpec {
         (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? AND (t.name ILIKE ? OR t.desc ILIKE ?) ORDER BY t.created IS NULL, t.created LIMIT 20 OFFSET 0"
       }
       it("should build pagination with sort") {
-        val (w, o, l) = paginationFragment(prefix, None, p.withOrderBy("name"), sorts, fields)
+        val (w, o, l) = paginationFragment(prefix, None, p.orderBy("name"), sorts, fields)
         (w ++ o ++ l).query.sql shouldBe " ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
       }
       it("should build pagination with sort search and where") {
-        val (w, o, l) = paginationFragment(prefix, Some(where), p.withOrderBy("name"), sorts, fields)
+        val (w, o, l) = paginationFragment(prefix, Some(where), p.orderBy("name"), sorts, fields)
         (w ++ o ++ l).query.sql shouldBe "WHERE t.id=? ORDER BY t.name IS NULL, t.name LIMIT 20 OFFSET 0"
       }
     }

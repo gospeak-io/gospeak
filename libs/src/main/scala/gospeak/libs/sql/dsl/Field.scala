@@ -30,12 +30,16 @@ sealed trait Field[A] {
 
   def is(select: Query.Select[A]): Cond = IsQuery(this, select)
 
-  def isOpt(field: Field[Option[A]]): Cond = IsFieldRightOpt(this, field)
+  def is[B: Put](value: B)(implicit ev: A =:= Option[B]): Cond = IsValueOpt(this.asInstanceOf[Field[Option[B]]], value)
+
+  def is[B](field: Field[B])(implicit ev: B =:= Option[A]): Cond = IsFieldRightOpt(this, field.asInstanceOf[Field[Option[A]]])
 
   def isNot(value: A)(implicit p: Put[A]): Cond = IsNotValue(this, value)
 
   // TODO restrict to fields with sql string type
   def like(value: String): Cond = Like(this, value)
+
+  def ilike(value: String): Cond = ILike(this, value)
 
   def notLike(value: String): Cond = NotLike(this, value)
 
@@ -60,6 +64,8 @@ sealed trait Field[A] {
   def notIn(q: Query.Select[A]): Cond = NotInQuery(this, q)
 
   def cond(fr: Fragment): Cond = CustomCond(this, fr)
+
+  def lower: Expr = Expr.Lower(Expr.ValueField(this))
 
   def asc: Order[A] = Order(this, asc = true, expr = None)
 
@@ -121,10 +127,6 @@ class SqlField[A, +T <: Table.SqlTable](val table: T,
 
 class SqlFieldOpt[A, T <: Table.SqlTable](override val table: T,
                                           override val name: String) extends SqlField[Option[A], T](table, name) {
-  def isOpt(value: A)(implicit p: Put[A]): Cond = IsValueOpt(this, value)
-
-  def isOpt[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = IsFieldLeftOpt(this, field)
-
   def is[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = IsFieldLeftOpt(this, field)
 
   override def toString: String = s"SqlFieldOpt(${table.getName}.$name)"

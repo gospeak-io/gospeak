@@ -17,7 +17,7 @@ object Generators {
   } yield buildDuration(length, unit))
   implicit val aPeriodUnit: Arbitrary[PeriodUnit] = Arbitrary(Gen.oneOf(PeriodUnit.all))
   implicit val aTimePeriod: Arbitrary[TimePeriod] = Arbitrary(for {
-    length <- implicitly[Arbitrary[Long]].arbitrary
+    length <- implicitly[Arbitrary[Int]].arbitrary // to avoid too long numbers
     unit <- implicitly[Arbitrary[PeriodUnit]].arbitrary
   } yield domain.TimePeriod(length, unit))
 }

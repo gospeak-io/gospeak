@@ -22,4 +22,10 @@ object Price {
       all.find(_.value == str)
   }
 
+  implicit class PriceConverter(val value: Double) extends AnyVal {
+    def eur: Price = Price(value, Currency.EUR)
+
+    def usd: Price = Price(value, Currency.USD)
+  }
+
 }

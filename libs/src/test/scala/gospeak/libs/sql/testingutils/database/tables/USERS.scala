@@ -22,6 +22,8 @@ class USERS private(getAlias: Option[String] = Some("u")) extends Table.SqlTable
 
   override def searchOn: List[SqlField[_, USERS]] = List(ID, NAME, EMAIL)
 
+  override def getFilters: List[Filter] = List()
+
   def alias(alias: String): USERS = new USERS(Some(alias))
 }
 

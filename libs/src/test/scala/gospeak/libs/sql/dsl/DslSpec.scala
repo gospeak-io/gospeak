@@ -1,6 +1,8 @@
 package gospeak.libs.sql.dsl
 
-import doobie.implicits._
+import java.time.Instant
+
+import doobie.syntax.string._
 import doobie.util.Put
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.testingutils.Entities.{Category, Post, User}
@@ -9,13 +11,12 @@ import gospeak.libs.sql.testingutils.database.Tables._
 
 /**
  * TODO :
- *  - rename `SqlTable.joinOnOpt` to `joinOn` (should find polymorphism trick to avoid double definition)
- *  - rename `Cond.isOpt` to `is` (should find polymorphism trick to avoid indistinct overloaded methods)
  *  - rename `Builder.Builder.withFields` to `fields` (same here, polymorphism problem...)
  *  - keep typed fields after joins (in JoinTable)
  */
 class DslSpec extends SqlSpec {
   private implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // I don't know why it's needed and Doobie can't build a Put[Option[String]] :(
+  private val ctx: Query.Ctx = Query.Ctx.Basic(Instant.now())
   private val params = Page.Params(Page.No(1), Page.Size(2))
 
   describe("Table") {
@@ -46,7 +47,7 @@ class DslSpec extends SqlSpec {
     }
     describe("pagination") {
       it("should build paginated select") {
-        val select = USERS.select.page[User](params)
+        val select = USERS.select.page[User](params, ctx)
         select.sql shouldBe "SELECT u.id, u.name, u.email FROM users u LIMIT 2 OFFSET 0"
         select.countFr.query.sql shouldBe "SELECT COUNT(*) FROM (SELECT u.id FROM users u) as cnt"
 
@@ -58,7 +59,7 @@ class DslSpec extends SqlSpec {
     }
     describe("joins") {
       it("should build a joined select query") {
-        val joined = POSTS.join(USERS).on(_.AUTHOR is _.ID).join(CATEGORIES, _.LeftOuter).on(POSTS.CATEGORY isOpt _.ID)
+        val joined = POSTS.join(USERS).on(_.AUTHOR is _.ID).join(CATEGORIES, _.LeftOuter).on(POSTS.CATEGORY is _.ID)
         val res = joined.select.fields(POSTS.getFields).where(USERS.ID is User.loic.id).all[Post]
         val exp = fr0"SELECT p.id, p.title, p.text, p.date, p.author, p.category FROM posts p " ++
           fr0"INNER JOIN users u ON p.author=u.id " ++
@@ -73,7 +74,7 @@ class DslSpec extends SqlSpec {
         autoJoin shouldBe join
       }
       it("should join using field refs") {
-        val basicJoin = POSTS.join(USERS).on(_.AUTHOR is _.ID).join(CATEGORIES, _.LeftOuter).on(POSTS.CATEGORY isOpt _.ID)
+        val basicJoin = POSTS.join(USERS).on(_.AUTHOR is _.ID).join(CATEGORIES, _.LeftOuter).on(POSTS.CATEGORY is _.ID)
         val fieldJoin = POSTS.joinOn(POSTS.AUTHOR).joinOn(POSTS.CATEGORY, _.LeftOuter)
         fieldJoin shouldBe basicJoin
       }
