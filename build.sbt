@@ -33,7 +33,7 @@ val circe = Seq(
   "io.circe" %% "circe-literal" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-java8" % "0.11.1")
-val doobieVersion = "0.8.6" // "0.8.7" & "0.8.8" versions causes: Can't infer the SQL type to use for an instance of java.time.Instant. Use setObject() with an explicit Types value to specify the type to use.
+val doobieVersion = "0.9.2"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",

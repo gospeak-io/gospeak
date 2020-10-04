@@ -1,6 +1,6 @@
 package gospeak.infra.services.storage.sql.utils
 
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.utils.Info
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._

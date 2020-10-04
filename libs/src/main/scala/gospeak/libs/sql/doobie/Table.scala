@@ -1,10 +1,12 @@
 package gospeak.libs.sql.doobie
 
+import java.time.Instant
+
 import cats.data.NonEmptyList
-import doobie.implicits._
-import doobie.util.Read
+import doobie.syntax.string._
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0
+import doobie.util.{Put, Read}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomError, CustomException, Page}
 
@@ -218,7 +220,7 @@ object Table {
       def fromCountExpr(key: String, label: String, expression: String): Bool =
         new Bool(key, label, aggregation = true, onTrue = _ => const0(s"($expression > ") ++ fr0"${0})", onFalse = _ => const0(s"($expression = ") ++ fr0"${0})")
 
-      def fromNow(key: String, label: String, startField: String, endField: String, aggregation: Boolean = false): Bool =
+      def fromNow(key: String, label: String, startField: String, endField: String, aggregation: Boolean = false)(implicit i: Put[Instant]): Bool =
         new Filter.Bool(key, label, aggregation,
           onTrue = ctx => fr0"(" ++ const0(startField) ++ fr0" < ${ctx.now} AND " ++ const0(endField) ++ fr0" > ${ctx.now})",
           onFalse = ctx => fr0"(" ++ const0(startField) ++ fr0" > ${ctx.now} OR " ++ const0(endField) ++ fr0" < ${ctx.now})")

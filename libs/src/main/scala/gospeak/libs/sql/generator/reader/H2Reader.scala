@@ -1,7 +1,8 @@
 package gospeak.libs.sql.generator.reader
 
 import cats.effect.IO
-import doobie.implicits._
+import doobie.syntax.connectionio._
+import doobie.syntax.string._
 import gospeak.libs.sql.generator.Database
 import gospeak.libs.sql.generator.reader.H2Reader._
 

@@ -3,7 +3,7 @@ package gospeak.libs.sql.dsl
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.Put
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0

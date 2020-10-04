@@ -4,6 +4,7 @@ import java.time.Instant
 
 import doobie.syntax.string._
 import doobie.util.Put
+import doobie.util.meta.Meta
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.testingutils.Entities.{Category, Post, User}
 import gospeak.libs.sql.testingutils.SqlSpec
@@ -16,6 +17,7 @@ import gospeak.libs.sql.testingutils.database.Tables._
  */
 class DslSpec extends SqlSpec {
   private implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // I don't know why it's needed and Doobie can't build a Put[Option[String]] :(
+  private implicit val instantMeta: Meta[Instant] = doobie.implicits.legacy.instant.JavaTimeInstantMeta
   private val ctx: Query.Ctx = Query.Ctx.Basic(Instant.now())
   private val params = Page.Params(Page.No(1), Page.Size(2))
 
@@ -49,7 +51,7 @@ class DslSpec extends SqlSpec {
       it("should build paginated select") {
         val select = USERS.select.page[User](params, ctx)
         select.sql shouldBe "SELECT u.id, u.name, u.email FROM users u LIMIT 2 OFFSET 0"
-        select.countFr.query.sql shouldBe "SELECT COUNT(*) FROM (SELECT u.id FROM users u) as cnt"
+        select.countFr.query[Long].sql shouldBe "SELECT COUNT(*) FROM (SELECT u.id FROM users u) as cnt"
 
         val userPage = select.run(xa).unsafeRunSync()
         userPage.items shouldBe List(User.loic, User.jean)
@@ -65,7 +67,7 @@ class DslSpec extends SqlSpec {
           fr0"INNER JOIN users u ON p.author=u.id " ++
           fr0"LEFT OUTER JOIN categories c ON p.category=c.id " ++
           fr0"WHERE u.id=${User.loic.id}"
-        res.sql shouldBe exp.query.sql
+        res.sql shouldBe exp.query[Post].sql
         res.run(xa).unsafeRunSync() shouldBe List(Post.newYear, Post.first2020)
       }
       it("should have auto joins") {
@@ -88,7 +90,7 @@ class DslSpec extends SqlSpec {
         val exp = fr0"SELECT e.id, e.name, e.kind " ++
           fr0"FROM ((SELECT u.id, u.name, 'user' as kind FROM users u) UNION (SELECT c.id, c.name, 'category' as kind FROM categories c)) e " ++
           fr0"WHERE e.id=? ORDER BY e.kind IS NULL, e.kind DESC, e.id IS NULL, e.id"
-        res.sql shouldBe exp.query.sql
+        res.sql shouldBe exp.query[(Int, String, String)].sql
         res.run(xa).unsafeRunSync() shouldBe List(
           (User.loic.id.value, User.loic.name, "user"),
           (Category.tech.id.value, Category.tech.name, "category"))

@@ -3,7 +3,7 @@ package gospeak.infra.services.storage.sql
 import java.time.Instant
 
 import cats.effect.IO
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.UserRequest._
 import gospeak.core.domain._

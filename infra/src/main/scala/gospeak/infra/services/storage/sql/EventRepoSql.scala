@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain.Event.Rsvp.Answer
 import gospeak.core.domain._

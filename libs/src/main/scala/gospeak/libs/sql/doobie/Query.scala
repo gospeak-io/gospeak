@@ -2,7 +2,8 @@ package gospeak.libs.sql.doobie
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.implicits._
+import doobie.syntax.connectionio._
+import doobie.syntax.string._
 import doobie.util.Read
 import doobie.util.fragment.Fragment
 import doobie.util.fragment.Fragment.const0

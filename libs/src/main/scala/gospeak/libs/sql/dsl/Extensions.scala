@@ -2,7 +2,7 @@ package gospeak.libs.sql.dsl
 
 import cats.data.NonEmptyList
 import doobie.Fragment
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.fragment.Fragment.const0
 
 import scala.language.higherKinds
