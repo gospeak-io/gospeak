@@ -1,6 +1,9 @@
 package gospeak.libs.sql.jooq
 
-import doobie.implicits._
+import java.time.{Instant, LocalDate}
+
+import doobie.syntax.connectionio._
+import doobie.util.meta.Meta
 import gospeak.libs.sql.testingutils.Entities.Kind
 import gospeak.libs.sql.testingutils.SqlSpec
 import gospeak.libs.sql.testingutils.jooqdb.Tables._
@@ -9,6 +12,8 @@ import org.jooq.impl.DSL._
 
 class JooqUtilsSpec extends SqlSpec {
   private val jooqCtx = using(SQLDialect.H2)
+  private implicit val instantMeta: Meta[Instant] = doobie.implicits.legacy.instant.JavaTimeInstantMeta
+  private implicit val localDateMeta: Meta[LocalDate] = doobie.implicits.legacy.localdate.JavaTimeLocalDateMeta
 
   describe("JooqUtils") {
     ignore("should generate classes for the database") {
@@ -32,7 +37,7 @@ class JooqUtilsSpec extends SqlSpec {
           .and(field("double").equal(Double.box(Kind.one.double)))
           .and(field("a_long_name").equal(Int.box(Kind.one.a_long_name))))
       val fr = JooqUtils.queryToFragment(query)
-      fr.query.sql shouldBe "select char, varchar, timestamp, date, boolean, int, bigint, double, a_long_name " +
+      fr.query[Kind].sql shouldBe "select char, varchar, timestamp, date, boolean, int, bigint, double, a_long_name " +
         "from kinds where " +
         "(char = cast(? as varchar) and " +
         "varchar = cast(? as varchar) and " +
@@ -52,7 +57,7 @@ class JooqUtilsSpec extends SqlSpec {
     it("should generate insert") {
       val query = jooqCtx.insertInto(USERS).columns(USERS.ID, USERS.NAME, USERS.EMAIL).values(4, "Lou", "lou@mail.com")
       val fr = JooqUtils.queryToFragment(query)
-      fr.query.sql shouldBe "insert into \"PUBLIC\".\"users\" (\"id\", \"name\", \"email\") values (cast(? as int), cast(? as varchar), cast(? as varchar))"
+      fr.update.sql shouldBe "insert into \"PUBLIC\".\"users\" (\"id\", \"name\", \"email\") values (cast(? as int), cast(? as varchar), cast(? as varchar))"
       val res = fr.update.run.transact(xa).unsafeRunSync()
       res shouldBe 1
     }

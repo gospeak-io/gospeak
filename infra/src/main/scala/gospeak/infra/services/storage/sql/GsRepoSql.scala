@@ -27,7 +27,8 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
   private[sql] val (xa, flyway) = DbConnection.create(dbConf)
 
   def checkEnv(appEnv: ApplicationConf.Env): IO[Int] = {
-    import doobie.implicits._
+    import doobie.syntax.connectionio._
+    import doobie.syntax.string._
     def createTable(): IO[Int] = {
       fr0"CREATE TABLE env (name VARCHAR(10) NOT NULL PRIMARY KEY);".update.run.transact(xa)
         .flatMap(_ => fr0"INSERT INTO env (name) VALUES ($appEnv);".update.run.transact(xa))

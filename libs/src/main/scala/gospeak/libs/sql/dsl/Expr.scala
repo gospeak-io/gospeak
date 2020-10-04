@@ -1,6 +1,6 @@
 package gospeak.libs.sql.dsl
 
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.Put
 import doobie.util.fragment.Fragment
 import gospeak.libs.sql.dsl.Cond.LikeExpr

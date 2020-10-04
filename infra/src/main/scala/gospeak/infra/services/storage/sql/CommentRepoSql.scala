@@ -1,7 +1,7 @@
 package gospeak.infra.services.storage.sql
 
 import cats.effect.IO
-import doobie.implicits._
+import doobie.syntax.string._
 import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import gospeak.core.domain.{Comment, Event, Proposal}
 import gospeak.core.services.storage.CommentRepo

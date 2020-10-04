@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.Fragments
-import doobie.implicits._
+import doobie.syntax.string._
 import gospeak.core.domain.utils._
 import gospeak.core.domain.{Group, User}
 import gospeak.core.services.storage.GroupRepo

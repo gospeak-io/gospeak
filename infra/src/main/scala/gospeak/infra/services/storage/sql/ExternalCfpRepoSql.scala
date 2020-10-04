@@ -3,7 +3,7 @@ package gospeak.infra.services.storage.sql
 import java.time.{Instant, LocalDateTime}
 
 import cats.effect.IO
-import doobie.implicits._
+import doobie.syntax.string._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{BasicCtx, Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalCfpRepo

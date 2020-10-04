@@ -1,7 +1,7 @@
 package gospeak.libs.sql.doobie
 
 import cats.data.NonEmptyList
-import doobie.implicits._
+import doobie.syntax.string._
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.doobie.Query._
 import gospeak.libs.sql.doobie.QuerySpec.Entity

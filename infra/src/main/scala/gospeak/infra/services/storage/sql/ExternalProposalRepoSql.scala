@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDateTime}
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.implicits._
+import doobie.syntax.string._
 import doobie.util.fragment.Fragment
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{BasicCtx, Info, UserAwareCtx, UserCtx}
