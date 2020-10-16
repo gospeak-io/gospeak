@@ -26,16 +26,16 @@ import scala.concurrent.duration.FiniteDuration
 class CONTACTS private(getAlias: Option[String] = Some("ct")) extends Table.SqlTable("PUBLIC", "contacts", getAlias) {
   type Self = CONTACTS
 
-  val ID: SqlField[Contact.Id, CONTACTS] = new SqlField[Contact.Id, CONTACTS](this, "id") // CHAR(36) NOT NULL
-  val PARTNER_ID: SqlFieldRef[Partner.Id, CONTACTS, PARTNERS] = new SqlFieldRef[Partner.Id, CONTACTS, PARTNERS](this, "partner_id", PARTNERS.table.ID) // CHAR(36) NOT NULL
-  val FIRST_NAME: SqlField[Contact.FirstName, CONTACTS] = new SqlField[Contact.FirstName, CONTACTS](this, "first_name") // VARCHAR(120) NOT NULL
-  val LAST_NAME: SqlField[Contact.LastName, CONTACTS] = new SqlField[Contact.LastName, CONTACTS](this, "last_name") // VARCHAR(120) NOT NULL
-  val EMAIL: SqlField[EmailAddress, CONTACTS] = new SqlField[EmailAddress, CONTACTS](this, "email") // VARCHAR(120) NOT NULL
-  val NOTES: SqlField[Markdown, CONTACTS] = new SqlField[Markdown, CONTACTS](this, "notes") // VARCHAR(4096) NOT NULL
-  val CREATED_AT: SqlField[Instant, CONTACTS] = new SqlField[Instant, CONTACTS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, CONTACTS, USERS] = new SqlFieldRef[User.Id, CONTACTS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, CONTACTS] = new SqlField[Instant, CONTACTS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, CONTACTS, USERS] = new SqlFieldRef[User.Id, CONTACTS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Contact.Id, CONTACTS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val PARTNER_ID: SqlFieldRef[Partner.Id, CONTACTS, PARTNERS] = SqlField(this, "partner_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, PARTNERS.table.ID)
+  val FIRST_NAME: SqlField[Contact.FirstName, CONTACTS] = SqlField(this, "first_name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val LAST_NAME: SqlField[Contact.LastName, CONTACTS] = SqlField(this, "last_name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val EMAIL: SqlField[EmailAddress, CONTACTS] = SqlField(this, "email", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val NOTES: SqlField[Markdown, CONTACTS] = SqlField(this, "notes", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 6)
+  val CREATED_AT: SqlField[Instant, CONTACTS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 7)
+  val CREATED_BY: SqlFieldRef[User.Id, CONTACTS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 8, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, CONTACTS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 9)
+  val UPDATED_BY: SqlFieldRef[User.Id, CONTACTS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 10, USERS.table.ID)
 
   override def getFields: List[SqlField[_, CONTACTS]] = List(ID, PARTNER_ID, FIRST_NAME, LAST_NAME, EMAIL, NOTES, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

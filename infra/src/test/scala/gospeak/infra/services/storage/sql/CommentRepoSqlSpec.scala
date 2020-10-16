@@ -12,14 +12,17 @@ class CommentRepoSqlSpec extends RepoSpec {
       commentRepo.getComments(proposal.id).unsafeRunSync().map(_.comment) shouldBe List()
       commentRepo.getOrgaComments(proposal.id).unsafeRunSync().map(_.comment) shouldBe List()
       val comment1 = commentRepo.addComment(proposal.id, commentData1.copy(answers = None))(ctx).unsafeRunSync()
+      comment1.data shouldBe commentData1.copy(answers = None)
       commentRepo.getComments(proposal.id).unsafeRunSync().map(_.comment) shouldBe List(comment1)
       commentRepo.getOrgaComments(proposal.id).unsafeRunSync().map(_.comment) shouldBe List()
       val comment2 = commentRepo.addOrgaComment(proposal.id, commentData2.copy(answers = None))(ctx).unsafeRunSync()
+      comment2.data shouldBe commentData2.copy(answers = None)
       commentRepo.getComments(proposal.id).unsafeRunSync().map(_.comment) shouldBe List(comment1)
       commentRepo.getOrgaComments(proposal.id).unsafeRunSync().map(_.comment) shouldBe List(comment2)
 
       commentRepo.getComments(event.id).unsafeRunSync().map(_.comment) shouldBe List()
       val comment3 = commentRepo.addComment(event.id, commentData3.copy(answers = None))(ctx).unsafeRunSync()
+      comment3.data shouldBe commentData3.copy(answers = None)
       commentRepo.getComments(event.id).unsafeRunSync().map(_.comment) shouldBe List(comment3)
     }
     it("should check queries") {

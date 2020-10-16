@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Page, Tag}
 
 trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with AdminGroupRepo with SuggestGroupRepo
 
@@ -20,11 +20,11 @@ trait OrgaGroupRepo {
 
   def create(data: Group.Data)(implicit ctx: UserCtx): IO[Group]
 
-  def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def addOwner(group: Group.Id, owner: User.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def addOwner(group: Group.Id, owner: User.Id, by: User.Id)(implicit ctx: UserCtx): IO[Unit]
 
-  def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
   def listMembers(implicit ctx: OrgaCtx): IO[List[Group.Member]]
 
@@ -68,7 +68,7 @@ trait PublicGroupRepo {
 
   def join(group: Group.Id)(user: User, now: Instant): IO[Group.Member]
 
-  def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done]
+  def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Unit]
 }
 
 trait AdminGroupRepo {

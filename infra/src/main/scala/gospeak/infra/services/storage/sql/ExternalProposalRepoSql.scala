@@ -12,30 +12,32 @@ import gospeak.core.domain.utils.{BasicCtx, Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalProposalRepo
 import gospeak.infra.services.storage.sql.ExternalProposalRepoSql._
 import gospeak.infra.services.storage.sql.database.Tables._
+import gospeak.infra.services.storage.sql.database.tables.EXTERNAL_PROPOSALS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
-import gospeak.libs.sql.dsl.Cond
+import gospeak.libs.sql.doobie.{DbCtx, Field, Table}
+import gospeak.libs.sql.dsl.{Cond, Query}
 
 class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalProposalRepo {
-  override def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal] =
-    insert(ExternalProposal(data, talk, event, speakers, Info(ctx.user.id, ctx.now))).run(xa)
+  override def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal] = {
+    val proposal = ExternalProposal(data, talk, event, speakers, Info(ctx.user.id, ctx.now))
+    insert(proposal).run(xa).map(_ => proposal )
+  }
 
-  override def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Done] =
-    update(id)(data, ctx.user.id, ctx.now).run(xa)
+  override def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Unit] = update(id)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Done] = updateStatus(id)(status, ctx.user.id).run(xa)
+  override def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Unit] = updateStatus(id)(status, ctx.user.id).run(xa)
 
-  override def editSlides(id: ExternalProposal.Id, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done] = updateSlides(id)(slides, ctx.user.id, ctx.now).run(xa)
+  override def editSlides(id: ExternalProposal.Id, slides: Url.Slides)(implicit ctx: UserCtx): IO[Unit] = updateSlides(id)(slides, ctx.user.id, ctx.now).run(xa)
 
-  override def editVideo(id: ExternalProposal.Id, video: Url.Video)(implicit ctx: UserCtx): IO[Done] = updateVideo(id)(video, ctx.user.id, ctx.now).run(xa)
+  override def editVideo(id: ExternalProposal.Id, video: Url.Video)(implicit ctx: UserCtx): IO[Unit] = updateVideo(id)(video, ctx.user.id, ctx.now).run(xa)
 
-  override def addSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Done] = addSpeaker(id, speaker, ctx.user.id, ctx.now)
+  override def addSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Unit] = addSpeaker(id, speaker, ctx.user.id, ctx.now)
 
-  override def addSpeaker(id: ExternalProposal.Id, speaker: User.Id, by: User.Id, now: Instant): IO[Done] =
+  override def addSpeaker(id: ExternalProposal.Id, speaker: User.Id, by: User.Id, now: Instant): IO[Unit] =
     find(id).flatMap {
       case Some(externalProposal) =>
         if (externalProposal.speakers.toList.contains(speaker)) {
@@ -46,7 +48,7 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
       case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
     }
 
-  override def removeSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Done] =
+  override def removeSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Unit] =
     find(id).flatMap {
       case Some(externalProposal) =>
         if (externalProposal.info.createdBy == speaker) {
@@ -63,9 +65,9 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
       case None => IO.raiseError(new IllegalArgumentException("unreachable talk"))
     }
 
-  override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done] = delete(id, ctx.user.id).run(xa)
+  override def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Unit] = delete(id, ctx.user.id).run(xa)
 
-  override def listAllPublicIds(): IO[List[(ExternalEvent.Id, ExternalProposal.Id)]] = selectAllPublicIds().runList(xa)
+  override def listAllPublicIds(): IO[List[(ExternalEvent.Id, ExternalProposal.Id)]] = selectAllPublicIds().run(xa)
 
   override def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]] = selectPage(event, Proposal.Status.Accepted, params).run(xa)
 
@@ -75,17 +77,17 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(params).run(xa)
 
-  override def listAllCommon(talk: Talk.Id): IO[List[CommonProposal]] = selectAllCommon(talk).runList(xa)
+  override def listAllCommon(talk: Talk.Id): IO[List[CommonProposal]] = selectAllCommon(talk).run(xa)
 
-  override def listAllCommon(user: User.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(user, status).runList(xa)
+  override def listAllCommon(user: User.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(user, status).run(xa)
 
-  override def listAllCommon(talk: Talk.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(talk, status).runList(xa)
+  override def listAllCommon(talk: Talk.Id, status: Proposal.Status): IO[List[CommonProposal]] = selectAllCommon(talk, status).run(xa)
 
-  override def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]] = selectOne(id).runOption(xa)
+  override def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]] = selectOne(id).run(xa)
 
-  override def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]] = selectOneFull(id).runOption(xa)
+  override def findFull(id: ExternalProposal.Id): IO[Option[ExternalProposal.Full]] = selectOneFull(id).run(xa)
 
-  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().run(xa).map(_.flatten.distinct)
 }
 
 object ExternalProposalRepoSql {
@@ -135,100 +137,101 @@ object ExternalProposalRepoSql {
     internalProposals.union(externalProposals, alias = Some("p"), sorts = List(("created", "created", List("-created_at"))), search = List("title"))
   }
 
-  private[sql] def insert(e: ExternalProposal): Query.Insert[ExternalProposal] = {
+  private[sql] def insert(e: ExternalProposal): Query.Insert[EXTERNAL_PROPOSALS] = {
     val values = fr0"${e.id}, ${e.talk}, ${e.event}, ${e.status}, ${e.title}, ${e.duration}, ${e.description}, ${e.message}, ${e.speakers}, ${e.slides}, ${e.video}, ${e.url}, ${e.tags}, " ++ insertInfo(e.info)
     val q1 = table.insert[ExternalProposal](e, _ => values)
-    val q2 = EXTERNAL_PROPOSALS.insert.values(e.id, e.talk, e.event, e.status, e.title, e.duration, e.description, e.message, e.speakers, e.slides, e.video, e.url, e.tags, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    // val q2 = EXTERNAL_PROPOSALS.insert.values(e.id, e.talk, e.event, e.status, e.title, e.duration, e.description, e.message, e.speakers, e.slides, e.video, e.url, e.tags, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    val q2 = EXTERNAL_PROPOSALS.insert.values(values)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def update(id: ExternalProposal.Id)(e: ExternalProposal.Data, by: User.Id, now: Instant): Query.Update = {
+  private[sql] def update(id: ExternalProposal.Id)(e: ExternalProposal.Data, by: User.Id, now: Instant): Query.Update[EXTERNAL_PROPOSALS] = {
     val fields = fr0"status=${e.status}, title=${e.title}, duration=${e.duration}, description=${e.description}, message=${e.message}, slides=${e.slides}, video=${e.video}, url=${e.url}, tags=${e.tags}, updated_at=$now, updated_by=$by"
     val q1 = table.update(fields).where(fr0"ep.id=$id AND ep.speakers LIKE ${"%" + by.value + "%"}")
     val q2 = EXTERNAL_PROPOSALS.update.set(_.STATUS, e.status).set(_.TITLE, e.title).set(_.DURATION, e.duration).set(_.DESCRIPTION, e.description).set(_.MESSAGE, e.message).set(_.SLIDES, e.slides).set(_.VIDEO, e.video).set(_.URL, e.url).set(_.TAGS, e.tags).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(ep => ep.ID.is(id) and ep.SPEAKERS.like("%" + by.value + "%"))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def updateStatus(id: ExternalProposal.Id)(status: Proposal.Status, by: User.Id): Query.Update = {
+  private[sql] def updateStatus(id: ExternalProposal.Id)(status: Proposal.Status, by: User.Id): Query.Update[EXTERNAL_PROPOSALS] = {
     val q1 = table.update(fr0"status=$status").where(where(id, by))
     val q2 = EXTERNAL_PROPOSALS.update.set(_.STATUS, status).where(where2(id, by))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def updateSlides(id: ExternalProposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update = {
+  private[sql] def updateSlides(id: ExternalProposal.Id)(slides: Url.Slides, by: User.Id, now: Instant): Query.Update[EXTERNAL_PROPOSALS] = {
     val q1 = table.update(fr0"slides=$slides, updated_at=$now, updated_by=$by").where(where(id, by))
-    val q2 = EXTERNAL_PROPOSALS.update.setOpt(_.SLIDES, slides).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(id, by))
+    val q2 = EXTERNAL_PROPOSALS.update.set(_.SLIDES, slides).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(id, by))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def updateVideo(id: ExternalProposal.Id)(video: Url.Video, by: User.Id, now: Instant): Query.Update = {
+  private[sql] def updateVideo(id: ExternalProposal.Id)(video: Url.Video, by: User.Id, now: Instant): Query.Update[EXTERNAL_PROPOSALS] = {
     val q1 = table.update(fr0"video=$video, updated_at=$now, updated_by=$by").where(where(id, by))
-    val q2 = EXTERNAL_PROPOSALS.update.setOpt(_.VIDEO, video).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(id, by))
+    val q2 = EXTERNAL_PROPOSALS.update.set(_.VIDEO, video).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(id, by))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def updateSpeakers(id: ExternalProposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update = {
+  private[sql] def updateSpeakers(id: ExternalProposal.Id)(speakers: NonEmptyList[User.Id], by: User.Id, now: Instant): Query.Update[EXTERNAL_PROPOSALS] = {
     val q1 = table.update(fr0"speakers=$speakers, updated_at=$now, updated_by=$by").where(where(id, by))
     val q2 = EXTERNAL_PROPOSALS.update.set(_.SPEAKERS, speakers).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(id, by))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def delete(id: ExternalProposal.Id, by: User.Id): Query.Delete = {
+  private[sql] def delete(id: ExternalProposal.Id, by: User.Id): Query.Delete[EXTERNAL_PROPOSALS] = {
     val q1 = table.delete.where(fr0"ep.id=$id AND ep.speakers LIKE ${"%" + by.value + "%"}")
     val q2 = EXTERNAL_PROPOSALS.delete.where(where2(id, by))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(id: ExternalProposal.Id): Query.Select[ExternalProposal] = {
+  private[sql] def selectOne(id: ExternalProposal.Id): Query.Select.Optional[ExternalProposal] = {
     val q1 = table.select[ExternalProposal].where(fr0"ep.id=$id").one
     val q2 = EXTERNAL_PROPOSALS.select.where(_.ID is id).option[ExternalProposal](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOneFull(id: ExternalProposal.Id): Query.Select[ExternalProposal.Full] = {
+  private[sql] def selectOneFull(id: ExternalProposal.Id): Query.Select.Optional[ExternalProposal.Full] = {
     val q1 = tableFull.select[ExternalProposal.Full].where(fr0"ep.id=$id").one
     val q2 = EXTERNAL_PROPOSALS_FULL.select.where(EXTERNAL_PROPOSALS.ID is id).option[ExternalProposal.Full](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAllPublicIds(): Query.Select[(ExternalEvent.Id, ExternalProposal.Id)] = {
+  private[sql] def selectAllPublicIds(): Query.Select.All[(ExternalEvent.Id, ExternalProposal.Id)] = {
     val q1 = table.select[(ExternalEvent.Id, ExternalProposal.Id)].fields(Field("event_id", "ep"), Field("id", "ep")).where(fr0"ep.status=${Proposal.Status.Accepted: Proposal.Status}")
     val q2 = EXTERNAL_PROPOSALS.select.withFields(_.EVENT_ID, _.ID).where(_.STATUS is Proposal.Status.Accepted).all[(ExternalEvent.Id, ExternalProposal.Id)]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPage(event: ExternalEvent.Id, status: Proposal.Status, params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[ExternalProposal] = {
+  private[sql] def selectPage(event: ExternalEvent.Id, status: Proposal.Status, params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[ExternalProposal] = {
     val q1 = table.selectPage[ExternalProposal](params, adapt(ctx)).where(fr0"ep.event_id=$event AND ep.status=$status")
     val q2 = EXTERNAL_PROPOSALS.select.where(ep => ep.EVENT_ID.is(event) and ep.STATUS.is(status)).page[ExternalProposal](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[CommonProposal] = {
+  private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[CommonProposal] = {
     val q1 = commonTable.selectPage[CommonProposal](params, adapt(ctx)).where(fr0"p.talk_id=$talk")
     val q2 = COMMON_PROPOSALS.select.where(_.talk_id is talk).page[CommonProposal](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[CommonProposal] = {
+  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[CommonProposal] = {
     val q1 = commonTable.selectPage[CommonProposal](params, adapt(ctx)).where(fr0"p.speakers LIKE ${"%" + ctx.user.id.value + "%"}")
     val q2 = COMMON_PROPOSALS.select.where(_.speakers.like("%" + ctx.user.id.value + "%")).page[CommonProposal](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPageCommonCurrent(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[CommonProposal] = {
+  private[sql] def selectPageCommonCurrent(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[CommonProposal] = {
     val pending = fr0"p.status=${Proposal.Status.Pending: Proposal.Status}"
     val accepted = fr0"p.status=${Proposal.Status.Accepted: Proposal.Status} AND (p.event_start > ${ctx.now} OR p.event_ext_start > ${ctx.now})"
     val declined = fr0"p.status=${Proposal.Status.Declined: Proposal.Status} AND p.updated_at > ${ctx.now.minus(30, ChronoUnit.DAYS)}"
@@ -244,35 +247,35 @@ object ExternalProposalRepoSql {
     val q2 = COMMON_PROPOSALS.select.where(p => p.speakers.like("%" + ctx.user.id.value + "%") and cur.par).page[CommonProposal](params, ctx.toDb)
 
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAllCommon(talk: Talk.Id): Query.Select[CommonProposal] = {
+  private[sql] def selectAllCommon(talk: Talk.Id): Query.Select.All[CommonProposal] = {
     val q1 = commonTable.select[CommonProposal].where(fr0"p.talk_id=$talk")
     val q2 = COMMON_PROPOSALS.select.where(_.talk_id is talk).all[CommonProposal]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAllCommon(user: User.Id, status: Proposal.Status): Query.Select[CommonProposal] = {
+  private[sql] def selectAllCommon(user: User.Id, status: Proposal.Status): Query.Select.All[CommonProposal] = {
     val q1 = commonTable.select[CommonProposal].where(fr0"p.speakers LIKE ${"%" + user.value + "%"} AND p.status=$status")
     val q2 = COMMON_PROPOSALS.select.where(p => p.speakers.like("%" + user.value + "%") and p.status.is(status)).all[CommonProposal]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAllCommon(talk: Talk.Id, status: Proposal.Status): Query.Select[CommonProposal] = {
+  private[sql] def selectAllCommon(talk: Talk.Id, status: Proposal.Status): Query.Select.All[CommonProposal] = {
     val q1 = commonTable.select[CommonProposal].where(fr0"p.talk_id=$talk AND p.status=$status")
     val q2 = COMMON_PROPOSALS.select.where(p => p.talk_id.is(talk) and p.status.is(status)).all[CommonProposal]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectTags(): Query.Select[List[Tag]] = {
+  private[sql] def selectTags(): Query.Select.All[List[Tag]] = {
     val q1 = table.select[List[Tag]].fields(Field("tags", "ep"))
     val q2 = EXTERNAL_PROPOSALS.select.withFields(_.TAGS).all[List[Tag]]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
   private def where(id: ExternalProposal.Id, user: User.Id): Fragment = fr0"ep.id=$id AND ep.speakers LIKE ${"%" + user.value + "%"}"

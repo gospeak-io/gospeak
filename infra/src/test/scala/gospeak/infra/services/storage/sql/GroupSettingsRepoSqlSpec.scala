@@ -38,7 +38,7 @@ class GroupSettingsRepoSqlSpec extends RepoSpec {
     it("should check queries") {
       check(insert(group.id, groupSettings, user.id, now), s"INSERT INTO ${table.stripSuffix(" gs")} (${mapFields(fields, _.stripPrefix("gs."))}) VALUES (${mapFields(fields, _ => "?")})")
       check(update(group.id, groupSettings, user.id, now), s"UPDATE $table SET ${fields.split(", ").drop(1).map(_.stripPrefix("gs.") + "=?").mkString(", ")} WHERE gs.group_id=?")
-      check(selectAll(NonEmptyList.of(group.id))(adminCtx), s"SELECT gs.group_id, $fieldsSelect FROM $table WHERE gs.group_id IN (?)  $orderBy")
+      check(selectAll(NonEmptyList.of(group.id))(adminCtx), s"SELECT gs.group_id, $fieldsSelect FROM $table WHERE gs.group_id IN (?) $orderBy")
       check(selectOne(group.id), s"SELECT $fieldsSelect FROM $table WHERE gs.group_id=? $orderBy")
       check(selectOneAccounts(group.id), s"SELECT $meetupFields, $slackFields FROM $table WHERE gs.group_id=? $orderBy")
       check(selectOneMeetup(group.id), s"SELECT $meetupFields FROM $table WHERE gs.group_id=? $orderBy")

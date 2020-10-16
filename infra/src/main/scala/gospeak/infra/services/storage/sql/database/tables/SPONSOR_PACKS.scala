@@ -26,19 +26,19 @@ import scala.concurrent.duration.FiniteDuration
 class SPONSOR_PACKS private(getAlias: Option[String] = Some("sp")) extends Table.SqlTable("PUBLIC", "sponsor_packs", getAlias) {
   type Self = SPONSOR_PACKS
 
-  val ID: SqlField[SponsorPack.Id, SPONSOR_PACKS] = new SqlField[SponsorPack.Id, SPONSOR_PACKS](this, "id") // CHAR(36) NOT NULL
-  val GROUP_ID: SqlFieldRef[Group.Id, SPONSOR_PACKS, GROUPS] = new SqlFieldRef[Group.Id, SPONSOR_PACKS, GROUPS](this, "group_id", GROUPS.table.ID) // CHAR(36) NOT NULL
-  val SLUG: SqlField[SponsorPack.Slug, SPONSOR_PACKS] = new SqlField[SponsorPack.Slug, SPONSOR_PACKS](this, "slug") // VARCHAR(120) NOT NULL
-  val NAME: SqlField[SponsorPack.Name, SPONSOR_PACKS] = new SqlField[SponsorPack.Name, SPONSOR_PACKS](this, "name") // VARCHAR(120) NOT NULL
-  val DESCRIPTION: SqlField[Markdown, SPONSOR_PACKS] = new SqlField[Markdown, SPONSOR_PACKS](this, "description") // VARCHAR(4096) NOT NULL
-  val PRICE: SqlField[Double, SPONSOR_PACKS] = new SqlField[Double, SPONSOR_PACKS](this, "price") // DOUBLE PRECISION NOT NULL
-  val CURRENCY: SqlField[Price.Currency, SPONSOR_PACKS] = new SqlField[Price.Currency, SPONSOR_PACKS](this, "currency") // VARCHAR(10) NOT NULL
-  val DURATION: SqlField[TimePeriod, SPONSOR_PACKS] = new SqlField[TimePeriod, SPONSOR_PACKS](this, "duration") // VARCHAR(20) NOT NULL
-  val ACTIVE: SqlField[Boolean, SPONSOR_PACKS] = new SqlField[Boolean, SPONSOR_PACKS](this, "active") // BOOLEAN NOT NULL
-  val CREATED_AT: SqlField[Instant, SPONSOR_PACKS] = new SqlField[Instant, SPONSOR_PACKS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, SPONSOR_PACKS, USERS] = new SqlFieldRef[User.Id, SPONSOR_PACKS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, SPONSOR_PACKS] = new SqlField[Instant, SPONSOR_PACKS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, SPONSOR_PACKS, USERS] = new SqlFieldRef[User.Id, SPONSOR_PACKS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[SponsorPack.Id, SPONSOR_PACKS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val GROUP_ID: SqlFieldRef[Group.Id, SPONSOR_PACKS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, GROUPS.table.ID)
+  val SLUG: SqlField[SponsorPack.Slug, SPONSOR_PACKS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val NAME: SqlField[SponsorPack.Name, SPONSOR_PACKS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val DESCRIPTION: SqlField[Markdown, SPONSOR_PACKS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val PRICE: SqlField[Double, SPONSOR_PACKS] = SqlField(this, "price", "DOUBLE PRECISION NOT NULL", JdbcType.Double, nullable = false, 6)
+  val CURRENCY: SqlField[Price.Currency, SPONSOR_PACKS] = SqlField(this, "currency", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 7)
+  val DURATION: SqlField[TimePeriod, SPONSOR_PACKS] = SqlField(this, "duration", "VARCHAR(20) NOT NULL", JdbcType.VarChar, nullable = false, 8)
+  val ACTIVE: SqlField[Boolean, SPONSOR_PACKS] = SqlField(this, "active", "BOOLEAN NOT NULL", JdbcType.Boolean, nullable = false, 9)
+  val CREATED_AT: SqlField[Instant, SPONSOR_PACKS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 10)
+  val CREATED_BY: SqlFieldRef[User.Id, SPONSOR_PACKS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 11, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, SPONSOR_PACKS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 12)
+  val UPDATED_BY: SqlFieldRef[User.Id, SPONSOR_PACKS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 13, USERS.table.ID)
 
   override def getFields: List[SqlField[_, SPONSOR_PACKS]] = List(ID, GROUP_ID, SLUG, NAME, DESCRIPTION, PRICE, CURRENCY, DURATION, ACTIVE, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

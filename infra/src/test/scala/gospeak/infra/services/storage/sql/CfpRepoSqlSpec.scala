@@ -15,6 +15,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       val (user, group, ctx) = createOrga().unsafeRunSync()
       cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       val cfp = cfpRepo.create(cfpData1)(ctx).unsafeRunSync()
+      cfp.data shouldBe cfpData1
       cfpRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(cfp)
 
       cfpRepo.edit(cfp.slug, cfpData2)(ctx).unsafeRunSync()
@@ -44,7 +45,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       cfpRepo.list(cfp.group).unsafeRunSync() shouldBe List(cfp)
       cfpRepo.listAllIncoming(cfp.group)(ctx.userAwareCtx).unsafeRunSync() // shouldBe List(cfp) // should have close null or after now
       cfpRepo.listAllPublicSlugs()(ctx.userAwareCtx).unsafeRunSync() shouldBe List(cfp.slug)
-      cfpRepo.listTags().unsafeRunSync() shouldBe cfp.tags
+      cfpRepo.listTags().unsafeRunSync() shouldBe cfp.tags.distinct
     }
     it("should fail to create a cfp when the group does not exists") {
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
@@ -73,7 +74,7 @@ class CfpRepoSqlSpec extends RepoSpec {
       check(selectPage(params), s"SELECT $fields FROM $table WHERE c.group_id=? $orderBy LIMIT 20 OFFSET 0")
       check(selectPage(talk.id, params), s"SELECT $fields FROM $table WHERE c.id NOT IN (SELECT p.cfp_id FROM proposals p WHERE p.talk_id=? ORDER BY p.created_at IS NULL, p.created_at DESC) $orderBy LIMIT 20 OFFSET 0")
       check(selectAll(group.id), s"SELECT $fields FROM $table WHERE c.group_id=? $orderBy")
-      check(selectAll(NonEmptyList.of(cfp.id, cfp.id, cfp.id)), s"SELECT $fields FROM $table WHERE c.id IN (?, ?, ?)  $orderBy")
+      check(selectAll(NonEmptyList.of(cfp.id, cfp.id, cfp.id)), s"SELECT $fields FROM $table WHERE c.id IN (?, ?, ?) $orderBy")
       check(selectAllPublicSlugs(), s"SELECT c.slug FROM $table $orderBy")
       check(selectAllIncoming(group.id, now), s"SELECT $fields FROM $table WHERE (c.close IS NULL OR c.close > ?) AND c.group_id=? $orderBy")
       check(selectTags(), s"SELECT c.tags FROM $table $orderBy")

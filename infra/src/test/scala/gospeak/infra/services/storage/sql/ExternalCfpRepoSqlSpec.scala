@@ -16,6 +16,7 @@ class ExternalCfpRepoSqlSpec extends RepoSpec {
       val event = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
       externalCfpRepo.listAll(event.id).unsafeRunSync() shouldBe List()
       val cfp = externalCfpRepo.create(event.id, externalCfpData1)(ctx).unsafeRunSync()
+      cfp.data shouldBe externalCfpData1
       externalCfpRepo.listAll(event.id).unsafeRunSync() shouldBe List(cfp)
 
       externalCfpRepo.edit(cfp.id)(externalCfpData2)(ctx).unsafeRunSync()

@@ -26,11 +26,11 @@ import scala.concurrent.duration.FiniteDuration
 class VIDEO_SOURCES private(getAlias: Option[String] = Some("vis")) extends Table.SqlTable("PUBLIC", "video_sources", getAlias) {
   type Self = VIDEO_SOURCES
 
-  val VIDEO_ID: SqlFieldRef[Url.Video.Id, VIDEO_SOURCES, VIDEOS] = new SqlFieldRef[Url.Video.Id, VIDEO_SOURCES, VIDEOS](this, "video_id", VIDEOS.table.ID) // VARCHAR(15) NOT NULL
-  val TALK_ID: SqlFieldRefOpt[Talk.Id, VIDEO_SOURCES, TALKS] = new SqlFieldRefOpt[Talk.Id, VIDEO_SOURCES, TALKS](this, "talk_id", TALKS.table.ID) // CHAR(36)
-  val PROPOSAL_ID: SqlFieldRefOpt[Proposal.Id, VIDEO_SOURCES, PROPOSALS] = new SqlFieldRefOpt[Proposal.Id, VIDEO_SOURCES, PROPOSALS](this, "proposal_id", PROPOSALS.table.ID) // CHAR(36)
-  val EXTERNAL_PROPOSAL_ID: SqlFieldRefOpt[ExternalProposal.Id, VIDEO_SOURCES, EXTERNAL_PROPOSALS] = new SqlFieldRefOpt[ExternalProposal.Id, VIDEO_SOURCES, EXTERNAL_PROPOSALS](this, "external_proposal_id", EXTERNAL_PROPOSALS.table.ID) // CHAR(36)
-  val EXTERNAL_EVENT_ID: SqlFieldRefOpt[ExternalEvent.Id, VIDEO_SOURCES, EXTERNAL_EVENTS] = new SqlFieldRefOpt[ExternalEvent.Id, VIDEO_SOURCES, EXTERNAL_EVENTS](this, "external_event_id", EXTERNAL_EVENTS.table.ID) // CHAR(36)
+  val VIDEO_ID: SqlFieldRef[Url.Video.Id, VIDEO_SOURCES, VIDEOS] = SqlField(this, "video_id", "VARCHAR(15) NOT NULL", JdbcType.VarChar, nullable = false, 1, VIDEOS.table.ID)
+  val TALK_ID: SqlFieldRef[Talk.Id, VIDEO_SOURCES, TALKS] = SqlField(this, "talk_id", "CHAR(36)", JdbcType.Char, nullable = true, 2, TALKS.table.ID)
+  val PROPOSAL_ID: SqlFieldRef[Proposal.Id, VIDEO_SOURCES, PROPOSALS] = SqlField(this, "proposal_id", "CHAR(36)", JdbcType.Char, nullable = true, 3, PROPOSALS.table.ID)
+  val EXTERNAL_PROPOSAL_ID: SqlFieldRef[ExternalProposal.Id, VIDEO_SOURCES, EXTERNAL_PROPOSALS] = SqlField(this, "external_proposal_id", "CHAR(36)", JdbcType.Char, nullable = true, 4, EXTERNAL_PROPOSALS.table.ID)
+  val EXTERNAL_EVENT_ID: SqlFieldRef[ExternalEvent.Id, VIDEO_SOURCES, EXTERNAL_EVENTS] = SqlField(this, "external_event_id", "CHAR(36)", JdbcType.Char, nullable = true, 5, EXTERNAL_EVENTS.table.ID)
 
   override def getFields: List[SqlField[_, VIDEO_SOURCES]] = List(VIDEO_ID, TALK_ID, PROPOSAL_ID, EXTERNAL_PROPOSAL_ID, EXTERNAL_EVENT_ID)
 

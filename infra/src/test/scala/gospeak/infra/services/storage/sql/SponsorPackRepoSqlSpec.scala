@@ -12,6 +12,7 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       val (user, group, ctx) = createOrga().unsafeRunSync()
       sponsorPackRepo.listAll(group.id).unsafeRunSync() shouldBe List()
       val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
+      sponsorPack.data shouldBe sponsorPackData1
       sponsorPackRepo.listAll(group.id).unsafeRunSync() shouldBe List(sponsorPack)
 
       sponsorPackRepo.edit(sponsorPack.slug, sponsorPackData2)(ctx).unsafeRunSync()
@@ -43,7 +44,7 @@ class SponsorPackRepoSqlSpec extends RepoSpec {
       check(update(group.id, sponsorPack.slug)(sponsorPack.data, user.id, now), s"UPDATE $table SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
       check(setActive(group.id, sponsorPack.slug)(active = true, user.id, now), s"UPDATE $table SET active=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
       check(selectOne(group.id, sponsorPack.slug), s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.slug=? $orderBy")
-      check(selectAll(NonEmptyList.of(sponsorPack.id, sponsorPack.id)), s"SELECT $fields FROM $table WHERE sp.id IN (?, ?)  $orderBy")
+      check(selectAll(NonEmptyList.of(sponsorPack.id, sponsorPack.id)), s"SELECT $fields FROM $table WHERE sp.id IN (?, ?) $orderBy")
       check(selectAll(group.id), s"SELECT $fields FROM $table WHERE sp.group_id=? $orderBy")
       check(selectActives(group.id), s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.active=? $orderBy")
     }

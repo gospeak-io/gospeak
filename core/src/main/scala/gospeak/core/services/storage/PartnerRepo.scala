@@ -3,16 +3,16 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, Partner}
-import gospeak.libs.scala.domain.{Done, Page}
+import gospeak.libs.scala.domain.Page
 
 trait PartnerRepo extends OrgaPartnerRepo with SuggestPartnerRepo
 
 trait OrgaPartnerRepo {
   def create(data: Partner.Data)(implicit ctx: OrgaCtx): IO[Partner]
 
-  def edit(partner: Partner.Slug, data: Partner.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(partner: Partner.Slug, data: Partner.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Done]
+  def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Unit]
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]]
 

@@ -9,30 +9,34 @@ import gospeak.core.domain.{CommonEvent, Event, ExternalEvent, User}
 import gospeak.core.services.storage.ExternalEventRepo
 import gospeak.infra.services.storage.sql.ExternalEventRepoSql._
 import gospeak.infra.services.storage.sql.database.Tables._
+import gospeak.infra.services.storage.sql.database.tables.EXTERNAL_EVENTS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
-import gospeak.libs.scala.domain.{Done, Logo, Page, Tag}
-import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
+import gospeak.libs.scala.domain.{Logo, Page, Tag}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Table}
 import gospeak.libs.sql.dsl
+import gospeak.libs.sql.dsl.Query
 
 class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalEventRepo {
-  override def create(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[ExternalEvent] =
-    insert(ExternalEvent(data, Info(ctx.user.id, ctx.now))).run(xa)
+  override def create(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[ExternalEvent] = {
+    val event = ExternalEvent(data, Info(ctx.user.id, ctx.now))
+    insert(event).run(xa).map(_ => event)
+  }
 
-  override def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Done] =
+  override def edit(id: ExternalEvent.Id)(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[Unit] =
     update(id)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def listAllIds()(implicit ctx: UserAwareCtx): IO[List[ExternalEvent.Id]] = selectAllIds().runList(xa)
+  override def listAllIds()(implicit ctx: UserAwareCtx): IO[List[ExternalEvent.Id]] = selectAllIds().run(xa)
 
   override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]] = selectPage(params).run(xa)
 
   override def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]] = selectPageCommon(params).run(xa)
 
-  override def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]] = selectOne(id).runOption(xa)
+  override def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]] = selectOne(id).run(xa)
 
-  override def listTags(): IO[List[Tag]] = selectTags().runList(xa).map(_.flatten.distinct)
+  override def listTags(): IO[List[Tag]] = selectTags().run(xa).map(_.flatten.distinct)
 
-  override def listLogos(): IO[List[Logo]] = selectLogos().runList(xa).map(_.flatten.distinct)
+  override def listLogos(): IO[List[Logo]] = selectLogos().run(xa).map(_.flatten.distinct)
 }
 
 object ExternalEventRepoSql {
@@ -90,64 +94,65 @@ object ExternalEventRepoSql {
       new dsl.Table.Filter.Bool("past", "Is past", aggregation = false, ctx => ce.start.lt(ctx.now), ctx => ce.start.gt(ctx.now)))
   }
 
-  private[sql] def insert(e: ExternalEvent): Query.Insert[ExternalEvent] = {
+  private[sql] def insert(e: ExternalEvent): Query.Insert[EXTERNAL_EVENTS] = {
     val values = fr0"${e.id}, ${e.name}, ${e.kind}, ${e.logo}, ${e.description}, ${e.start}, ${e.finish}, " ++ insertLocation(e.location) ++ fr0", ${e.url}, ${e.tickets}, ${e.videos}, ${e.twitterAccount}, ${e.twitterHashtag}, ${e.tags}, " ++ insertInfo(e.info)
     val q1 = table.insert[ExternalEvent](e, _ => values)
-    val q2 = EXTERNAL_EVENTS.insert.values(e.id, e.name, e.kind, e.logo, e.description, e.start, e.finish, e.location, e.location.map(_.id), e.location.map(_.geo.lat), e.location.map(_.geo.lng), e.location.flatMap(_.locality), e.location.map(_.country), e.url, e.tickets, e.videos, e.twitterAccount, e.twitterHashtag, e.tags, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    // val q2 = EXTERNAL_EVENTS.insert.values(e.id, e.name, e.kind, e.logo, e.description, e.start, e.finish, e.location, e.location.map(_.id), e.location.map(_.geo.lat), e.location.map(_.geo.lng), e.location.flatMap(_.locality), e.location.map(_.country), e.url, e.tickets, e.videos, e.twitterAccount, e.twitterHashtag, e.tags, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    val q2 = EXTERNAL_EVENTS.insert.values(values)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def update(id: ExternalEvent.Id)(e: ExternalEvent.Data, by: User.Id, now: Instant): Query.Update = {
+  private[sql] def update(id: ExternalEvent.Id)(e: ExternalEvent.Data, by: User.Id, now: Instant): Query.Update[EXTERNAL_EVENTS] = {
     val fields = fr0"name=${e.name}, kind=${e.kind}, logo=${e.logo}, description=${e.description}, start=${e.start}, finish=${e.finish}, " ++ updateLocation(e.location) ++ fr0", url=${e.url}, tickets_url=${e.tickets}, videos_url=${e.videos}, twitter_account=${e.twitterAccount}, twitter_hashtag=${e.twitterHashtag}, tags=${e.tags}, updated_at=$now, updated_by=$by"
     val q1 = table.update(fields).where(fr0"ee.id=$id")
     val q2 = EXTERNAL_EVENTS.update.set(_.NAME, e.name).set(_.KIND, e.kind).set(_.LOGO, e.logo).set(_.DESCRIPTION, e.description).set(_.START, e.start).set(_.FINISH, e.finish)
       .set(_.LOCATION, e.location).set(_.LOCATION_ID, e.location.map(_.id)).set(_.LOCATION_LAT, e.location.map(_.geo.lat)).set(_.LOCATION_LNG, e.location.map(_.geo.lng)).set(_.LOCATION_LOCALITY, e.location.flatMap(_.locality)).set(_.LOCATION_COUNTRY, e.location.map(_.country))
       .set(_.URL, e.url).set(_.TICKETS_URL, e.tickets).set(_.VIDEOS_URL, e.videos).set(_.TWITTER_ACCOUNT, e.twitterAccount).set(_.TWITTER_HASHTAG, e.twitterHashtag).set(_.TAGS, e.tags).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(_.ID.is(id))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(id: ExternalEvent.Id): Query.Select[ExternalEvent] = {
+  private[sql] def selectOne(id: ExternalEvent.Id): Query.Select.Optional[ExternalEvent] = {
     val q1 = tableSelect.select[ExternalEvent].where(fr0"ee.id=$id").one
     val q2 = EXTERNAL_EVENTS_SELECT.select.where(_.id.is(id)).option[ExternalEvent](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAllIds()(implicit ctx: UserAwareCtx): Query.Select[ExternalEvent.Id] = {
+  private[sql] def selectAllIds()(implicit ctx: UserAwareCtx): Query.Select.All[ExternalEvent.Id] = {
     val q1 = table.select[ExternalEvent.Id].fields(Field("id", "ee"))
     val q2 = EXTERNAL_EVENTS.select.withFields(_.ID).all[ExternalEvent.Id]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): Query.SelectPage[ExternalEvent] = {
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[ExternalEvent] = {
     val q1 = tableSelect.selectPage[ExternalEvent](params, adapt(ctx))
     val q2 = EXTERNAL_EVENTS_SELECT.select.page[ExternalEvent](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[CommonEvent] = {
+  private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[CommonEvent] = {
     val q1 = commonTable.selectPage[CommonEvent](params, adapt(ctx))
     val q2 = COMMON_EVENTS.select.page[CommonEvent](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectTags(): Query.Select[List[Tag]] = {
+  private[sql] def selectTags(): Query.Select.All[List[Tag]] = {
     val q1 = table.select[List[Tag]].fields(Field("tags", "ee"))
     val q2 = EXTERNAL_EVENTS.select.withFields(_.TAGS).all[List[Tag]]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectLogos(): Query.Select[Option[Logo]] = {
+  private[sql] def selectLogos(): Query.Select.All[Option[Logo]] = {
     val q1 = table.select[Option[Logo]].fields(Field("logo", "ee")).where(fr0"ee.logo IS NOT NULL")
     val q2 = EXTERNAL_EVENTS.select.withFields(_.LOGO).where(_.LOGO.notNull).all[Option[Logo]]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
   private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)

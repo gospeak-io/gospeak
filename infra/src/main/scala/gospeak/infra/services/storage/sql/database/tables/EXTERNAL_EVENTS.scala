@@ -26,29 +26,29 @@ import scala.concurrent.duration.FiniteDuration
 class EXTERNAL_EVENTS private(getAlias: Option[String] = Some("ee")) extends Table.SqlTable("PUBLIC", "external_events", getAlias) {
   type Self = EXTERNAL_EVENTS
 
-  val ID: SqlField[ExternalEvent.Id, EXTERNAL_EVENTS] = new SqlField[ExternalEvent.Id, EXTERNAL_EVENTS](this, "id") // CHAR(36) NOT NULL
-  val NAME: SqlField[Event.Name, EXTERNAL_EVENTS] = new SqlField[Event.Name, EXTERNAL_EVENTS](this, "name") // VARCHAR(120) NOT NULL
-  val KIND: SqlField[Event.Kind, EXTERNAL_EVENTS] = new SqlField[Event.Kind, EXTERNAL_EVENTS](this, "kind") // VARCHAR(12) DEFAULT 'Conference' NOT NULL
-  val LOGO: SqlFieldOpt[Logo, EXTERNAL_EVENTS] = new SqlFieldOpt[Logo, EXTERNAL_EVENTS](this, "logo") // VARCHAR(1024)
-  val DESCRIPTION: SqlField[Markdown, EXTERNAL_EVENTS] = new SqlField[Markdown, EXTERNAL_EVENTS](this, "description") // VARCHAR(4096) NOT NULL
-  val START: SqlFieldOpt[LocalDateTime, EXTERNAL_EVENTS] = new SqlFieldOpt[LocalDateTime, EXTERNAL_EVENTS](this, "start") // TIMESTAMP
-  val FINISH: SqlFieldOpt[LocalDateTime, EXTERNAL_EVENTS] = new SqlFieldOpt[LocalDateTime, EXTERNAL_EVENTS](this, "finish") // TIMESTAMP
-  val LOCATION: SqlFieldOpt[GMapPlace, EXTERNAL_EVENTS] = new SqlFieldOpt[GMapPlace, EXTERNAL_EVENTS](this, "location") // VARCHAR(4096)
-  val LOCATION_ID: SqlFieldOpt[String, EXTERNAL_EVENTS] = new SqlFieldOpt[String, EXTERNAL_EVENTS](this, "location_id") // VARCHAR(150)
-  val LOCATION_LAT: SqlFieldOpt[Double, EXTERNAL_EVENTS] = new SqlFieldOpt[Double, EXTERNAL_EVENTS](this, "location_lat") // DOUBLE PRECISION
-  val LOCATION_LNG: SqlFieldOpt[Double, EXTERNAL_EVENTS] = new SqlFieldOpt[Double, EXTERNAL_EVENTS](this, "location_lng") // DOUBLE PRECISION
-  val LOCATION_LOCALITY: SqlFieldOpt[String, EXTERNAL_EVENTS] = new SqlFieldOpt[String, EXTERNAL_EVENTS](this, "location_locality") // VARCHAR(50)
-  val LOCATION_COUNTRY: SqlFieldOpt[String, EXTERNAL_EVENTS] = new SqlFieldOpt[String, EXTERNAL_EVENTS](this, "location_country") // VARCHAR(30)
-  val URL: SqlFieldOpt[Url, EXTERNAL_EVENTS] = new SqlFieldOpt[Url, EXTERNAL_EVENTS](this, "url") // VARCHAR(1024)
-  val TICKETS_URL: SqlFieldOpt[Url, EXTERNAL_EVENTS] = new SqlFieldOpt[Url, EXTERNAL_EVENTS](this, "tickets_url") // VARCHAR(1024)
-  val VIDEOS_URL: SqlFieldOpt[Url.Videos, EXTERNAL_EVENTS] = new SqlFieldOpt[Url.Videos, EXTERNAL_EVENTS](this, "videos_url") // VARCHAR(1024)
-  val TWITTER_ACCOUNT: SqlFieldOpt[TwitterAccount, EXTERNAL_EVENTS] = new SqlFieldOpt[TwitterAccount, EXTERNAL_EVENTS](this, "twitter_account") // VARCHAR(120)
-  val TWITTER_HASHTAG: SqlFieldOpt[TwitterHashtag, EXTERNAL_EVENTS] = new SqlFieldOpt[TwitterHashtag, EXTERNAL_EVENTS](this, "twitter_hashtag") // VARCHAR(120)
-  val TAGS: SqlField[List[Tag], EXTERNAL_EVENTS] = new SqlField[List[Tag], EXTERNAL_EVENTS](this, "tags") // VARCHAR(150) NOT NULL
-  val CREATED_AT: SqlField[Instant, EXTERNAL_EVENTS] = new SqlField[Instant, EXTERNAL_EVENTS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, EXTERNAL_EVENTS, USERS] = new SqlFieldRef[User.Id, EXTERNAL_EVENTS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, EXTERNAL_EVENTS] = new SqlField[Instant, EXTERNAL_EVENTS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, EXTERNAL_EVENTS, USERS] = new SqlFieldRef[User.Id, EXTERNAL_EVENTS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[ExternalEvent.Id, EXTERNAL_EVENTS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val NAME: SqlField[Event.Name, EXTERNAL_EVENTS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val KIND: SqlField[Event.Kind, EXTERNAL_EVENTS] = SqlField(this, "kind", "VARCHAR(12) DEFAULT 'Conference' NOT NULL", JdbcType.VarChar, nullable = false, 23)
+  val LOGO: SqlField[Logo, EXTERNAL_EVENTS] = SqlField(this, "logo", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 3)
+  val DESCRIPTION: SqlField[Markdown, EXTERNAL_EVENTS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val START: SqlField[LocalDateTime, EXTERNAL_EVENTS] = SqlField(this, "start", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 5)
+  val FINISH: SqlField[LocalDateTime, EXTERNAL_EVENTS] = SqlField(this, "finish", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 6)
+  val LOCATION: SqlField[GMapPlace, EXTERNAL_EVENTS] = SqlField(this, "location", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 7)
+  val LOCATION_ID: SqlField[String, EXTERNAL_EVENTS] = SqlField(this, "location_id", "VARCHAR(150)", JdbcType.VarChar, nullable = true, 8)
+  val LOCATION_LAT: SqlField[Double, EXTERNAL_EVENTS] = SqlField(this, "location_lat", "DOUBLE PRECISION", JdbcType.Double, nullable = true, 9)
+  val LOCATION_LNG: SqlField[Double, EXTERNAL_EVENTS] = SqlField(this, "location_lng", "DOUBLE PRECISION", JdbcType.Double, nullable = true, 10)
+  val LOCATION_LOCALITY: SqlField[String, EXTERNAL_EVENTS] = SqlField(this, "location_locality", "VARCHAR(50)", JdbcType.VarChar, nullable = true, 11)
+  val LOCATION_COUNTRY: SqlField[String, EXTERNAL_EVENTS] = SqlField(this, "location_country", "VARCHAR(30)", JdbcType.VarChar, nullable = true, 12)
+  val URL: SqlField[Url, EXTERNAL_EVENTS] = SqlField(this, "url", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 13)
+  val TICKETS_URL: SqlField[Url, EXTERNAL_EVENTS] = SqlField(this, "tickets_url", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 14)
+  val VIDEOS_URL: SqlField[Url.Videos, EXTERNAL_EVENTS] = SqlField(this, "videos_url", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 15)
+  val TWITTER_ACCOUNT: SqlField[TwitterAccount, EXTERNAL_EVENTS] = SqlField(this, "twitter_account", "VARCHAR(120)", JdbcType.VarChar, nullable = true, 16)
+  val TWITTER_HASHTAG: SqlField[TwitterHashtag, EXTERNAL_EVENTS] = SqlField(this, "twitter_hashtag", "VARCHAR(120)", JdbcType.VarChar, nullable = true, 17)
+  val TAGS: SqlField[List[Tag], EXTERNAL_EVENTS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 18)
+  val CREATED_AT: SqlField[Instant, EXTERNAL_EVENTS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 19)
+  val CREATED_BY: SqlFieldRef[User.Id, EXTERNAL_EVENTS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 20, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, EXTERNAL_EVENTS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 21)
+  val UPDATED_BY: SqlFieldRef[User.Id, EXTERNAL_EVENTS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 22, USERS.table.ID)
 
   override def getFields: List[SqlField[_, EXTERNAL_EVENTS]] = List(ID, NAME, KIND, LOGO, DESCRIPTION, START, FINISH, LOCATION, LOCATION_ID, LOCATION_LAT, LOCATION_LNG, LOCATION_LOCALITY, LOCATION_COUNTRY, URL, TICKETS_URL, VIDEOS_URL, TWITTER_ACCOUNT, TWITTER_HASHTAG, TAGS, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

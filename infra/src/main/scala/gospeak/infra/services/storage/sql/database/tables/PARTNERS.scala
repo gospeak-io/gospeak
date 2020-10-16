@@ -26,27 +26,27 @@ import scala.concurrent.duration.FiniteDuration
 class PARTNERS private(getAlias: Option[String] = Some("pa")) extends Table.SqlTable("PUBLIC", "partners", getAlias) {
   type Self = PARTNERS
 
-  val ID: SqlField[Partner.Id, PARTNERS] = new SqlField[Partner.Id, PARTNERS](this, "id") // CHAR(36) NOT NULL
-  val GROUP_ID: SqlFieldRef[Group.Id, PARTNERS, GROUPS] = new SqlFieldRef[Group.Id, PARTNERS, GROUPS](this, "group_id", GROUPS.table.ID) // CHAR(36) NOT NULL
-  val SLUG: SqlField[Partner.Slug, PARTNERS] = new SqlField[Partner.Slug, PARTNERS](this, "slug") // VARCHAR(120) NOT NULL
-  val NAME: SqlField[Partner.Name, PARTNERS] = new SqlField[Partner.Name, PARTNERS](this, "name") // VARCHAR(120) NOT NULL
-  val NOTES: SqlField[Markdown, PARTNERS] = new SqlField[Markdown, PARTNERS](this, "notes") // VARCHAR(4096) NOT NULL
-  val DESCRIPTION: SqlFieldOpt[Markdown, PARTNERS] = new SqlFieldOpt[Markdown, PARTNERS](this, "description") // VARCHAR(4096)
-  val LOGO: SqlField[Logo, PARTNERS] = new SqlField[Logo, PARTNERS](this, "logo") // VARCHAR(1024) NOT NULL
-  val SOCIAL_FACEBOOK: SqlFieldOpt[FacebookAccount, PARTNERS] = new SqlFieldOpt[FacebookAccount, PARTNERS](this, "social_facebook") // VARCHAR(1024)
-  val SOCIAL_INSTAGRAM: SqlFieldOpt[InstagramAccount, PARTNERS] = new SqlFieldOpt[InstagramAccount, PARTNERS](this, "social_instagram") // VARCHAR(1024)
-  val SOCIAL_TWITTER: SqlFieldOpt[TwitterAccount, PARTNERS] = new SqlFieldOpt[TwitterAccount, PARTNERS](this, "social_twitter") // VARCHAR(1024)
-  val SOCIAL_LINKEDIN: SqlFieldOpt[LinkedInAccount, PARTNERS] = new SqlFieldOpt[LinkedInAccount, PARTNERS](this, "social_linkedIn") // VARCHAR(1024)
-  val SOCIAL_YOUTUBE: SqlFieldOpt[YoutubeAccount, PARTNERS] = new SqlFieldOpt[YoutubeAccount, PARTNERS](this, "social_youtube") // VARCHAR(1024)
-  val SOCIAL_MEETUP: SqlFieldOpt[MeetupAccount, PARTNERS] = new SqlFieldOpt[MeetupAccount, PARTNERS](this, "social_meetup") // VARCHAR(1024)
-  val SOCIAL_EVENTBRITE: SqlFieldOpt[EventbriteAccount, PARTNERS] = new SqlFieldOpt[EventbriteAccount, PARTNERS](this, "social_eventbrite") // VARCHAR(1024)
-  val SOCIAL_SLACK: SqlFieldOpt[SlackAccount, PARTNERS] = new SqlFieldOpt[SlackAccount, PARTNERS](this, "social_slack") // VARCHAR(1024)
-  val SOCIAL_DISCORD: SqlFieldOpt[DiscordAccount, PARTNERS] = new SqlFieldOpt[DiscordAccount, PARTNERS](this, "social_discord") // VARCHAR(1024)
-  val SOCIAL_GITHUB: SqlFieldOpt[GithubAccount, PARTNERS] = new SqlFieldOpt[GithubAccount, PARTNERS](this, "social_github") // VARCHAR(1024)
-  val CREATED_AT: SqlField[Instant, PARTNERS] = new SqlField[Instant, PARTNERS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, PARTNERS, USERS] = new SqlFieldRef[User.Id, PARTNERS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, PARTNERS] = new SqlField[Instant, PARTNERS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, PARTNERS, USERS] = new SqlFieldRef[User.Id, PARTNERS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Partner.Id, PARTNERS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val GROUP_ID: SqlFieldRef[Group.Id, PARTNERS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, GROUPS.table.ID)
+  val SLUG: SqlField[Partner.Slug, PARTNERS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val NAME: SqlField[Partner.Name, PARTNERS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val NOTES: SqlField[Markdown, PARTNERS] = SqlField(this, "notes", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val DESCRIPTION: SqlField[Markdown, PARTNERS] = SqlField(this, "description", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 6)
+  val LOGO: SqlField[Logo, PARTNERS] = SqlField(this, "logo", "VARCHAR(1024) NOT NULL", JdbcType.VarChar, nullable = false, 7)
+  val SOCIAL_FACEBOOK: SqlField[FacebookAccount, PARTNERS] = SqlField(this, "social_facebook", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 8)
+  val SOCIAL_INSTAGRAM: SqlField[InstagramAccount, PARTNERS] = SqlField(this, "social_instagram", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 9)
+  val SOCIAL_TWITTER: SqlField[TwitterAccount, PARTNERS] = SqlField(this, "social_twitter", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 10)
+  val SOCIAL_LINKEDIN: SqlField[LinkedInAccount, PARTNERS] = SqlField(this, "social_linkedIn", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 11)
+  val SOCIAL_YOUTUBE: SqlField[YoutubeAccount, PARTNERS] = SqlField(this, "social_youtube", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 12)
+  val SOCIAL_MEETUP: SqlField[MeetupAccount, PARTNERS] = SqlField(this, "social_meetup", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 13)
+  val SOCIAL_EVENTBRITE: SqlField[EventbriteAccount, PARTNERS] = SqlField(this, "social_eventbrite", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 14)
+  val SOCIAL_SLACK: SqlField[SlackAccount, PARTNERS] = SqlField(this, "social_slack", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 15)
+  val SOCIAL_DISCORD: SqlField[DiscordAccount, PARTNERS] = SqlField(this, "social_discord", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 16)
+  val SOCIAL_GITHUB: SqlField[GithubAccount, PARTNERS] = SqlField(this, "social_github", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 17)
+  val CREATED_AT: SqlField[Instant, PARTNERS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 18)
+  val CREATED_BY: SqlFieldRef[User.Id, PARTNERS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 19, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, PARTNERS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 20)
+  val UPDATED_BY: SqlFieldRef[User.Id, PARTNERS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 21, USERS.table.ID)
 
   override def getFields: List[SqlField[_, PARTNERS]] = List(ID, GROUP_ID, SLUG, NAME, NOTES, DESCRIPTION, LOGO, SOCIAL_FACEBOOK, SOCIAL_INSTAGRAM, SOCIAL_TWITTER, SOCIAL_LINKEDIN, SOCIAL_YOUTUBE, SOCIAL_MEETUP, SOCIAL_EVENTBRITE, SOCIAL_SLACK, SOCIAL_DISCORD, SOCIAL_GITHUB, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

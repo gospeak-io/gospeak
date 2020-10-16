@@ -17,6 +17,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
       groupRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       val group = groupRepo.create(groupData1)(ctx).unsafeRunSync()
+      group.data shouldBe groupData1
       groupRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(group)
 
       groupRepo.edit(groupData2)(ctx.orgaCtx(group)).unsafeRunSync()
@@ -29,6 +30,9 @@ class GroupRepoSqlSpec extends RepoSpec {
 
       groupRepo.leave(member)(user2.id, now).unsafeRunSync()
       groupRepo.listMembers(group.id, params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()
+
+      val member2 = groupRepo.join(group.id)(user2, now).unsafeRunSync()
+      groupRepo.listMembers(group.id, params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(member2)
     }
     it("should fail on duplicate slug") {
       val (user, ctx) = createUser().unsafeRunSync()
@@ -52,8 +56,8 @@ class GroupRepoSqlSpec extends RepoSpec {
     it("should select a page") {
       val (user, ctx) = createUser().unsafeRunSync()
       val user2 = userRepo.create(userData2, now, None).unsafeRunSync()
-      val group1 = groupRepo.create(groupData1.copy(slug = Group.Slug.from("ddd").get, name = Group.Name("aaa")))(ctx).unsafeRunSync()
-      val group2 = groupRepo.create(groupData2.copy(slug = Group.Slug.from("bbb").get, name = Group.Name("ccc")))(ctx).unsafeRunSync()
+      val group1 = groupRepo.create(groupData1.copy(slug = Group.Slug.from("dddddd").get, name = Group.Name("aaaaaa")))(ctx).unsafeRunSync()
+      val group2 = groupRepo.create(groupData2.copy(slug = Group.Slug.from("bbbbbb").get, name = Group.Name("cccccc")))(ctx).unsafeRunSync()
       val member1 = groupRepo.join(group1.id)(user, now).unsafeRunSync()
       val member12 = groupRepo.join(group1.id)(user2, now.plusSeconds(10)).unsafeRunSync()
       val member2 = groupRepo.join(group2.id)(user, now).unsafeRunSync()
@@ -102,7 +106,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       groupRepo.find(group.slug).unsafeRunSync() shouldBe Some(group)
       groupRepo.findFull(group.slug).unsafeRunSync() shouldBe Some(groupFull)
       groupRepo.exists(group.slug).unsafeRunSync() shouldBe true
-      groupRepo.listTags().unsafeRunSync() shouldBe group.tags
+      groupRepo.listTags().unsafeRunSync() shouldBe group.tags.distinct
 
       groupRepo.listMembers(ctx).unsafeRunSync() shouldBe List(member)
       groupRepo.listMembers(group.id, params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(member)
@@ -120,7 +124,7 @@ class GroupRepoSqlSpec extends RepoSpec {
       check(selectPageJoined(params), s"SELECT $fieldsWithMember FROM $tableWithMember WHERE gm.user_id=? $orderBy LIMIT 20 OFFSET 0")
       check(selectAll(user.id), s"SELECT $fields FROM $table WHERE g.owners LIKE ? $orderBy")
       check(selectAllFull(user.id), s"SELECT $fieldsFull FROM $tableFull WHERE g.owners LIKE ? GROUP BY $fields $orderBy")
-      check(selectAll(NonEmptyList.of(group.id)), s"SELECT $fields FROM $table WHERE g.id IN (?)  $orderBy")
+      check(selectAll(NonEmptyList.of(group.id)), s"SELECT $fields FROM $table WHERE g.id IN (?) $orderBy")
       check(selectOne(group.id), s"SELECT $fields FROM $table WHERE g.id=? $orderBy")
       check(selectOne(group.slug), s"SELECT $fields FROM $table WHERE g.slug=? $orderBy")
       check(selectOneFull(group.slug), s"SELECT $fieldsFull FROM $tableFull WHERE g.slug=? GROUP BY $fields $orderBy")

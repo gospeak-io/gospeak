@@ -26,10 +26,10 @@ import scala.concurrent.duration.FiniteDuration
 class PROPOSAL_RATINGS private(getAlias: Option[String] = Some("pr")) extends Table.SqlTable("PUBLIC", "proposal_ratings", getAlias) {
   type Self = PROPOSAL_RATINGS
 
-  val PROPOSAL_ID: SqlFieldRef[Proposal.Id, PROPOSAL_RATINGS, PROPOSALS] = new SqlFieldRef[Proposal.Id, PROPOSAL_RATINGS, PROPOSALS](this, "proposal_id", PROPOSALS.table.ID) // CHAR(36) NOT NULL
-  val GRADE: SqlField[Proposal.Rating.Grade, PROPOSAL_RATINGS] = new SqlField[Proposal.Rating.Grade, PROPOSAL_RATINGS](this, "grade") // INT NOT NULL
-  val CREATED_AT: SqlField[Instant, PROPOSAL_RATINGS] = new SqlField[Instant, PROPOSAL_RATINGS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, PROPOSAL_RATINGS, USERS] = new SqlFieldRef[User.Id, PROPOSAL_RATINGS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val PROPOSAL_ID: SqlFieldRef[Proposal.Id, PROPOSAL_RATINGS, PROPOSALS] = SqlField(this, "proposal_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1, PROPOSALS.table.ID)
+  val GRADE: SqlField[Proposal.Rating.Grade, PROPOSAL_RATINGS] = SqlField(this, "grade", "INT NOT NULL", JdbcType.Integer, nullable = false, 2)
+  val CREATED_AT: SqlField[Instant, PROPOSAL_RATINGS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 3)
+  val CREATED_BY: SqlFieldRef[User.Id, PROPOSAL_RATINGS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 4, USERS.table.ID)
 
   override def getFields: List[SqlField[_, PROPOSAL_RATINGS]] = List(PROPOSAL_ID, GRADE, CREATED_AT, CREATED_BY)
 

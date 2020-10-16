@@ -68,7 +68,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected val userRequest: UserRequest = accountValidationRequest
   protected val video: Video = random[Video]
 
-  protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.email).take(3)
+  protected val Seq(userData1, userData2, userData3) = random[User.Data](10).distinctBy(_.slug).distinctBy(_.email).take(3)
   protected val Seq(talkData1, talkData2, talkData3) = random[Talk.Data](3)
   protected val Seq(groupData1, groupData2) = random[Group.Data](2)
   protected val Seq(cfpData1, cfpData2) = random[Cfp.Data](2)
@@ -213,6 +213,72 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Insert[T], sql: String): Unit = {
     query.fr.update.sql shouldBe sql
     check(query.fr.update)
+  }
+
+  protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Update[T], sql: String): Unit = {
+    query.fr.update.sql shouldBe sql
+    check(query.fr.update)
+  }
+
+  protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Delete[T], sql: String): Unit = {
+    query.fr.update.sql shouldBe sql
+    check(query.fr.update)
+  }
+
+  protected def check[A](query: dsl.Query.Select.All[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  protected def check[A](query: dsl.Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  protected def check[A](query: dsl.Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  protected def check[A](query: dsl.Query.Select.One[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
+    // query.run(db.xa).unsafeRunSync() // can't require that data exist
+  }
+
+  protected def check[A](query: dsl.Query.Select.Exists[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Boolean = {
+    query.fr.query.sql shouldBe sql
+    check(query.query)
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  // same as `check[A](query: dsl.Query.Select.All[A], sql: String)` but avoid type check (not null types become nullable on unions...)
+  protected def unsafeCheck[A](query: dsl.Query.Select.All[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
+    query.fr.query.sql shouldBe sql
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  protected def unsafeCheck[A](query: dsl.Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
+    query.fr.query.sql shouldBe sql
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  protected def unsafeCheck[A](query: dsl.Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
+    query.fr.query.sql shouldBe sql
+    query.run(db.xa).unsafeRunSync()
+  }
+
+  protected def unsafeCheck[A](query: dsl.Query.Select.One[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+    query.fr.query.sql shouldBe sql
+    // query.run(db.xa).unsafeRunSync() // can't require that data exist
+  }
+
+  protected def unsafeCheck[A](query: dsl.Query.Select.Exists[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Boolean = {
+    query.fr.query.sql shouldBe sql
+    query.run(db.xa).unsafeRunSync()
   }
 }
 

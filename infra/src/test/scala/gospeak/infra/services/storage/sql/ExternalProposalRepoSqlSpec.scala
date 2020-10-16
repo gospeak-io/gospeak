@@ -19,6 +19,7 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       val proposalData = externalProposalData1.copy(status = Proposal.Status.Accepted)
       externalProposalRepo.listPublic(event.id, params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()
       val proposal = externalProposalRepo.create(talk.id, event.id, proposalData, talk.speakers)(ctx).unsafeRunSync()
+      proposal.data shouldBe proposalData
       externalProposalRepo.listPublic(event.id, params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(proposal)
 
       val data = externalProposalData2.copy(status = Proposal.Status.Accepted)
@@ -63,8 +64,8 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       val talk1 = talkRepo.create(talkData1)(ctx).unsafeRunSync()
       val talk2 = talkRepo.create(talkData2)(ctx).unsafeRunSync()
       val event = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
-      val proposal1 = externalProposalRepo.create(talk1.id, event.id, externalProposalData1.copy(status = Proposal.Status.Accepted, title = Talk.Title("aaa"), duration = 2.hours), talk1.speakers)(ctx.plusSeconds(10)).unsafeRunSync()
-      val proposal2 = externalProposalRepo.create(talk2.id, event.id, externalProposalData2.copy(status = Proposal.Status.Accepted, title = Talk.Title("bbb"), duration = 1.hour), talk2.speakers)(ctx).unsafeRunSync()
+      val proposal1 = externalProposalRepo.create(talk1.id, event.id, externalProposalData1.copy(status = Proposal.Status.Accepted, title = Talk.Title("aaaaaa"), duration = 2.hours), talk1.speakers)(ctx.plusSeconds(10)).unsafeRunSync()
+      val proposal2 = externalProposalRepo.create(talk2.id, event.id, externalProposalData2.copy(status = Proposal.Status.Accepted, title = Talk.Title("bbbbbb"), duration = 1.hour), talk2.speakers)(ctx).unsafeRunSync()
       val commonProposal1 = CommonProposal(proposal1, talk1, event)
       val commonProposal2 = CommonProposal(proposal2, talk2, event)
 
@@ -98,7 +99,7 @@ class ExternalProposalRepoSqlSpec extends RepoSpec {
       externalProposalRepo.listAllCommon(talk.id, Proposal.Status.Accepted).unsafeRunSync() shouldBe List(commonProposal)
       externalProposalRepo.find(proposal.id).unsafeRunSync() shouldBe Some(proposal)
       externalProposalRepo.findFull(proposal.id).unsafeRunSync() shouldBe Some(proposalFull)
-      externalProposalRepo.listTags().unsafeRunSync() shouldBe proposal.tags
+      externalProposalRepo.listTags().unsafeRunSync() shouldBe proposal.tags.distinct
     }
     it("should check queries") {
       check(insert(externalProposal), s"INSERT INTO ${table.stripSuffix(" ep")} (${mapFields(fields, _.stripPrefix("ep."))}) VALUES (${mapFields(fields, _ => "?")})")

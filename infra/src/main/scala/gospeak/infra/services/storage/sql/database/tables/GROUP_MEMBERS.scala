@@ -26,12 +26,12 @@ import scala.concurrent.duration.FiniteDuration
 class GROUP_MEMBERS private(getAlias: Option[String] = Some("gm")) extends Table.SqlTable("PUBLIC", "group_members", getAlias) {
   type Self = GROUP_MEMBERS
 
-  val GROUP_ID: SqlFieldRef[Group.Id, GROUP_MEMBERS, GROUPS] = new SqlFieldRef[Group.Id, GROUP_MEMBERS, GROUPS](this, "group_id", GROUPS.table.ID) // CHAR(36) NOT NULL
-  val USER_ID: SqlFieldRef[User.Id, GROUP_MEMBERS, USERS] = new SqlFieldRef[User.Id, GROUP_MEMBERS, USERS](this, "user_id", USERS.table.ID) // CHAR(36) NOT NULL
-  val ROLE: SqlField[String, GROUP_MEMBERS] = new SqlField[String, GROUP_MEMBERS](this, "role") // VARCHAR(10) NOT NULL
-  val PRESENTATION: SqlFieldOpt[String, GROUP_MEMBERS] = new SqlFieldOpt[String, GROUP_MEMBERS](this, "presentation") // VARCHAR(4096)
-  val JOINED_AT: SqlField[Instant, GROUP_MEMBERS] = new SqlField[Instant, GROUP_MEMBERS](this, "joined_at") // TIMESTAMP NOT NULL
-  val LEAVED_AT: SqlFieldOpt[Instant, GROUP_MEMBERS] = new SqlFieldOpt[Instant, GROUP_MEMBERS](this, "leaved_at") // TIMESTAMP
+  val GROUP_ID: SqlFieldRef[Group.Id, GROUP_MEMBERS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1, GROUPS.table.ID)
+  val USER_ID: SqlFieldRef[User.Id, GROUP_MEMBERS, USERS] = SqlField(this, "user_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, USERS.table.ID)
+  val ROLE: SqlField[String, GROUP_MEMBERS] = SqlField(this, "role", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val PRESENTATION: SqlField[String, GROUP_MEMBERS] = SqlField(this, "presentation", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 4)
+  val JOINED_AT: SqlField[Instant, GROUP_MEMBERS] = SqlField(this, "joined_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 5)
+  val LEAVED_AT: SqlField[Instant, GROUP_MEMBERS] = SqlField(this, "leaved_at", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 6)
 
   override def getFields: List[SqlField[_, GROUP_MEMBERS]] = List(GROUP_ID, USER_ID, ROLE, PRESENTATION, JOINED_AT, LEAVED_AT)
 

@@ -26,29 +26,29 @@ import scala.concurrent.duration.FiniteDuration
 class EVENTS private(getAlias: Option[String] = Some("e")) extends Table.SqlTable("PUBLIC", "events", getAlias) {
   type Self = EVENTS
 
-  val ID: SqlField[Event.Id, EVENTS] = new SqlField[Event.Id, EVENTS](this, "id") // CHAR(36) NOT NULL
-  val GROUP_ID: SqlFieldRef[Group.Id, EVENTS, GROUPS] = new SqlFieldRef[Group.Id, EVENTS, GROUPS](this, "group_id", GROUPS.table.ID) // CHAR(36) NOT NULL
-  val CFP_ID: SqlFieldRefOpt[Cfp.Id, EVENTS, CFPS] = new SqlFieldRefOpt[Cfp.Id, EVENTS, CFPS](this, "cfp_id", CFPS.table.ID) // CHAR(36)
-  val SLUG: SqlField[Event.Slug, EVENTS] = new SqlField[Event.Slug, EVENTS](this, "slug") // VARCHAR(120) NOT NULL
-  val NAME: SqlField[Event.Name, EVENTS] = new SqlField[Event.Name, EVENTS](this, "name") // VARCHAR(120) NOT NULL
-  val KIND: SqlField[Event.Kind, EVENTS] = new SqlField[Event.Kind, EVENTS](this, "kind") // VARCHAR(12) DEFAULT 'Meetup' NOT NULL
-  val START: SqlField[LocalDateTime, EVENTS] = new SqlField[LocalDateTime, EVENTS](this, "start") // TIMESTAMP NOT NULL
-  val MAX_ATTENDEE: SqlFieldOpt[Int, EVENTS] = new SqlFieldOpt[Int, EVENTS](this, "max_attendee") // INT
-  val ALLOW_RSVP: SqlField[Boolean, EVENTS] = new SqlField[Boolean, EVENTS](this, "allow_rsvp") // BOOLEAN NOT NULL
-  val DESCRIPTION: SqlField[LiquidMarkdown[Message.EventInfo], EVENTS] = new SqlField[LiquidMarkdown[Message.EventInfo], EVENTS](this, "description") // VARCHAR(4096) NOT NULL
-  val ORGA_NOTES: SqlField[String, EVENTS] = new SqlField[String, EVENTS](this, "orga_notes") // VARCHAR(4096) NOT NULL
-  val ORGA_NOTES_UPDATED_AT: SqlField[Instant, EVENTS] = new SqlField[Instant, EVENTS](this, "orga_notes_updated_at") // TIMESTAMP NOT NULL
-  val ORGA_NOTES_UPDATED_BY: SqlFieldRef[User.Id, EVENTS, USERS] = new SqlFieldRef[User.Id, EVENTS, USERS](this, "orga_notes_updated_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val VENUE: SqlFieldRefOpt[Venue.Id, EVENTS, VENUES] = new SqlFieldRefOpt[Venue.Id, EVENTS, VENUES](this, "venue", VENUES.table.ID) // CHAR(36)
-  val TALKS: SqlField[List[Proposal.Id], EVENTS] = new SqlField[List[Proposal.Id], EVENTS](this, "talks") // VARCHAR(258) NOT NULL
-  val TAGS: SqlField[List[Tag], EVENTS] = new SqlField[List[Tag], EVENTS](this, "tags") // VARCHAR(150) NOT NULL
-  val PUBLISHED: SqlFieldOpt[Instant, EVENTS] = new SqlFieldOpt[Instant, EVENTS](this, "published") // TIMESTAMP
-  val MEETUPGROUP: SqlFieldOpt[MeetupGroup.Slug, EVENTS] = new SqlFieldOpt[MeetupGroup.Slug, EVENTS](this, "meetupGroup") // VARCHAR(80)
-  val MEETUPEVENT: SqlFieldOpt[MeetupEvent.Id, EVENTS] = new SqlFieldOpt[MeetupEvent.Id, EVENTS](this, "meetupEvent") // BIGINT
-  val CREATED_AT: SqlField[Instant, EVENTS] = new SqlField[Instant, EVENTS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, EVENTS, USERS] = new SqlFieldRef[User.Id, EVENTS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, EVENTS] = new SqlField[Instant, EVENTS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, EVENTS, USERS] = new SqlFieldRef[User.Id, EVENTS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Event.Id, EVENTS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val GROUP_ID: SqlFieldRef[Group.Id, EVENTS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, GROUPS.table.ID)
+  val CFP_ID: SqlFieldRef[Cfp.Id, EVENTS, CFPS] = SqlField(this, "cfp_id", "CHAR(36)", JdbcType.Char, nullable = true, 3, CFPS.table.ID)
+  val SLUG: SqlField[Event.Slug, EVENTS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val NAME: SqlField[Event.Name, EVENTS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val KIND: SqlField[Event.Kind, EVENTS] = SqlField(this, "kind", "VARCHAR(12) DEFAULT 'Meetup' NOT NULL", JdbcType.VarChar, nullable = false, 23)
+  val START: SqlField[LocalDateTime, EVENTS] = SqlField(this, "start", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 6)
+  val MAX_ATTENDEE: SqlField[Int, EVENTS] = SqlField(this, "max_attendee", "INT", JdbcType.Integer, nullable = true, 7)
+  val ALLOW_RSVP: SqlField[Boolean, EVENTS] = SqlField(this, "allow_rsvp", "BOOLEAN NOT NULL", JdbcType.Boolean, nullable = false, 8)
+  val DESCRIPTION: SqlField[LiquidMarkdown[Message.EventInfo], EVENTS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 9)
+  val ORGA_NOTES: SqlField[String, EVENTS] = SqlField(this, "orga_notes", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 10)
+  val ORGA_NOTES_UPDATED_AT: SqlField[Instant, EVENTS] = SqlField(this, "orga_notes_updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 11)
+  val ORGA_NOTES_UPDATED_BY: SqlFieldRef[User.Id, EVENTS, USERS] = SqlField(this, "orga_notes_updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 12, USERS.table.ID)
+  val VENUE: SqlFieldRef[Venue.Id, EVENTS, VENUES] = SqlField(this, "venue", "CHAR(36)", JdbcType.Char, nullable = true, 13, VENUES.table.ID)
+  val TALKS: SqlField[List[Proposal.Id], EVENTS] = SqlField(this, "talks", "VARCHAR(258) NOT NULL", JdbcType.VarChar, nullable = false, 14)
+  val TAGS: SqlField[List[Tag], EVENTS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 15)
+  val PUBLISHED: SqlField[Instant, EVENTS] = SqlField(this, "published", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 16)
+  val MEETUPGROUP: SqlField[MeetupGroup.Slug, EVENTS] = SqlField(this, "meetupGroup", "VARCHAR(80)", JdbcType.VarChar, nullable = true, 17)
+  val MEETUPEVENT: SqlField[MeetupEvent.Id, EVENTS] = SqlField(this, "meetupEvent", "BIGINT", JdbcType.BigInt, nullable = true, 18)
+  val CREATED_AT: SqlField[Instant, EVENTS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 19)
+  val CREATED_BY: SqlFieldRef[User.Id, EVENTS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 20, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, EVENTS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 21)
+  val UPDATED_BY: SqlFieldRef[User.Id, EVENTS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 22, USERS.table.ID)
 
   override def getFields: List[SqlField[_, EVENTS]] = List(ID, GROUP_ID, CFP_ID, SLUG, NAME, KIND, START, MAX_ATTENDEE, ALLOW_RSVP, DESCRIPTION, ORGA_NOTES, ORGA_NOTES_UPDATED_AT, ORGA_NOTES_UPDATED_BY, VENUE, TALKS, TAGS, PUBLISHED, MEETUPGROUP, MEETUPEVENT, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

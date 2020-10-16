@@ -24,7 +24,6 @@ class DoobieMappingsSpec extends BaseSpec with ScalaCheckPropertyChecks {
     it("should persist LocalDate using DATE field") {
       sql"CREATE TABLE tmp (value DATE)".update.run.transact(xa).unsafeRunSync() shouldBe 0
       forAll { d: LocalDate =>
-        println(d)
         sql"INSERT INTO tmp (value) VALUES ($d)".update.run.transact(xa).unsafeRunSync() shouldBe 1
         sql"SELECT value FROM tmp".query[LocalDate].unique.transact(xa).unsafeRunSync() shouldBe d
         sql"DELETE FROM tmp".update.run.transact(xa).unsafeRunSync() shouldBe 1

@@ -26,10 +26,10 @@ import scala.concurrent.duration.FiniteDuration
 class EVENT_RSVPS private(getAlias: Option[String] = Some("er")) extends Table.SqlTable("PUBLIC", "event_rsvps", getAlias) {
   type Self = EVENT_RSVPS
 
-  val EVENT_ID: SqlFieldRef[Event.Id, EVENT_RSVPS, EVENTS] = new SqlFieldRef[Event.Id, EVENT_RSVPS, EVENTS](this, "event_id", EVENTS.table.ID) // CHAR(36) NOT NULL
-  val USER_ID: SqlFieldRef[User.Id, EVENT_RSVPS, USERS] = new SqlFieldRef[User.Id, EVENT_RSVPS, USERS](this, "user_id", USERS.table.ID) // CHAR(36) NOT NULL
-  val ANSWER: SqlField[Event.Rsvp.Answer, EVENT_RSVPS] = new SqlField[Event.Rsvp.Answer, EVENT_RSVPS](this, "answer") // VARCHAR(10) NOT NULL
-  val ANSWERED_AT: SqlField[Instant, EVENT_RSVPS] = new SqlField[Instant, EVENT_RSVPS](this, "answered_at") // TIMESTAMP NOT NULL
+  val EVENT_ID: SqlFieldRef[Event.Id, EVENT_RSVPS, EVENTS] = SqlField(this, "event_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1, EVENTS.table.ID)
+  val USER_ID: SqlFieldRef[User.Id, EVENT_RSVPS, USERS] = SqlField(this, "user_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, USERS.table.ID)
+  val ANSWER: SqlField[Event.Rsvp.Answer, EVENT_RSVPS] = SqlField(this, "answer", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val ANSWERED_AT: SqlField[Instant, EVENT_RSVPS] = SqlField(this, "answered_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 4)
 
   override def getFields: List[SqlField[_, EVENT_RSVPS]] = List(EVENT_ID, USER_ID, ANSWER, ANSWERED_AT)
 

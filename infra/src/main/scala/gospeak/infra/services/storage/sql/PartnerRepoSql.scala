@@ -12,19 +12,22 @@ import gospeak.core.domain.{Group, Partner, User}
 import gospeak.core.services.storage.PartnerRepo
 import gospeak.infra.services.storage.sql.PartnerRepoSql._
 import gospeak.infra.services.storage.sql.database.Tables._
+import gospeak.infra.services.storage.sql.database.tables.PARTNERS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{CustomException, Done, Page}
-import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
+import gospeak.libs.scala.domain.{CustomException, Page}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Table}
 import gospeak.libs.sql.dsl
-import gospeak.libs.sql.dsl.{AggField, Cond, TableField}
+import gospeak.libs.sql.dsl.{AggField, Cond, Query, TableField}
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
-  override def create(data: Partner.Data)(implicit ctx: OrgaCtx): IO[Partner] =
-    insert(Partner(ctx.group.id, data, ctx.info)).run(xa)
+  override def create(data: Partner.Data)(implicit ctx: OrgaCtx): IO[Partner] = {
+    val partner = Partner(ctx.group.id, data, ctx.info)
+    insert(partner).run(xa).map(_ => partner)
+  }
 
-  override def edit(partner: Partner.Slug, data: Partner.Data)(implicit ctx: OrgaCtx): IO[Done] = {
+  override def edit(partner: Partner.Slug, data: Partner.Data)(implicit ctx: OrgaCtx): IO[Unit] = {
     if (data.slug != partner) {
       find(data.slug).flatMap {
         case None => update(ctx.group.id, partner)(data, ctx.user.id, ctx.now).run(xa)
@@ -35,21 +38,21 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
     }
   }
 
-  override def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Done] = delete(ctx.group.id, partner).run(xa)
+  override def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Unit] = delete(ctx.group.id, partner).run(xa)
 
   override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(params).run(xa)
 
   override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(params).run(xa)
 
-  override def list(group: Group.Id): IO[List[Partner]] = selectAll(group).runList(xa)
+  override def list(group: Group.Id): IO[List[Partner]] = selectAll(group).run(xa)
 
   override def list(partners: List[Partner.Id]): IO[List[Partner]] = runNel(selectAll, partners)
 
-  override def find(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).runOption(xa)
+  override def find(partner: Partner.Id)(implicit ctx: OrgaCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).run(xa)
 
-  override def find(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).runOption(xa)
+  override def find(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Option[Partner]] = selectOne(ctx.group.id, partner).run(xa)
 
-  override def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]] = selectOne(group, partner).runOption(xa)
+  override def find(group: Group.Id, partner: Partner.Slug): IO[Option[Partner]] = selectOne(group, partner).run(xa)
 }
 
 object PartnerRepoSql {
@@ -103,19 +106,20 @@ object PartnerRepoSql {
       dsl.Table.Sort("created", PARTNERS.CREATED_AT.desc),
       dsl.Table.Sort("updated", PARTNERS.UPDATED_AT.desc))
 
-  private[sql] def insert(e: Partner): Query.Insert[Partner] = {
+  private[sql] def insert(e: Partner): Query.Insert[PARTNERS] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     val q1 = table.insert[Partner](e, _ => values)
-    val q2 = PARTNERS.insert.values(e.id, e.group, e.slug, e.name, e.notes, e.description, e.logo,
-      e.social.facebook, e.social.instagram, e.social.twitter, e.social.linkedIn, e.social.youtube, e.social.meetup, e.social.eventbrite, e.social.slack, e.social.discord, e.social.github,
-      e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    // val q2 = PARTNERS.insert.values(e.id, e.group, e.slug, e.name, e.notes, e.description, e.logo,
+    //   e.social.facebook, e.social.instagram, e.social.twitter, e.social.linkedIn, e.social.youtube, e.social.meetup, e.social.eventbrite, e.social.slack, e.social.discord, e.social.github,
+    //   e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    val q2 = PARTNERS.insert.values(values)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def update(group: Group.Id, partner: Partner.Slug)(d: Partner.Data, by: User.Id, now: Instant): Query.Update = {
+  private[sql] def update(group: Group.Id, partner: Partner.Slug)(d: Partner.Data, by: User.Id, now: Instant): Query.Update[PARTNERS] = {
     val fields = fr0"slug=${d.slug}, name=${d.name}, notes=${d.notes}, description=${d.description}, logo=${d.logo}, " ++
       fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
       fr0"updated_at=$now, updated_by=$by"
@@ -125,56 +129,56 @@ object PartnerRepoSql {
       .set(_.UPDATED_AT, now).set(_.UPDATED_BY, by)
       .where(where2(group, partner))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def delete(group: Group.Id, partner: Partner.Slug): Query.Delete = {
+  private[sql] def delete(group: Group.Id, partner: Partner.Slug): Query.Delete[PARTNERS] = {
     val q1 = table.delete.where(where(group, partner))
     val q2 = PARTNERS.delete.where(where2(group, partner))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Partner] = {
+  private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Partner] = {
     val q1 = table.selectPage[Partner](params, adapt(ctx)).where(fr0"pa.group_id=${ctx.group.id}")
     val q2 = PARTNERS.select.where(_.GROUP_ID is ctx.group.id).page[Partner](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.SelectPage[Partner.Full] = {
+  private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Partner.Full] = {
     val q1 = tableFull.selectPage[Partner.Full](params, adapt(ctx)).where(fr0"pa.group_id=${ctx.group.id}")
     val q2 = PARTNERS_FULL.select.where(PARTNERS.GROUP_ID is ctx.group.id).page[Partner.Full](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAll(group: Group.Id): Query.Select[Partner] = {
+  private[sql] def selectAll(group: Group.Id): Query.Select.All[Partner] = {
     val q1 = table.select[Partner].where(fr0"pa.group_id=$group")
     val q2 = PARTNERS.select.where(_.GROUP_ID is group).all[Partner]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Query.Select[Partner] = {
+  private[sql] def selectAll(ids: NonEmptyList[Partner.Id]): Query.Select.All[Partner] = {
     val q1 = table.select[Partner].where(Fragments.in(fr"pa.id", ids))
     val q2 = PARTNERS.select.where(_.ID in ids).all[Partner]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(group: Group.Id, partner: Partner.Id): Query.Select[Partner] = {
+  private[sql] def selectOne(group: Group.Id, partner: Partner.Id): Query.Select.Optional[Partner] = {
     val q1 = table.select[Partner].where(where(group, partner))
     val q2 = PARTNERS.select.where(where2(group, partner)).option[Partner]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(group: Group.Id, partner: Partner.Slug): Query.Select[Partner] = {
+  private[sql] def selectOne(group: Group.Id, partner: Partner.Slug): Query.Select.Optional[Partner] = {
     val q1 = table.select[Partner].where(where(group, partner))
     val q2 = PARTNERS.select.where(where2(group, partner)).option[Partner]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
   private def where(group: Group.Id, partner: Partner.Id): Fragment = fr0"pa.group_id=$group AND pa.id=$partner"

@@ -29,7 +29,7 @@ object GsCLI {
       schema = Some("PUBLIC"),
       excludes = Some(".*flyway.*"))
     private[web] val writer = new ScalaWriter(
-      directory = FileUtils.adaptLocalPath("infra/src/main/scala"),
+      directory = FileUtils.adaptLocalPath("web/../infra/src/main/scala"),
       packageName = "gospeak.infra.services.storage.sql.database",
       identifierStrategy = Writer.IdentifierStrategy.upperCase,
       config = DatabaseConfig(

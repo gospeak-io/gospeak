@@ -3,18 +3,17 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, SponsorPack}
-import gospeak.libs.scala.domain.Done
 
 trait SponsorPackRepo extends OrgaSponsorPackRepo with PublicSponsorPackRepo with SuggestSponsorPackRepo
 
 trait OrgaSponsorPackRepo {
   def create(data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[SponsorPack]
 
-  def edit(pack: SponsorPack.Slug, data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(pack: SponsorPack.Slug, data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def disable(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Done]
+  def disable(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def enable(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Done]
+  def enable(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Unit]
 
   def find(pack: SponsorPack.Slug)(implicit ctx: OrgaCtx): IO[Option[SponsorPack]]
 

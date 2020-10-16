@@ -26,11 +26,11 @@ import scala.concurrent.duration.FiniteDuration
 class CREDENTIALS private(getAlias: Option[String] = Some("cd")) extends Table.SqlTable("PUBLIC", "credentials", getAlias) {
   type Self = CREDENTIALS
 
-  val PROVIDER_ID: SqlField[User.ProviderId, CREDENTIALS] = new SqlField[User.ProviderId, CREDENTIALS](this, "provider_id") // VARCHAR(30) NOT NULL
-  val PROVIDER_KEY: SqlField[User.ProviderKey, CREDENTIALS] = new SqlField[User.ProviderKey, CREDENTIALS](this, "provider_key") // VARCHAR(100) NOT NULL
-  val HASHER: SqlField[User.Hasher, CREDENTIALS] = new SqlField[User.Hasher, CREDENTIALS](this, "hasher") // VARCHAR(100) NOT NULL
-  val PASSWORD: SqlField[User.PasswordValue, CREDENTIALS] = new SqlField[User.PasswordValue, CREDENTIALS](this, "password") // VARCHAR(100) NOT NULL
-  val SALT: SqlFieldOpt[User.Salt, CREDENTIALS] = new SqlFieldOpt[User.Salt, CREDENTIALS](this, "salt") // VARCHAR(100)
+  val PROVIDER_ID: SqlField[User.ProviderId, CREDENTIALS] = SqlField(this, "provider_id", "VARCHAR(30) NOT NULL", JdbcType.VarChar, nullable = false, 1)
+  val PROVIDER_KEY: SqlField[User.ProviderKey, CREDENTIALS] = SqlField(this, "provider_key", "VARCHAR(100) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val HASHER: SqlField[User.Hasher, CREDENTIALS] = SqlField(this, "hasher", "VARCHAR(100) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val PASSWORD: SqlField[User.PasswordValue, CREDENTIALS] = SqlField(this, "password", "VARCHAR(100) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val SALT: SqlField[User.Salt, CREDENTIALS] = SqlField(this, "salt", "VARCHAR(100)", JdbcType.VarChar, nullable = true, 5)
 
   override def getFields: List[SqlField[_, CREDENTIALS]] = List(PROVIDER_ID, PROVIDER_KEY, HASHER, PASSWORD, SALT)
 

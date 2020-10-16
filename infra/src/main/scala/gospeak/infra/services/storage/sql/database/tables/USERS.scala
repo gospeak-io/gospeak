@@ -26,34 +26,34 @@ import scala.concurrent.duration.FiniteDuration
 class USERS private(getAlias: Option[String] = Some("u")) extends Table.SqlTable("PUBLIC", "users", getAlias) {
   type Self = USERS
 
-  val ID: SqlField[User.Id, USERS] = new SqlField[User.Id, USERS](this, "id") // CHAR(36) NOT NULL
-  val SLUG: SqlField[User.Slug, USERS] = new SqlField[User.Slug, USERS](this, "slug") // VARCHAR(120) NOT NULL
-  val STATUS: SqlField[User.Status, USERS] = new SqlField[User.Status, USERS](this, "status") // VARCHAR(10) NOT NULL
-  val FIRST_NAME: SqlField[String, USERS] = new SqlField[String, USERS](this, "first_name") // VARCHAR(120) NOT NULL
-  val LAST_NAME: SqlField[String, USERS] = new SqlField[String, USERS](this, "last_name") // VARCHAR(120) NOT NULL
-  val EMAIL: SqlField[EmailAddress, USERS] = new SqlField[EmailAddress, USERS](this, "email") // VARCHAR(120) NOT NULL
-  val EMAIL_VALIDATED: SqlFieldOpt[Instant, USERS] = new SqlFieldOpt[Instant, USERS](this, "email_validated") // TIMESTAMP
-  val EMAIL_VALIDATION_BEFORE_LOGIN: SqlField[Boolean, USERS] = new SqlField[Boolean, USERS](this, "email_validation_before_login") // BOOLEAN NOT NULL
-  val AVATAR: SqlField[Avatar, USERS] = new SqlField[Avatar, USERS](this, "avatar") // VARCHAR(1024) NOT NULL
-  val TITLE: SqlFieldOpt[String, USERS] = new SqlFieldOpt[String, USERS](this, "title") // VARCHAR(1024)
-  val BIO: SqlFieldOpt[Markdown, USERS] = new SqlFieldOpt[Markdown, USERS](this, "bio") // VARCHAR(4096)
-  val MENTORING: SqlFieldOpt[Markdown, USERS] = new SqlFieldOpt[Markdown, USERS](this, "mentoring") // VARCHAR(4096)
-  val COMPANY: SqlFieldOpt[String, USERS] = new SqlFieldOpt[String, USERS](this, "company") // VARCHAR(36)
-  val LOCATION: SqlFieldOpt[String, USERS] = new SqlFieldOpt[String, USERS](this, "location") // VARCHAR(36)
-  val PHONE: SqlFieldOpt[String, USERS] = new SqlFieldOpt[String, USERS](this, "phone") // VARCHAR(36)
-  val WEBSITE: SqlFieldOpt[Url, USERS] = new SqlFieldOpt[Url, USERS](this, "website") // VARCHAR(1024)
-  val SOCIAL_FACEBOOK: SqlFieldOpt[FacebookAccount, USERS] = new SqlFieldOpt[FacebookAccount, USERS](this, "social_facebook") // VARCHAR(1024)
-  val SOCIAL_INSTAGRAM: SqlFieldOpt[InstagramAccount, USERS] = new SqlFieldOpt[InstagramAccount, USERS](this, "social_instagram") // VARCHAR(1024)
-  val SOCIAL_TWITTER: SqlFieldOpt[TwitterAccount, USERS] = new SqlFieldOpt[TwitterAccount, USERS](this, "social_twitter") // VARCHAR(1024)
-  val SOCIAL_LINKEDIN: SqlFieldOpt[LinkedInAccount, USERS] = new SqlFieldOpt[LinkedInAccount, USERS](this, "social_linkedIn") // VARCHAR(1024)
-  val SOCIAL_YOUTUBE: SqlFieldOpt[YoutubeAccount, USERS] = new SqlFieldOpt[YoutubeAccount, USERS](this, "social_youtube") // VARCHAR(1024)
-  val SOCIAL_MEETUP: SqlFieldOpt[MeetupAccount, USERS] = new SqlFieldOpt[MeetupAccount, USERS](this, "social_meetup") // VARCHAR(1024)
-  val SOCIAL_EVENTBRITE: SqlFieldOpt[EventbriteAccount, USERS] = new SqlFieldOpt[EventbriteAccount, USERS](this, "social_eventbrite") // VARCHAR(1024)
-  val SOCIAL_SLACK: SqlFieldOpt[SlackAccount, USERS] = new SqlFieldOpt[SlackAccount, USERS](this, "social_slack") // VARCHAR(1024)
-  val SOCIAL_DISCORD: SqlFieldOpt[DiscordAccount, USERS] = new SqlFieldOpt[DiscordAccount, USERS](this, "social_discord") // VARCHAR(1024)
-  val SOCIAL_GITHUB: SqlFieldOpt[GithubAccount, USERS] = new SqlFieldOpt[GithubAccount, USERS](this, "social_github") // VARCHAR(1024)
-  val CREATED_AT: SqlField[Instant, USERS] = new SqlField[Instant, USERS](this, "created_at") // TIMESTAMP NOT NULL
-  val UPDATED_AT: SqlField[Instant, USERS] = new SqlField[Instant, USERS](this, "updated_at") // TIMESTAMP NOT NULL
+  val ID: SqlField[User.Id, USERS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val SLUG: SqlField[User.Slug, USERS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val STATUS: SqlField[User.Status, USERS] = SqlField(this, "status", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val FIRST_NAME: SqlField[String, USERS] = SqlField(this, "first_name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val LAST_NAME: SqlField[String, USERS] = SqlField(this, "last_name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val EMAIL: SqlField[EmailAddress, USERS] = SqlField(this, "email", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 6)
+  val EMAIL_VALIDATED: SqlField[Instant, USERS] = SqlField(this, "email_validated", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 7)
+  val EMAIL_VALIDATION_BEFORE_LOGIN: SqlField[Boolean, USERS] = SqlField(this, "email_validation_before_login", "BOOLEAN NOT NULL", JdbcType.Boolean, nullable = false, 8)
+  val AVATAR: SqlField[Avatar, USERS] = SqlField(this, "avatar", "VARCHAR(1024) NOT NULL", JdbcType.VarChar, nullable = false, 9)
+  val TITLE: SqlField[String, USERS] = SqlField(this, "title", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 27)
+  val BIO: SqlField[Markdown, USERS] = SqlField(this, "bio", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 10)
+  val MENTORING: SqlField[Markdown, USERS] = SqlField(this, "mentoring", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 28)
+  val COMPANY: SqlField[String, USERS] = SqlField(this, "company", "VARCHAR(36)", JdbcType.VarChar, nullable = true, 11)
+  val LOCATION: SqlField[String, USERS] = SqlField(this, "location", "VARCHAR(36)", JdbcType.VarChar, nullable = true, 12)
+  val PHONE: SqlField[String, USERS] = SqlField(this, "phone", "VARCHAR(36)", JdbcType.VarChar, nullable = true, 13)
+  val WEBSITE: SqlField[Url, USERS] = SqlField(this, "website", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 14)
+  val SOCIAL_FACEBOOK: SqlField[FacebookAccount, USERS] = SqlField(this, "social_facebook", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 15)
+  val SOCIAL_INSTAGRAM: SqlField[InstagramAccount, USERS] = SqlField(this, "social_instagram", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 16)
+  val SOCIAL_TWITTER: SqlField[TwitterAccount, USERS] = SqlField(this, "social_twitter", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 17)
+  val SOCIAL_LINKEDIN: SqlField[LinkedInAccount, USERS] = SqlField(this, "social_linkedIn", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 18)
+  val SOCIAL_YOUTUBE: SqlField[YoutubeAccount, USERS] = SqlField(this, "social_youtube", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 19)
+  val SOCIAL_MEETUP: SqlField[MeetupAccount, USERS] = SqlField(this, "social_meetup", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 20)
+  val SOCIAL_EVENTBRITE: SqlField[EventbriteAccount, USERS] = SqlField(this, "social_eventbrite", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 21)
+  val SOCIAL_SLACK: SqlField[SlackAccount, USERS] = SqlField(this, "social_slack", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 22)
+  val SOCIAL_DISCORD: SqlField[DiscordAccount, USERS] = SqlField(this, "social_discord", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 23)
+  val SOCIAL_GITHUB: SqlField[GithubAccount, USERS] = SqlField(this, "social_github", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 24)
+  val CREATED_AT: SqlField[Instant, USERS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 25)
+  val UPDATED_AT: SqlField[Instant, USERS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 26)
 
   override def getFields: List[SqlField[_, USERS]] = List(ID, SLUG, STATUS, FIRST_NAME, LAST_NAME, EMAIL, EMAIL_VALIDATED, EMAIL_VALIDATION_BEFORE_LOGIN, AVATAR, TITLE, BIO, MENTORING, COMPANY, LOCATION, PHONE, WEBSITE, SOCIAL_FACEBOOK, SOCIAL_INSTAGRAM, SOCIAL_TWITTER, SOCIAL_LINKEDIN, SOCIAL_YOUTUBE, SOCIAL_MEETUP, SOCIAL_EVENTBRITE, SOCIAL_SLACK, SOCIAL_DISCORD, SOCIAL_GITHUB, CREATED_AT, UPDATED_AT)
 

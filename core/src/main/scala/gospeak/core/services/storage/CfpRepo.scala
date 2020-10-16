@@ -3,14 +3,14 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Page, Tag}
 
 trait CfpRepo extends OrgaCfpRepo with SpeakerCfpRepo with UserCfpRepo with AuthCfpRepo with PublicCfpRepo with SuggestCfpRepo
 
 trait OrgaCfpRepo {
   def create(data: Cfp.Data)(implicit ctx: OrgaCtx): IO[Cfp]
 
-  def edit(cfp: Cfp.Slug, data: Cfp.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(cfp: Cfp.Slug, data: Cfp.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]]
 
