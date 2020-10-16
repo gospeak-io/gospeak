@@ -41,7 +41,7 @@ object Query {
     def run(xa: doobie.Transactor[IO]): IO[Unit] =
       exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(())
-        case code => IO.raiseError(new Exception(s"Failed to insert values in $table (code: $code)"))
+        case rows => IO.raiseError(new Exception(s"Insert affected $rows rows instead of 1 for table $table"))
       }
   }
 
@@ -49,6 +49,9 @@ object Query {
 
     case class Builder[T <: Table.SqlTable](private val table: T, private val fields: List[SqlField[_, T]]) {
       def fields(fields: List[SqlField[_, T]]): Builder[T] = copy(fields = fields)
+
+      // FIXME 2020-10-15: temporary hack waiting I solve the Put[Option[A]] problem (cf https://gist.github.com/loicknuchel/2297d612b58b399395bdd08d3c6dd217)
+      def values(fr: Fragment): Insert[T] = Insert(table, fields, fr)
 
       def values[A: Put](a: A): Insert[T] = build(1, fr0"$a")
 
@@ -125,7 +128,7 @@ object Query {
     def run(xa: doobie.Transactor[IO]): IO[Unit] =
       exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(())
-        case code => IO.raiseError(new Exception(s"Failed to update ${fr.update.sql} (code: $code)"))
+        case rows => IO.raiseError(new Exception(s"Update affected $rows rows instead of 1 for table $table: ${fr.update.sql}"))
       }
   }
 
@@ -133,9 +136,12 @@ object Query {
 
     case class Builder[T <: Table.SqlTable](private val table: T,
                                             private val values: List[Fragment]) {
-      def set[A: Put](field: T => SqlField[A, _], value: A): Builder[T] = copy(values = values :+ (const0(field(table).name) ++ fr0"=$value"))
+      def set[A: Put](field: T => SqlField[A, T], value: A): Builder[T] = copy(values = values :+ (const0(field(table).name) ++ fr0"=$value"))
 
-      def setOpt[A: Put](field: T => SqlField[Option[A], _], value: A): Builder[T] = copy(values = values :+ (const0(field(table).name) ++ fr0"=$value"))
+      def set[A: Put](field: T => SqlField[A, T], value: Option[A]): Builder[T] = {
+        val f = field(table)
+        if (f.nullable) copy(values = values :+ (const0(f.name) ++ fr0"=$value")) else throw new Exception(s"Can't use an Option for non nullable field $f")
+      }
 
       def all: Update[T] = Update(table, values, WhereClause(None, None, None))
 
@@ -152,7 +158,7 @@ object Query {
     def run(xa: doobie.Transactor[IO]): IO[Unit] =
       exec(fr, _.update.run, xa).flatMap {
         case 1 => IO.pure(())
-        case code => IO.raiseError(new Exception(s"Failed to delete ${fr.update.sql} (code: $code)"))
+        case rows => IO.raiseError(new Exception(s"Delete affected $rows rows instead of 1 for table $table: ${fr.update.sql}"))
       }
   }
 
@@ -184,16 +190,20 @@ object Query {
   object Select {
 
     case class All[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, having: HavingClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[List[A]] {
+      def query: doobie.Query0[A] = fr.query[A]
+
       def run(xa: doobie.Transactor[IO]): IO[List[A]] = exec(fr, _.query[A].to[List], xa)
     }
 
     case class Paginated[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, having: HavingClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause, params: Page.Params) extends Select[A] with Query[Page[A]] {
-      def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ fr0") as cnt"
+      def query: doobie.Query0[A] = fr.query[A]
+
+      def countFr: Fragment = fr0"SELECT COUNT(*) FROM (SELECT " ++ fields.headOption.map(_.fr).getOrElse(fr0"*") ++ fr0" FROM " ++ table.fr ++ where.fr ++ groupBy.fr ++ having.fr ++ fr0") as cnt"
 
       def run(xa: doobie.Transactor[IO]): IO[Page[A]] = exec(fr, fr => for {
         elts <- fr.query[A].to[List]
         total <- countFr.query[Long].unique
-      } yield Page(elts, params, Page.Total(total)), xa)
+      } yield Page(elts, params.defaultOrderBy(table.getSorts.headOption.map(_.slug).getOrElse("")), Page.Total(total)), xa)
     }
 
     object Paginated {
@@ -204,21 +214,27 @@ object Query {
           where.copy(search = params.search.map(_ -> table.searchOn), filter = Some((params.filters, table.getFilters, ctx))),
           groupBy,
           having.copy(filter = Some((params.filters, table.getFilters, ctx))),
-          orderBy.copy(order = params.orderBy.map((_, table.getSorts, table.getFields))),
+          orderBy.copy(order = params.orderBy.map((_, table.getSorts, table.getFields)), nullsFirst = params.nullsFirst),
           LimitClause(params.pageSize.value),
           OffsetClause(params.offset.value),
           params)
     }
 
     case class Optional[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, having: HavingClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[Option[A]] {
+      def query: doobie.Query0[A] = fr.query[A]
+
       def run(xa: doobie.Transactor[IO]): IO[Option[A]] = exec(fr, _.query[A].option, xa)
     }
 
     case class One[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, having: HavingClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[A] {
+      def query: doobie.Query0[A] = fr.query[A]
+
       def run(xa: doobie.Transactor[IO]): IO[A] = exec(fr, _.query[A].unique, xa)
     }
 
     case class Exists[A: Read](table: Table, fields: List[Field[_]], where: WhereClause, groupBy: GroupByClause, having: HavingClause, orderBy: OrderByClause, limit: LimitClause, offset: OffsetClause) extends Select[A] with Query[Boolean] {
+      def query: doobie.Query0[A] = fr.query[A]
+
       def run(xa: doobie.Transactor[IO]): IO[Boolean] = exec(fr, _.query[A].option.map(_.isDefined), xa)
     }
 
@@ -257,7 +273,7 @@ object Query {
 
       def groupBy(fields: SqlField[_, Table.SqlTable]*): Builder[T] = Exceptions.check(fields.toList, table, copy(groupBy = GroupByClause(fields.toList)))
 
-      def orderBy(fields: Field.Order[_]*): Builder[T] = Exceptions.check(fields.map(_.field).toList, table, copy(orderBy = OrderByClause(fields.toList, None)))
+      def orderBy(fields: Field.Order[_]*): Builder[T] = Exceptions.check(fields.map(_.field).toList, table, copy(orderBy = orderBy.copy(fields = fields.toList)))
 
       def limit(e: Expr): Builder[T] = copy(limit = LimitClause(Some(e)))
 
@@ -340,7 +356,7 @@ object Query {
       def fr: Fragment = {
         List(
           cond,
-          search.filter(_._2.nonEmpty).flatMap { case (s, f) => f.map(_.ilike(s.value)).mk(_ or _) },
+          search.filter(_._2.nonEmpty).flatMap { case (s, f) => f.map(_.ilike("%" + s.value + "%")).mk(_ or _) },
           computeFilters(filter, aggregation = false)
         ).flatten match {
           case List() => fr0""
@@ -373,7 +389,7 @@ object Query {
       def sql: String = fr.query.sql
     }
 
-    case class OrderByClause(fields: List[Field.Order[_]], order: Option[(Page.OrderBy, List[Sort], List[Field[_]])]) {
+    case class OrderByClause(fields: List[Field.Order[_]], order: Option[(Page.OrderBy, List[Sort], List[Field[_]])], nullsFirst: Boolean) {
       def fr: Fragment = {
         order.map { case (orderBy, sorts, fields) =>
           build(orderBy.values.toList.flatMap { order =>
@@ -384,13 +400,17 @@ object Query {
             }.getOrElse {
               fields.find(_.name == name).map(Order(_, asc)).toList
             }
-          })
-        }.getOrElse(build(this.fields))
+          }, nullsFirst)
+        }.getOrElse(build(this.fields, nullsFirst))
       }
 
       def sql: String = fr.query.sql
 
-      private def build(fields: List[Field.Order[_]]): Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr).mkFragment(", ")).getOrElse(fr0"")
+      private def build(fields: List[Field.Order[_]], nullsFirst: Boolean): Fragment = NonEmptyList.fromList(fields).map(fr0" ORDER BY " ++ _.map(_.fr(nullsFirst)).mkFragment(", ")).getOrElse(fr0"")
+    }
+
+    object OrderByClause {
+      def apply(fields: List[Order[_]]): OrderByClause = new OrderByClause(fields, None, false)
     }
 
     case class LimitClause(expr: Option[Expr]) {
@@ -424,7 +444,7 @@ object Query {
         filters.filter(_.aggregation == aggregation).flatMap(f => filterBy.get(f.key).flatMap(f.filter(_)(ctx))) match {
           case List() => None
           case List(c) => Some(c)
-          case conds => conds.map(_.par).mk(_ or _)
+          case conds => conds.map(_.par).mk(_ and _)
         }
       }
 

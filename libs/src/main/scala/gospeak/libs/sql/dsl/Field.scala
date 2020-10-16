@@ -26,8 +26,6 @@ sealed trait Field[A] {
 
   def is(field: Field[A]): Cond = IsField(this, field)
 
-  def is(field: SqlFieldRefOpt[A, _, _]): Cond = IsFieldRightOpt(this, field)
-
   def is(select: Query.Select[A]): Cond = IsQuery(this, select)
 
   def is[B: Put](value: B)(implicit ev: A =:= Option[B]): Cond = IsValueOpt(this.asInstanceOf[Field[Option[B]]], value)
@@ -78,9 +76,13 @@ object Field {
   case class Order[A](field: Field[A], asc: Boolean, expr: Option[String]) {
     def reverse: Order[A] = copy(asc = !asc)
 
-    def fr: Fragment = {
+    def fr(nullsFirst: Boolean): Fragment = {
       val value = expr.map(e => const0(e.replaceFirst("\\?", field.value.query.sql))).getOrElse(field.value)
-      value ++ fr0" IS NULL, " ++ value ++ (if (asc) fr0"" else fr0" DESC")
+      if (nullsFirst) {
+        value ++ fr0" IS NOT NULL, " ++ value ++ (if (asc) fr0"" else fr0" DESC")
+      } else {
+        value ++ fr0" IS NULL, " ++ value ++ (if (asc) fr0"" else fr0" DESC")
+      }
     }
   }
 
@@ -95,12 +97,15 @@ object Field {
 
 class SqlField[A, +T <: Table.SqlTable](val table: T,
                                         val name: String,
-                                        val alias: Option[String] = None) extends Field[A] {
+                                        val info: SqlField.JdbcInfo,
+                                        val alias: Option[String]) extends Field[A] {
   override def ref: Fragment = const0(s"${table.getAlias.getOrElse(table.getName)}.$name")
 
   override def value: Fragment = ref
 
-  def as(alias: String): SqlField[A, T] = new SqlField[A, T](table, name, Some(alias))
+  def nullable: Boolean = info.nullable
+
+  def as(alias: String): SqlField[A, T] = new SqlField[A, T](table, name, info, Some(alias))
 
   // create a null TableField based on a sql field, useful on union when a field is available on one side only
   def asNull: NullField[A] = NullField[A](alias.getOrElse(name))
@@ -125,45 +130,29 @@ class SqlField[A, +T <: Table.SqlTable](val table: T,
   }
 }
 
-class SqlFieldOpt[A, T <: Table.SqlTable](override val table: T,
-                                          override val name: String) extends SqlField[Option[A], T](table, name) {
-  def is[T2 <: Table.SqlTable](field: SqlField[A, T2]): Cond = IsFieldLeftOpt(this, field)
+object SqlField {
 
-  override def toString: String = s"SqlFieldOpt(${table.getName}.$name)"
+  def apply[A, T <: Table.SqlTable](table: T, name: String, jdbcDeclaration: String, jdbcType: JdbcType, nullable: Boolean, index: Int): SqlField[A, T] =
+    new SqlField(table, name, JdbcInfo(nullable, index, jdbcType, jdbcDeclaration), None)
+
+  def apply[A, T <: Table.SqlTable, T2 <: Table.SqlTable](table: T, name: String, jdbcDeclaration: String, jdbcType: JdbcType, nullable: Boolean, index: Int, references: SqlField[A, T2]): SqlFieldRef[A, T, T2] =
+    new SqlFieldRef(table, name, JdbcInfo(nullable, index, jdbcType, jdbcDeclaration), None, references)
+
+  case class JdbcInfo(nullable: Boolean, index: Int, jdbcType: JdbcType, jdbcDeclaration: String)
+
 }
 
 class SqlFieldRef[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
                                                                 override val name: String,
-                                                                val references: SqlField[A, T2]) extends SqlField[A, T](table, name) {
+                                                                override val info: SqlField.JdbcInfo,
+                                                                override val alias: Option[String],
+                                                                val references: SqlField[A, T2]) extends SqlField[A, T](table, name, info, alias) {
   override def toString: String = s"SqlFieldRef(${table.getName}.$name, ${references.table.getName}.${references.name})"
 
   override def canEqual(other: Any): Boolean = other.isInstanceOf[SqlFieldRef[_, _, _]]
 
   override def equals(other: Any): Boolean = other match {
     case that: SqlFieldRef[_, _, _] =>
-      super.equals(that) &&
-        (that canEqual this) &&
-        table == that.table &&
-        name == that.name &&
-        references == that.references
-    case _ => false
-  }
-
-  override def hashCode(): Int = {
-    val state = List(super.hashCode(), table, name, references)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
-}
-
-class SqlFieldRefOpt[A, T <: Table.SqlTable, T2 <: Table.SqlTable](override val table: T,
-                                                                   override val name: String,
-                                                                   val references: SqlField[A, T2]) extends SqlFieldOpt[A, T](table, name) {
-  override def toString: String = s"SqlFieldRefOpt(${table.getName}.$name, ${references.table.getName}.${references.name})"
-
-  override def canEqual(other: Any): Boolean = other.isInstanceOf[SqlFieldRefOpt[_, _, _]]
-
-  override def equals(other: Any): Boolean = other match {
-    case that: SqlFieldRefOpt[_, _, _] =>
       super.equals(that) &&
         (that canEqual this) &&
         table == that.table &&

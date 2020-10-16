@@ -14,12 +14,12 @@ import gospeak.libs.sql.testingutils.Entities._
 class POSTS private(getAlias: Option[String] = Some("p")) extends Table.SqlTable("PUBLIC", "posts", getAlias) {
   type Self = POSTS
 
-  val ID: SqlField[Post.Id, POSTS] = new SqlField[Post.Id, POSTS](this, "id") // INT NOT NULL
-  val TITLE: SqlField[String, POSTS] = new SqlField[String, POSTS](this, "title") // VARCHAR(50) NOT NULL
-  val TEXT: SqlField[String, POSTS] = new SqlField[String, POSTS](this, "text") // VARCHAR(4096) NOT NULL
-  val DATE: SqlField[Instant, POSTS] = new SqlField[Instant, POSTS](this, "date") // TIMESTAMP NOT NULL
-  val AUTHOR: SqlFieldRef[User.Id, POSTS, USERS] = new SqlFieldRef[User.Id, POSTS, USERS](this, "author", USERS.table.ID) // INT NOT NULL
-  val CATEGORY: SqlFieldRefOpt[Category.Id, POSTS, CATEGORIES] = new SqlFieldRefOpt[Category.Id, POSTS, CATEGORIES](this, "category", CATEGORIES.table.ID) // INT
+  val ID: SqlField[Post.Id, POSTS] = SqlField(this, "id", "INT NOT NULL", JdbcType.Integer, nullable = false, 1)
+  val TITLE: SqlField[String, POSTS] = SqlField(this, "title", "VARCHAR(50) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val TEXT: SqlField[String, POSTS] = SqlField(this, "text", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val DATE: SqlField[Instant, POSTS] = SqlField(this, "date", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 4)
+  val AUTHOR: SqlFieldRef[User.Id, POSTS, USERS] = SqlField(this, "author", "INT NOT NULL", JdbcType.Integer, nullable = false, 5, USERS.table.ID)
+  val CATEGORY: SqlFieldRef[Category.Id, POSTS, CATEGORIES] = SqlField(this, "category", "INT", JdbcType.Integer, nullable = true, 6, CATEGORIES.table.ID)
 
   override def getFields: List[SqlField[_, POSTS]] = List(ID, TITLE, TEXT, DATE, AUTHOR, CATEGORY)
 

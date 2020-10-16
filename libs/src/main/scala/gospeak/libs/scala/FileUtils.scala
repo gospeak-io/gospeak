@@ -48,6 +48,8 @@ object FileUtils {
     deleteDir(new File(path))
   }
 
+  def curPath: String = new java.io.File(".").getCanonicalPath
+
   // remove the first folder if it does not exist as IntelliJ uses project home and sbt uses module home to run tests :(
   def adaptLocalPath(path: String): String = {
     val base = path.split('/').head

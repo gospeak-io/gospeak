@@ -14,15 +14,15 @@ import gospeak.libs.sql.testingutils.Entities._
 class KINDS private(getAlias: Option[String] = None) extends Table.SqlTable("PUBLIC", "kinds", getAlias) {
   type Self = KINDS
 
-  val CHAR: SqlFieldOpt[String, KINDS] = new SqlFieldOpt[String, KINDS](this, "char") // CHAR(4)
-  val VARCHAR: SqlFieldOpt[String, KINDS] = new SqlFieldOpt[String, KINDS](this, "varchar") // VARCHAR(50)
-  val TIMESTAMP: SqlFieldOpt[Instant, KINDS] = new SqlFieldOpt[Instant, KINDS](this, "timestamp") // TIMESTAMP
-  val DATE: SqlFieldOpt[LocalDate, KINDS] = new SqlFieldOpt[LocalDate, KINDS](this, "date") // DATE
-  val BOOLEAN: SqlFieldOpt[Boolean, KINDS] = new SqlFieldOpt[Boolean, KINDS](this, "boolean") // BOOLEAN
-  val INT: SqlFieldOpt[Int, KINDS] = new SqlFieldOpt[Int, KINDS](this, "int") // INT
-  val BIGINT: SqlFieldOpt[Long, KINDS] = new SqlFieldOpt[Long, KINDS](this, "bigint") // BIGINT
-  val DOUBLE: SqlFieldOpt[Double, KINDS] = new SqlFieldOpt[Double, KINDS](this, "double") // DOUBLE PRECISION
-  val A_LONG_NAME: SqlFieldOpt[Int, KINDS] = new SqlFieldOpt[Int, KINDS](this, "a_long_name") // INT
+  val CHAR: SqlField[String, KINDS] = SqlField(this, "char", "CHAR(4)", JdbcType.Char, nullable = true, 1)
+  val VARCHAR: SqlField[String, KINDS] = SqlField(this, "varchar", "VARCHAR(50)", JdbcType.VarChar, nullable = true, 2)
+  val TIMESTAMP: SqlField[Instant, KINDS] = SqlField(this, "timestamp", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 3)
+  val DATE: SqlField[LocalDate, KINDS] = SqlField(this, "date", "DATE", JdbcType.Date, nullable = true, 4)
+  val BOOLEAN: SqlField[Boolean, KINDS] = SqlField(this, "boolean", "BOOLEAN", JdbcType.Boolean, nullable = true, 5)
+  val INT: SqlField[Int, KINDS] = SqlField(this, "int", "INT", JdbcType.Integer, nullable = true, 6)
+  val BIGINT: SqlField[Long, KINDS] = SqlField(this, "bigint", "BIGINT", JdbcType.BigInt, nullable = true, 7)
+  val DOUBLE: SqlField[Double, KINDS] = SqlField(this, "double", "DOUBLE PRECISION", JdbcType.Double, nullable = true, 8)
+  val A_LONG_NAME: SqlField[Int, KINDS] = SqlField(this, "a_long_name", "INT", JdbcType.Integer, nullable = true, 9)
 
   override def getFields: List[SqlField[_, KINDS]] = List(CHAR, VARCHAR, TIMESTAMP, DATE, BOOLEAN, INT, BIGINT, DOUBLE, A_LONG_NAME)
 

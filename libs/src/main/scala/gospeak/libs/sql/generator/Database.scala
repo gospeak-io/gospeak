@@ -14,9 +14,11 @@ object Database {
   case class Field(schema: String,
                    table: String,
                    name: String,
-                   kind: String,
-                   `type`: String,
+                   jdbcType: Int,
+                   jdbcTypeName: String,
+                   jdbcTypeDeclaration: String,
                    nullable: Boolean,
+                   index: Int,
                    defaultValue: Option[String],
                    ref: Option[FieldRef]) // assume foreign keys have only one field and link to only one table
 
