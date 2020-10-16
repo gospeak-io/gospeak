@@ -26,23 +26,23 @@ import scala.concurrent.duration.FiniteDuration
 class EXTERNAL_PROPOSALS private(getAlias: Option[String] = Some("ep")) extends Table.SqlTable("PUBLIC", "external_proposals", getAlias) {
   type Self = EXTERNAL_PROPOSALS
 
-  val ID: SqlField[ExternalProposal.Id, EXTERNAL_PROPOSALS] = new SqlField[ExternalProposal.Id, EXTERNAL_PROPOSALS](this, "id") // CHAR(36) NOT NULL
-  val TALK_ID: SqlFieldRef[Talk.Id, EXTERNAL_PROPOSALS, TALKS] = new SqlFieldRef[Talk.Id, EXTERNAL_PROPOSALS, TALKS](this, "talk_id", TALKS.table.ID) // CHAR(36) NOT NULL
-  val EVENT_ID: SqlFieldRef[ExternalEvent.Id, EXTERNAL_PROPOSALS, EXTERNAL_EVENTS] = new SqlFieldRef[ExternalEvent.Id, EXTERNAL_PROPOSALS, EXTERNAL_EVENTS](this, "event_id", EXTERNAL_EVENTS.table.ID) // CHAR(36) NOT NULL
-  val STATUS: SqlField[Proposal.Status, EXTERNAL_PROPOSALS] = new SqlField[Proposal.Status, EXTERNAL_PROPOSALS](this, "status") // VARCHAR(10) NOT NULL
-  val TITLE: SqlField[Talk.Title, EXTERNAL_PROPOSALS] = new SqlField[Talk.Title, EXTERNAL_PROPOSALS](this, "title") // VARCHAR(120) NOT NULL
-  val DURATION: SqlField[FiniteDuration, EXTERNAL_PROPOSALS] = new SqlField[FiniteDuration, EXTERNAL_PROPOSALS](this, "duration") // BIGINT NOT NULL
-  val DESCRIPTION: SqlField[Markdown, EXTERNAL_PROPOSALS] = new SqlField[Markdown, EXTERNAL_PROPOSALS](this, "description") // VARCHAR(4096) NOT NULL
-  val MESSAGE: SqlField[Markdown, EXTERNAL_PROPOSALS] = new SqlField[Markdown, EXTERNAL_PROPOSALS](this, "message") // VARCHAR(4096) NOT NULL
-  val SPEAKERS: SqlField[NonEmptyList[User.Id], EXTERNAL_PROPOSALS] = new SqlField[NonEmptyList[User.Id], EXTERNAL_PROPOSALS](this, "speakers") // VARCHAR(184) NOT NULL
-  val SLIDES: SqlFieldOpt[Url.Slides, EXTERNAL_PROPOSALS] = new SqlFieldOpt[Url.Slides, EXTERNAL_PROPOSALS](this, "slides") // VARCHAR(1024)
-  val VIDEO: SqlFieldOpt[Url.Video, EXTERNAL_PROPOSALS] = new SqlFieldOpt[Url.Video, EXTERNAL_PROPOSALS](this, "video") // VARCHAR(1024)
-  val URL: SqlFieldOpt[Url, EXTERNAL_PROPOSALS] = new SqlFieldOpt[Url, EXTERNAL_PROPOSALS](this, "url") // VARCHAR(1024)
-  val TAGS: SqlField[List[Tag], EXTERNAL_PROPOSALS] = new SqlField[List[Tag], EXTERNAL_PROPOSALS](this, "tags") // VARCHAR(150) NOT NULL
-  val CREATED_AT: SqlField[Instant, EXTERNAL_PROPOSALS] = new SqlField[Instant, EXTERNAL_PROPOSALS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, EXTERNAL_PROPOSALS, USERS] = new SqlFieldRef[User.Id, EXTERNAL_PROPOSALS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, EXTERNAL_PROPOSALS] = new SqlField[Instant, EXTERNAL_PROPOSALS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, EXTERNAL_PROPOSALS, USERS] = new SqlFieldRef[User.Id, EXTERNAL_PROPOSALS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[ExternalProposal.Id, EXTERNAL_PROPOSALS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val TALK_ID: SqlFieldRef[Talk.Id, EXTERNAL_PROPOSALS, TALKS] = SqlField(this, "talk_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, TALKS.table.ID)
+  val EVENT_ID: SqlFieldRef[ExternalEvent.Id, EXTERNAL_PROPOSALS, EXTERNAL_EVENTS] = SqlField(this, "event_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 3, EXTERNAL_EVENTS.table.ID)
+  val STATUS: SqlField[Proposal.Status, EXTERNAL_PROPOSALS] = SqlField(this, "status", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val TITLE: SqlField[Talk.Title, EXTERNAL_PROPOSALS] = SqlField(this, "title", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val DURATION: SqlField[FiniteDuration, EXTERNAL_PROPOSALS] = SqlField(this, "duration", "BIGINT NOT NULL", JdbcType.BigInt, nullable = false, 6)
+  val DESCRIPTION: SqlField[Markdown, EXTERNAL_PROPOSALS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 7)
+  val MESSAGE: SqlField[Markdown, EXTERNAL_PROPOSALS] = SqlField(this, "message", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 8)
+  val SPEAKERS: SqlField[NonEmptyList[User.Id], EXTERNAL_PROPOSALS] = SqlField(this, "speakers", "VARCHAR(184) NOT NULL", JdbcType.VarChar, nullable = false, 9)
+  val SLIDES: SqlField[Url.Slides, EXTERNAL_PROPOSALS] = SqlField(this, "slides", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 10)
+  val VIDEO: SqlField[Url.Video, EXTERNAL_PROPOSALS] = SqlField(this, "video", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 11)
+  val URL: SqlField[Url, EXTERNAL_PROPOSALS] = SqlField(this, "url", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 13)
+  val TAGS: SqlField[List[Tag], EXTERNAL_PROPOSALS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 12)
+  val CREATED_AT: SqlField[Instant, EXTERNAL_PROPOSALS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 14)
+  val CREATED_BY: SqlFieldRef[User.Id, EXTERNAL_PROPOSALS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 15, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, EXTERNAL_PROPOSALS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 16)
+  val UPDATED_BY: SqlFieldRef[User.Id, EXTERNAL_PROPOSALS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 17, USERS.table.ID)
 
   override def getFields: List[SqlField[_, EXTERNAL_PROPOSALS]] = List(ID, TALK_ID, EVENT_ID, STATUS, TITLE, DURATION, DESCRIPTION, MESSAGE, SPEAKERS, SLIDES, VIDEO, URL, TAGS, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

@@ -26,14 +26,14 @@ import scala.concurrent.duration.FiniteDuration
 class COMMENTS private(getAlias: Option[String] = Some("co")) extends Table.SqlTable("PUBLIC", "comments", getAlias) {
   type Self = COMMENTS
 
-  val EVENT_ID: SqlFieldRefOpt[Event.Id, COMMENTS, EVENTS] = new SqlFieldRefOpt[Event.Id, COMMENTS, EVENTS](this, "event_id", EVENTS.table.ID) // CHAR(36)
-  val PROPOSAL_ID: SqlFieldRefOpt[Proposal.Id, COMMENTS, PROPOSALS] = new SqlFieldRefOpt[Proposal.Id, COMMENTS, PROPOSALS](this, "proposal_id", PROPOSALS.table.ID) // CHAR(36)
-  val ID: SqlField[Comment.Id, COMMENTS] = new SqlField[Comment.Id, COMMENTS](this, "id") // CHAR(36) NOT NULL
-  val KIND: SqlField[Comment.Kind, COMMENTS] = new SqlField[Comment.Kind, COMMENTS](this, "kind") // VARCHAR(15) NOT NULL
-  val ANSWERS: SqlFieldRefOpt[Comment.Id, COMMENTS, COMMENTS] = new SqlFieldRefOpt[Comment.Id, COMMENTS, COMMENTS](this, "answers", ID) // CHAR(36)
-  val TEXT: SqlField[String, COMMENTS] = new SqlField[String, COMMENTS](this, "text") // VARCHAR(4096) NOT NULL
-  val CREATED_AT: SqlField[Instant, COMMENTS] = new SqlField[Instant, COMMENTS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, COMMENTS, USERS] = new SqlFieldRef[User.Id, COMMENTS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val EVENT_ID: SqlFieldRef[Event.Id, COMMENTS, EVENTS] = SqlField(this, "event_id", "CHAR(36)", JdbcType.Char, nullable = true, 1, EVENTS.table.ID)
+  val PROPOSAL_ID: SqlFieldRef[Proposal.Id, COMMENTS, PROPOSALS] = SqlField(this, "proposal_id", "CHAR(36)", JdbcType.Char, nullable = true, 2, PROPOSALS.table.ID)
+  val ID: SqlField[Comment.Id, COMMENTS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 3)
+  val KIND: SqlField[Comment.Kind, COMMENTS] = SqlField(this, "kind", "VARCHAR(15) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val ANSWERS: SqlFieldRef[Comment.Id, COMMENTS, COMMENTS] = SqlField(this, "answers", "CHAR(36)", JdbcType.Char, nullable = true, 5, ID)
+  val TEXT: SqlField[String, COMMENTS] = SqlField(this, "text", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 6)
+  val CREATED_AT: SqlField[Instant, COMMENTS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 7)
+  val CREATED_BY: SqlFieldRef[User.Id, COMMENTS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 8, USERS.table.ID)
 
   override def getFields: List[SqlField[_, COMMENTS]] = List(EVENT_ID, PROPOSAL_ID, ID, KIND, ANSWERS, TEXT, CREATED_AT, CREATED_BY)
 

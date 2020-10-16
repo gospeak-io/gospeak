@@ -45,7 +45,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, d: Data, info: Info): Event =
-    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.kind, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updatedAt, info.updatedBy), d.venue, List(), d.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.kind, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updatedAt, info.updatedBy), d.venue, List(), d.tags, None, d.refs, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 

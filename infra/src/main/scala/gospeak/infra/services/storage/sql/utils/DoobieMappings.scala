@@ -28,9 +28,6 @@ object DoobieMappings {
 
   import scala.reflect.runtime.universe._
 
-  // I don't know why it's needed and Doobie can't build a Put[Option[A]] from a Put[A] :(
-  implicit def optMeta[A: Meta : TypeTag]: Meta[Option[A]] = implicitly[Meta[A]].timap(Option(_))(_.getOrElse(throw new Exception(s"Bad value of type ${implicitly[TypeTag[A]]}")))
-
   // https://tpolecat.github.io/doobie/docs/12-Custom-Mappings.html#single-column-type-mappings
   // https://github.com/tpolecat/doobie/tree/f04a7a3cab5aecb50be0d1ad10fbdae6b8db5ec2/modules/core/src/main/scala/doobie/util/meta
   implicit val stringMeta: Meta[String] = Meta.StringMeta

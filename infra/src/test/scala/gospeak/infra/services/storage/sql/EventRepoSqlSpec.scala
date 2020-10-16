@@ -24,6 +24,7 @@ class EventRepoSqlSpec extends RepoSpec {
 
       eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       val event = eventRepo.create(eventData)(ctx).unsafeRunSync()
+      event.data shouldBe eventData
       eventRepo.listRsvps(event.id).unsafeRunSync() shouldBe List()
       val rsvp = Event.Rsvp(event.id, Event.Rsvp.Answer.Yes, ctx.now, ctx.user)
       eventRepo.createRsvp(rsvp.event, rsvp.answer)(rsvp.user, rsvp.answeredAt).unsafeRunSync()
@@ -112,7 +113,7 @@ class EventRepoSqlSpec extends RepoSpec {
       eventRepo.findFull(group.slug, event.slug)(ctx.userAwareCtx).unsafeRunSync() shouldBe Some(eventFull)
       eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(event)
       eventRepo.listFull(params)(ctx).unsafeRunSync().items shouldBe List(eventFull)
-      eventRepo.list(venue.id)(ctx).unsafeRunSync() shouldBe List(event)
+      eventRepo.list(venue.id)(ctx).unsafeRunSync() shouldBe event.venue.map(_ => event).toList
       eventRepo.list(partner.id)(ctx).unsafeRunSync() shouldBe List(event -> venue)
       eventRepo.listAllPublishedSlugs()(ctx.userAwareCtx).unsafeRunSync() // shouldBe List(group.id -> event.slug) // published should not be null
       eventRepo.listPublished(group.id, params)(ctx.userAwareCtx).unsafeRunSync().items // shouldBe List(eventFull) // published should not be null
@@ -125,7 +126,7 @@ class EventRepoSqlSpec extends RepoSpec {
       eventRepo.listRsvps(event.id, NonEmptyList.of(Event.Rsvp.Answer.Yes)).unsafeRunSync() shouldBe List(rsvp)
       eventRepo.findRsvp(event.id, rsvp.user.id).unsafeRunSync() shouldBe Some(rsvp)
       eventRepo.findFirstWait(event.id).unsafeRunSync() shouldBe None
-      eventRepo.listTags().unsafeRunSync() shouldBe event.tags
+      eventRepo.listTags().unsafeRunSync() shouldBe event.tags.distinct
     }
     it("should check queries") {
       check(insert(event), s"INSERT INTO ${table.stripSuffix(" e")} (${mapFields(fields, _.stripPrefix("e."))}) VALUES (${mapFields(fields, _ => "?")})")
@@ -144,19 +145,19 @@ class EventRepoSqlSpec extends RepoSpec {
       check(selectPageFull(params), s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? $orderBy LIMIT 20 OFFSET 0")
       check(selectAllPublishedSlugs(), s"SELECT e.group_id, e.slug FROM $table WHERE e.published IS NOT NULL $orderBy")
       check(selectPagePublished(group.id, params), s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL $orderBy LIMIT 20 OFFSET 0")
-      check(selectAll(NonEmptyList.of(event.id)), s"SELECT $fields FROM $table WHERE e.id IN (?)  $orderBy")
-      check(selectAllFromGroups(NonEmptyList.of(group.id))(adminCtx), s"SELECT $fields FROM $table WHERE e.group_id IN (?)  $orderBy")
+      check(selectAll(NonEmptyList.of(event.id)), s"SELECT $fields FROM $table WHERE e.id IN (?) $orderBy")
+      check(selectAllFromGroups(NonEmptyList.of(group.id))(adminCtx), s"SELECT $fields FROM $table WHERE e.group_id IN (?) $orderBy")
       check(selectAll(group.id, venue.id), s"SELECT $fields FROM $table WHERE e.group_id=? AND e.venue=? $orderBy")
       check(selectAll(group.id, partner.id), s"SELECT $fieldsWithVenue FROM $tableWithVenue WHERE e.group_id=? AND v.partner_id=? $orderBy")
-      check(selectPageAfterFull(params), s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
-      check(selectPageIncoming(params), s"SELECT $fieldsFullWithMemberAndRsvp FROM $tableFullWithMemberAndRsvp WHERE e.start > ? AND e.published IS NOT NULL AND gm.user_id=? $orderBy LIMIT 20 OFFSET 0", checkCount = false)
+      check(selectPageAfterFull(params), s"SELECT $fieldsFull FROM $tableFull WHERE e.group_id=? AND e.start > ? $orderBy LIMIT 20 OFFSET 0")
+      check(selectPageIncoming(params), s"SELECT $fieldsFullWithMemberAndRsvp FROM $tableFullWithMemberAndRsvp WHERE e.start > ? AND e.published IS NOT NULL AND gm.user_id=? $orderBy LIMIT 20 OFFSET 0")
       check(selectTags(), s"SELECT e.tags FROM $table $orderBy")
 
       check(countRsvp(event.id, rsvp.answer), s"SELECT COUNT(*) FROM $rsvpTable WHERE er.event_id=? AND er.answer=? GROUP BY er.event_id, er.answer ORDER BY er.event_id IS NULL, er.event_id LIMIT 1")
       check(insertRsvp(rsvp), s"INSERT INTO ${rsvpTable.stripSuffix(" er")} (${mapFields(rsvpFields, _.stripPrefix("er."))}) VALUES (${mapFields(rsvpFields, _ => "?")})")
       check(updateRsvp(event.id, user.id, rsvp.answer, now), s"UPDATE $rsvpTable SET answer=?, answered_at=? WHERE er.event_id=? AND er.user_id=?")
       check(selectAllRsvp(event.id), s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? $rsvpOrderBy")
-      check(selectAllRsvp(event.id, NonEmptyList.of(rsvp.answer)), s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer IN (?)  $rsvpOrderBy")
+      check(selectAllRsvp(event.id, NonEmptyList.of(rsvp.answer)), s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer IN (?) $rsvpOrderBy")
       check(selectOneRsvp(event.id, user.id), s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.user_id=? $rsvpOrderBy")
       check(selectFirstRsvp(event.id, Event.Rsvp.Answer.Wait), s"SELECT $rsvpFieldsWithUser FROM $rsvpTableWithUser WHERE er.event_id=? AND er.answer=? ORDER BY er.answered_at IS NULL, er.answered_at LIMIT 1")
     }

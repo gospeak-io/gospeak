@@ -11,6 +11,7 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
       val (user, group, ctx) = createOrga().unsafeRunSync()
       externalEventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       val event = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
+      event.data shouldBe externalEventData1
       externalEventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(event)
 
       externalEventRepo.edit(event.id)(externalEventData2)(ctx).unsafeRunSync()
@@ -19,7 +20,7 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
     }
     it("should select a page") {
       val (user, group, ctx) = createOrga().unsafeRunSync()
-      val event1 = externalEventRepo.create(externalEventData1.copy(kind = Event.Kind.Meetup, name = Event.Name("aaa"), videos = Some(urlVideos), start = Some(nowLDT.plusDays(1))))(ctx).unsafeRunSync()
+      val event1 = externalEventRepo.create(externalEventData1.copy(kind = Event.Kind.Meetup, name = Event.Name("aaaaaa"), videos = Some(urlVideos), start = Some(nowLDT.plusDays(1))))(ctx).unsafeRunSync()
       val event2 = externalEventRepo.create(externalEventData2.copy(kind = Event.Kind.Conference, videos = None, start = Some(nowLDT.minusDays(1))))(ctx).unsafeRunSync()
       val commonEvent1 = CommonEvent(event1)
       val commonEvent2 = CommonEvent(event2)
@@ -50,7 +51,7 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
       externalEventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(event)
       externalEventRepo.listCommon(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(commonEvent)
       externalEventRepo.find(event.id).unsafeRunSync() shouldBe Some(event)
-      externalEventRepo.listTags().unsafeRunSync() shouldBe event.tags
+      externalEventRepo.listTags().unsafeRunSync() shouldBe event.tags.distinct
       externalEventRepo.listLogos().unsafeRunSync() shouldBe event.logo.toList
     }
     it("should check queries") {

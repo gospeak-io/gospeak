@@ -15,6 +15,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       val (user, ctx) = createUser().unsafeRunSync()
       talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe List()
       val talk = talkRepo.create(talkData1)(ctx).unsafeRunSync()
+      talk.data shouldBe talkData1
       talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(talk)
 
       talkRepo.edit(talk.slug, talkData2)(ctx).unsafeRunSync()
@@ -70,8 +71,8 @@ class TalkRepoSqlSpec extends RepoSpec {
     it("should select a page") {
       val (user, ctx) = createUser().unsafeRunSync()
       val (user2, ctx2) = createUser(credentials2, userData2).unsafeRunSync()
-      val talk1 = talkRepo.create(talkData1.copy(slug = Talk.Slug.from("ddd").get, title = Talk.Title("aaa")))(ctx).unsafeRunSync()
-      val talk2 = talkRepo.create(talkData2.copy(slug = Talk.Slug.from("bbb").get, title = Talk.Title("ccc")))(ctx).unsafeRunSync()
+      val talk1 = talkRepo.create(talkData1.copy(slug = Talk.Slug.from("dddddd").get, title = Talk.Title("aaaaaa")))(ctx).unsafeRunSync()
+      val talk2 = talkRepo.create(talkData2.copy(slug = Talk.Slug.from("bbbbbb").get, title = Talk.Title("cccccc")))(ctx).unsafeRunSync()
       val talk3 = talkRepo.create(talkData3)(ctx2).unsafeRunSync()
 
       talkRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(talk1, talk2)
@@ -94,7 +95,7 @@ class TalkRepoSqlSpec extends RepoSpec {
       talkRepo.listCurrent(params)(ctx).unsafeRunSync().items shouldBe List(talk)
       talkRepo.listCurrent(cfp.id, params)(ctx).unsafeRunSync().items shouldBe List(talk)
       talkRepo.exists(talk.slug).unsafeRunSync() shouldBe true
-      talkRepo.listTags().unsafeRunSync() shouldBe talk.tags
+      talkRepo.listTags().unsafeRunSync() shouldBe talk.tags.distinct
     }
     it("should check queries") {
       check(insert(talk), s"INSERT INTO ${table.stripSuffix(" t")} (${mapFields(fields, _.stripPrefix("t."))}) VALUES (${mapFields(fields, _ => "?")})")
@@ -110,8 +111,8 @@ class TalkRepoSqlSpec extends RepoSpec {
       check(selectPage(params), s"SELECT $fields FROM $table WHERE t.speakers LIKE ? $orderBy LIMIT 20 OFFSET 0")
       check(selectAll(user.id, talk.status), s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status=? $orderBy")
       check(selectAllPublicSlugs(), s"SELECT t.slug, t.speakers FROM $table WHERE t.status=? $orderBy")
-      check(selectPage(Talk.Status.current, params), s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")
-      check(selectPage(cfp.id, Talk.Status.current, params), s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=? $proposalOrderBy) AND t.status IN (?, ?)  $orderBy LIMIT 20 OFFSET 0")
+      check(selectPage(Talk.Status.current, params), s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.status IN (?, ?) $orderBy LIMIT 20 OFFSET 0")
+      check(selectPage(cfp.id, Talk.Status.current, params), s"SELECT $fields FROM $table WHERE t.speakers LIKE ? AND t.id NOT IN (SELECT p.talk_id FROM $proposalTable WHERE p.cfp_id=? $proposalOrderBy) AND t.status IN (?, ?) $orderBy LIMIT 20 OFFSET 0")
       check(selectTags(), s"SELECT t.tags FROM $table $orderBy")
     }
   }

@@ -11,8 +11,10 @@ class ContactRepoSqlSpec extends RepoSpec {
     it("should handle crud operations") {
       val (user, group, ctx) = createOrga().unsafeRunSync()
       val partner = partnerRepo.create(partnerData1)(ctx).unsafeRunSync()
+      val contactData = contactData1.copy(partner = partner.id)
       contactRepo.list(partner.id).unsafeRunSync() shouldBe List()
-      val contact = contactRepo.create(contactData1.copy(partner = partner.id))(ctx).unsafeRunSync()
+      val contact = contactRepo.create(contactData)(ctx).unsafeRunSync()
+      contact.data shouldBe contactData
       contactRepo.list(partner.id).unsafeRunSync() shouldBe List(contact)
 
       val data = contactData2.copy(partner = partner.id)

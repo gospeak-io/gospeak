@@ -11,51 +11,55 @@ import gospeak.core.domain.{Group, Proposal, User}
 import gospeak.core.services.storage.UserRepo
 import gospeak.infra.services.storage.sql.UserRepoSql._
 import gospeak.infra.services.storage.sql.database.Tables._
+import gospeak.infra.services.storage.sql.database.tables.{CREDENTIALS, LOGINS, USERS}
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
-import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
+import gospeak.libs.scala.domain.{EmailAddress, Page}
+import gospeak.libs.sql.doobie.{DbCtx, Field, Table}
 import gospeak.libs.sql.dsl
+import gospeak.libs.sql.dsl.Query
 
 import scala.language.postfixOps
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
-  override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] =
-    insert(User(data, now, emailValidated)).run(xa)
+  override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] = {
+    val user = User(data, now, emailValidated)
+    insert(user).run(xa).map(_ => user)
+  }
 
   override def edit(user: User.Id)(data: User.Data, now: Instant): IO[User] =
     update(user)(data, now).run(xa).flatMap(_ => find(user).flatMap(_.toIO(new IllegalArgumentException(s"User $user does not exists"))))
 
   override def edit(data: User.Data)(implicit ctx: UserCtx): IO[User] = edit(ctx.user.id)(data, ctx.now)
 
-  override def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Done] =
-    selectOne(ctx.user.id).runOption(xa).flatMap {
+  override def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Unit] =
+    selectOne(ctx.user.id).run(xa).flatMap {
       case Some(userElt) => update(ctx.user.id)(userElt.data.copy(status = status), ctx.now).run(xa)
       case None => IO.raiseError(new IllegalArgumentException(s"User ${ctx.user.id} does not exists"))
     }
 
-  override def createLoginRef(login: User.Login, user: User.Id): IO[Done] = insertLoginRef(User.LoginRef(login, user)).run(xa).map(_ => Done)
+  override def createLoginRef(login: User.Login, user: User.Id): IO[Unit] = insertLoginRef(User.LoginRef(login, user)).run(xa)
 
-  override def createCredentials(credentials: User.Credentials): IO[User.Credentials] = insertCredentials(credentials).run(xa)
+  override def createCredentials(credentials: User.Credentials): IO[User.Credentials] = insertCredentials(credentials).run(xa).map(_ => credentials)
 
-  override def editCredentials(login: User.Login)(pass: User.Password): IO[Done] = updateCredentials(login)(pass).run(xa)
+  override def editCredentials(login: User.Login)(pass: User.Password): IO[Unit] = updateCredentials(login)(pass).run(xa)
 
-  override def removeCredentials(login: User.Login): IO[Done] = deleteCredentials(login).run(xa)
+  override def removeCredentials(login: User.Login): IO[Unit] = deleteCredentials(login).run(xa)
 
-  override def findCredentials(login: User.Login): IO[Option[User.Credentials]] = selectCredentials(login).runOption(xa)
+  override def findCredentials(login: User.Login): IO[Option[User.Credentials]] = selectCredentials(login).run(xa)
 
-  override def find(login: User.Login): IO[Option[User]] = selectOne(login).runOption(xa)
+  override def find(login: User.Login): IO[Option[User]] = selectOne(login).run(xa)
 
-  override def find(credentials: User.Credentials): IO[Option[User]] = selectOne(credentials.login).runOption(xa)
+  override def find(credentials: User.Credentials): IO[Option[User]] = selectOne(credentials.login).run(xa)
 
-  override def find(email: EmailAddress): IO[Option[User]] = selectOne(email).runOption(xa)
+  override def find(email: EmailAddress): IO[Option[User]] = selectOne(email).run(xa)
 
-  override def find(slug: User.Slug): IO[Option[User]] = selectOne(slug).runOption(xa)
+  override def find(slug: User.Slug): IO[Option[User]] = selectOne(slug).run(xa)
 
-  override def find(id: User.Id): IO[Option[User]] = selectOne(id).runOption(xa)
+  override def find(id: User.Id): IO[Option[User]] = selectOne(id).run(xa)
 
-  override def findPublic(slug: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]] = selectOnePublic(slug).runOption(xa)
+  override def findPublic(slug: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]] = selectOnePublic(slug).run(xa)
 
   // FIXME should be done in only one query: joining on speakers array or splitting speakers string
   override def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]] = {
@@ -79,7 +83,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
       .runList(xa).map(_.flatMap(_.toList).distinct.length.toLong)
   }
 
-  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[(User.Id, User.Slug)]] = selectAllPublicSlugs().runList(xa)
+  override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[(User.Id, User.Slug)]] = selectAllPublicSlugs().run(xa)
 
   override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
 
@@ -135,56 +139,59 @@ object UserRepoSql {
       dsl.Table.Sort("created", USERS.CREATED_AT.desc),
       dsl.Table.Sort("updated", USERS.UPDATED_AT.desc))
 
-  private[sql] def insertLoginRef(i: User.LoginRef): Query.Insert[User.LoginRef] = {
+  private[sql] def insertLoginRef(i: User.LoginRef): Query.Insert[LOGINS] = {
     val q1 = loginsTable.insert[User.LoginRef](i, _ => fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.user}")
     val q2 = LOGINS.insert.values(i.login.providerId, i.login.providerKey, i.user)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def insertCredentials(i: User.Credentials): Query.Insert[User.Credentials] = {
-    val q1 = credentialsTable.insert[User.Credentials](i, _ => fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.pass.hasher}, ${i.pass.password}, ${i.pass.salt}")
-    val q2 = CREDENTIALS.insert.values(i.login.providerId, i.login.providerKey, i.pass.hasher, i.pass.password, i.pass.salt)
+  private[sql] def insertCredentials(i: User.Credentials): Query.Insert[CREDENTIALS] = {
+    val values = fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.pass.hasher}, ${i.pass.password}, ${i.pass.salt}"
+    val q1 = credentialsTable.insert[User.Credentials](i, _ => values)
+    // val q2 = CREDENTIALS.insert.values(i.login.providerId, i.login.providerKey, i.pass.hasher, i.pass.password, i.pass.salt)
+    val q2 = CREDENTIALS.insert.values(values)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def updateCredentials(login: User.Login)(pass: User.Password): Query.Update = {
+  private[sql] def updateCredentials(login: User.Login)(pass: User.Password): Query.Update[CREDENTIALS] = {
     val q1 = credentialsTable.update(fr0"hasher=${pass.hasher}, password=${pass.password}, salt=${pass.salt}")
       .where(fr0"cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}")
     val q2 = CREDENTIALS.update.set(_.HASHER, pass.hasher).set(_.PASSWORD, pass.password).set(_.SALT, pass.salt)
       .where(cd => cd.PROVIDER_ID.is(login.providerId) and cd.PROVIDER_KEY.is(login.providerKey))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def deleteCredentials(login: User.Login): Query.Delete = {
+  private[sql] def deleteCredentials(login: User.Login): Query.Delete[CREDENTIALS] = {
     val q1 = credentialsTable.delete.where(fr0"cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}")
     val q2 = CREDENTIALS.delete.where(cd => cd.PROVIDER_ID.is(login.providerId) and cd.PROVIDER_KEY.is(login.providerKey))
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectCredentials(login: User.Login): Query.Select[User.Credentials] = {
+  private[sql] def selectCredentials(login: User.Login): Query.Select.Optional[User.Credentials] = {
     val q1 = credentialsTable.select[User.Credentials].where(fr0"cd.provider_id=${login.providerId} AND cd.provider_key=${login.providerKey}")
     val q2 = CREDENTIALS.select.where(cd => cd.PROVIDER_ID.is(login.providerId) and cd.PROVIDER_KEY.is(login.providerKey)).option[User.Credentials]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def insert(e: User): Query.Insert[User] = {
+  private[sql] def insert(e: User): Query.Insert[USERS] = {
     val values = fr0"${e.id}, ${e.slug}, ${e.status}, ${e.firstName}, ${e.lastName}, ${e.email}, ${e.emailValidated}, ${e.emailValidationBeforeLogin}, ${e.avatar}, ${e.title}, ${e.bio}, ${e.mentoring}, ${e.company}, ${e.location}, ${e.phone}, ${e.website}, " ++
       fr0"${e.social.facebook}, ${e.social.instagram}, ${e.social.twitter}, ${e.social.linkedIn}, ${e.social.youtube}, ${e.social.meetup}, ${e.social.eventbrite}, ${e.social.slack}, ${e.social.discord}, ${e.social.github}, " ++
       fr0"${e.createdAt}, ${e.updatedAt}"
     val q1 = table.insert[User](e, _ => values)
-    val q2 = USERS.insert.values(e.id, e.slug, e.status, e.firstName, e.lastName, e.email, e.emailValidated, e.emailValidationBeforeLogin, e.avatar, e.title, e.bio, e.mentoring, e.company, e.location, e.phone, e.website,
-      e.social.facebook, e.social.instagram, e.social.twitter, e.social.linkedIn, e.social.youtube, e.social.meetup, e.social.eventbrite, e.social.slack, e.social.discord, e.social.github,
-      e.createdAt, e.updatedAt)
+    // val q2 = USERS.insert.values(e.id, e.slug, e.status, e.firstName, e.lastName, e.email, e.emailValidated, e.emailValidationBeforeLogin, e.avatar, e.title, e.bio, e.mentoring, e.company, e.location, e.phone, e.website,
+    //   e.social.facebook, e.social.instagram, e.social.twitter, e.social.linkedIn, e.social.youtube, e.social.meetup, e.social.eventbrite, e.social.slack, e.social.discord, e.social.github,
+    //   e.createdAt, e.updatedAt)
+    val q2 = USERS.insert.values(values)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def update(user: User.Id)(d: User.Data, now: Instant): Query.Update = {
+  private[sql] def update(user: User.Id)(d: User.Data, now: Instant): Query.Update[USERS] = {
     val fields = fr0"slug=${d.slug}, status=${d.status}, first_name=${d.firstName}, last_name=${d.lastName}, email=${d.email}, avatar=${d.avatar}, title=${d.title}, bio=${d.bio}, mentoring=${d.mentoring}, company=${d.company}, location=${d.location}, phone=${d.phone}, website=${d.website}, " ++
       fr0"social_facebook=${d.social.facebook}, social_instagram=${d.social.instagram}, social_twitter=${d.social.twitter}, social_linkedIn=${d.social.linkedIn}, social_youtube=${d.social.youtube}, social_meetup=${d.social.meetup}, social_eventbrite=${d.social.eventbrite}, social_slack=${d.social.slack}, social_discord=${d.social.discord}, social_github=${d.social.github}, " ++
       fr0"updated_at=$now"
@@ -193,49 +200,49 @@ object UserRepoSql {
       .set(_.SOCIAL_FACEBOOK, d.social.facebook).set(_.SOCIAL_INSTAGRAM, d.social.instagram).set(_.SOCIAL_TWITTER, d.social.twitter).set(_.SOCIAL_LINKEDIN, d.social.linkedIn).set(_.SOCIAL_YOUTUBE, d.social.youtube).set(_.SOCIAL_MEETUP, d.social.meetup).set(_.SOCIAL_EVENTBRITE, d.social.eventbrite).set(_.SOCIAL_SLACK, d.social.slack).set(_.SOCIAL_DISCORD, d.social.discord).set(_.SOCIAL_GITHUB, d.social.github)
       .set(_.UPDATED_AT, now).where(_.ID is user)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def validateAccount(email: EmailAddress, now: Instant): Query.Update = {
+  private[sql] def validateAccount(email: EmailAddress, now: Instant): Query.Update[USERS] = {
     val q1 = table.update(fr0"email_validated=$now").where(fr0"u.email=$email")
-    val q2 = USERS.update.setOpt(_.EMAIL_VALIDATED, now).where(_.EMAIL is email)
+    val q2 = USERS.update.set(_.EMAIL_VALIDATED, now).where(_.EMAIL is email)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(login: User.Login): Query.Select[User] = {
+  private[sql] def selectOne(login: User.Login): Query.Select.Optional[User] = {
     val q1 = tableWithLogin.select[User].fields(table.fields).where(fr0"lg.provider_id=${login.providerId} AND lg.provider_key=${login.providerKey}")
     val q2 = USERS_WITH_LOGINS.select.where(LOGINS.PROVIDER_ID.is(login.providerId) and LOGINS.PROVIDER_KEY.is(login.providerKey)).option[User]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(email: EmailAddress): Query.Select[User] = {
+  private[sql] def selectOne(email: EmailAddress): Query.Select.Optional[User] = {
     val q1 = table.select[User].where(fr0"u.email=$email")
     val q2 = USERS.select.where(_.EMAIL is email).option[User]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(slug: User.Slug): Query.Select[User] = {
+  private[sql] def selectOne(slug: User.Slug): Query.Select.Optional[User] = {
     val q1 = table.select[User].where(fr0"u.slug=$slug")
     val q2 = USERS.select.where(_.SLUG is slug).option[User]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOne(id: User.Id): Query.Select[User] = {
+  private[sql] def selectOne(id: User.Id): Query.Select.Optional[User] = {
     val q1 = table.select[User].where(fr0"u.id=$id")
     val q2 = USERS.select.where(_.ID is id).option[User]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOnePublic(slug: User.Slug)(implicit ctx: UserAwareCtx): Query.Select[User.Full] = {
+  private[sql] def selectOnePublic(slug: User.Slug)(implicit ctx: UserAwareCtx): Query.Select.Optional[User.Full] = {
     val q1 = tableFull.select[User.Full].where(fr0"u.slug=$slug AND (u.status=${User.Status.Public: User.Status} OR u.id=${ctx.user.map(_.id).getOrElse(User.Id.empty).value})").one
     val q2 = USERS_FULL.select.where(USERS.SLUG.is(slug) and (USERS.STATUS.is(User.Status.Public) or USERS.ID.is(ctx.user.map(_.id).getOrElse(User.Id.empty))).par).option[User.Full](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
   // should replace def selectPage(ids: NonEmptyList[User.Id], params: Page.Params) when split or array works...
@@ -244,32 +251,32 @@ object UserRepoSql {
     table.selectPage[User](params, adapt(ctx)).where(fr0"u.id IN (" ++ speakerIds ++ fr0")")
   } */
 
-  private[sql] def selectAllPublicSlugs()(implicit ctx: UserAwareCtx): Query.Select[(User.Id, User.Slug)] = {
+  private[sql] def selectAllPublicSlugs()(implicit ctx: UserAwareCtx): Query.Select.All[(User.Id, User.Slug)] = {
     val q1 = table.select[(User.Id, User.Slug)].fields(Field("id", "u"), Field("slug", "u")).where(fr0"u.status=${User.Status.Public: User.Status}")
     val q2 = USERS.select.withFields(_.ID, _.SLUG).where(_.STATUS is User.Status.Public).all[(User.Id, User.Slug)]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[User.Full] = {
+  private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[User.Full] = {
     val q1 = tableFull.selectPage[User.Full](params, adapt(ctx)).where(fr0"u.status=${User.Status.Public: User.Status}")
     val q2 = USERS_FULL.select.where(USERS.STATUS is User.Status.Public).page[User.Full](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params)(implicit ctx: BasicCtx): Query.SelectPage[User.Full] = {
+  private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params)(implicit ctx: BasicCtx): Query.Select.Paginated[User.Full] = {
     val q1 = tableFull.selectPage[User.Full](params, adapt(ctx)).where(Fragments.in(fr"u.id", ids))
     val q2 = USERS_FULL.select.where(USERS.ID in ids).page[User.Full](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAll(ids: NonEmptyList[User.Id]): Query.Select[User] = {
+  private[sql] def selectAll(ids: NonEmptyList[User.Id]): Query.Select.All[User] = {
     val q1 = table.select[User].where(Fragments.in(fr"u.id", ids))
     val q2 = USERS.select.where(_.ID in ids).all[User]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
   private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)

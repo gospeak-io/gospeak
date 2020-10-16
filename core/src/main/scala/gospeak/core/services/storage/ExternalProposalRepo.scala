@@ -13,17 +13,17 @@ trait ExternalProposalRepo extends SpeakerExternalProposalRepo with UserExternal
 trait SpeakerExternalProposalRepo {
   def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal]
 
-  def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Done]
+  def edit(id: ExternalProposal.Id)(data: ExternalProposal.Data)(implicit ctx: UserCtx): IO[Unit]
 
-  def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Done]
+  def editStatus(id: ExternalProposal.Id, status: Proposal.Status)(implicit ctx: UserCtx): IO[Unit]
 
-  def editSlides(id: ExternalProposal.Id, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done]
+  def editSlides(id: ExternalProposal.Id, slides: Url.Slides)(implicit ctx: UserCtx): IO[Unit]
 
-  def editVideo(id: ExternalProposal.Id, video: Url.Video)(implicit ctx: UserCtx): IO[Done]
+  def editVideo(id: ExternalProposal.Id, video: Url.Video)(implicit ctx: UserCtx): IO[Unit]
 
-  def removeSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def removeSpeaker(id: ExternalProposal.Id, speaker: User.Id)(implicit ctx: UserCtx): IO[Unit]
 
-  def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Done]
+  def remove(id: ExternalProposal.Id)(implicit ctx: UserCtx): IO[Unit]
 
   def find(id: ExternalProposal.Id): IO[Option[ExternalProposal]]
 
@@ -39,9 +39,9 @@ trait SpeakerExternalProposalRepo {
 }
 
 trait UserExternalProposalRepo {
-  def addSpeaker(id: ExternalProposal.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def addSpeaker(id: ExternalProposal.Id, by: User.Id)(implicit ctx: UserCtx): IO[Unit]
 
-  def addSpeaker(id: ExternalProposal.Id, speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+  def addSpeaker(id: ExternalProposal.Id, speaker: User.Id, by: User.Id, now: Instant): IO[Unit]
 }
 
 trait PublicExternalProposalRepo {

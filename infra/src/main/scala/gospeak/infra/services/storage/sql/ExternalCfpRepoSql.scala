@@ -9,34 +9,37 @@ import gospeak.core.domain.utils.{BasicCtx, Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalCfpRepo
 import gospeak.infra.services.storage.sql.ExternalCfpRepoSql._
 import gospeak.infra.services.storage.sql.database.Tables.{CFPS, EXTERNAL_CFPS, EXTERNAL_EVENTS, GROUPS}
+import gospeak.infra.services.storage.sql.database.tables.EXTERNAL_CFPS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.TimeUtils
-import gospeak.libs.scala.domain.{Done, Page}
-import gospeak.libs.sql.doobie.{DbCtx, Field, Query, Table}
-import gospeak.libs.sql.dsl.TableField
+import gospeak.libs.scala.domain.Page
+import gospeak.libs.sql.doobie.{DbCtx, Field, Table}
+import gospeak.libs.sql.dsl.{Query, TableField}
 
 class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalCfpRepo {
-  override def create(event: ExternalEvent.Id, data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[ExternalCfp] =
-    insert(ExternalCfp(data, event, Info(ctx.user.id, ctx.now))).run(xa)
+  override def create(event: ExternalEvent.Id, data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[ExternalCfp] = {
+    val cfp = ExternalCfp(data, event, Info(ctx.user.id, ctx.now))
+    insert(cfp).run(xa).map(_ => cfp)
+  }
 
-  override def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done] =
+  override def edit(cfp: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Unit] =
     update(cfp)(data, ctx.user.id, ctx.now).run(xa)
 
-  override def listAllIds(): IO[List[ExternalCfp.Id]] = selectAllIds().runList(xa)
+  override def listAllIds(): IO[List[ExternalCfp.Id]] = selectAllIds().run(xa)
 
-  override def listAll(event: ExternalEvent.Id): IO[List[ExternalCfp]] = selectAll(event).runList(xa)
+  override def listAll(event: ExternalEvent.Id): IO[List[ExternalCfp]] = selectAll(event).run(xa)
 
   override def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]] = selectCommonPageIncoming(params).run(xa)
 
-  override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[List[ExternalCfp.Full]] = selectDuplicatesFull(p).runList(xa)
+  override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[List[ExternalCfp.Full]] = selectDuplicatesFull(p).run(xa)
 
-  override def findFull(cfp: ExternalCfp.Id): IO[Option[ExternalCfp.Full]] = selectOneFull(cfp).runOption(xa)
+  override def findFull(cfp: ExternalCfp.Id): IO[Option[ExternalCfp.Full]] = selectOneFull(cfp).run(xa)
 
-  override def findCommon(cfp: Cfp.Slug): IO[Option[CommonCfp]] = selectOneCommon(cfp).runOption(xa)
+  override def findCommon(cfp: Cfp.Slug): IO[Option[CommonCfp]] = selectOneCommon(cfp).run(xa)
 
-  override def findCommon(cfp: ExternalCfp.Id): IO[Option[CommonCfp]] = selectOneCommon(cfp).runOption(xa)
+  override def findCommon(cfp: ExternalCfp.Id): IO[Option[CommonCfp]] = selectOneCommon(cfp).run(xa)
 }
 
 object ExternalCfpRepoSql {
@@ -74,65 +77,66 @@ object ExternalCfpRepoSql {
     internalCfps.union(externalCfps, alias = Some("c"), sorts = List(("close", "close date", List("close", "name"))), search = List("name", "description", "tags"))
   }
 
-  private[sql] def insert(e: ExternalCfp): Query.Insert[ExternalCfp] = {
+  private[sql] def insert(e: ExternalCfp): Query.Insert[EXTERNAL_CFPS] = {
     val values = fr0"${e.id}, ${e.event}, ${e.description}, ${e.begin}, ${e.close}, ${e.url}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
     val q1 = table.insert[ExternalCfp](e, _ => values)
-    val q2 = EXTERNAL_CFPS.insert.values(e.id, e.event, e.description, e.begin, e.close, e.url, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    // val q2 = EXTERNAL_CFPS.insert.values(e.id, e.event, e.description, e.begin, e.close, e.url, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
+    val q2 = EXTERNAL_CFPS.insert.values(values)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def update(id: ExternalCfp.Id)(e: ExternalCfp.Data, by: User.Id, now: Instant): Query.Update = {
+  private[sql] def update(id: ExternalCfp.Id)(e: ExternalCfp.Data, by: User.Id, now: Instant): Query.Update[EXTERNAL_CFPS] = {
     val fields = fr0"description=${e.description}, begin=${e.begin}, close=${e.close}, url=${e.url}, updated_at=$now, updated_by=$by"
     val q1 = table.update(fields).where(fr0"ec.id=$id")
     val q2 = EXTERNAL_CFPS.update.set(_.DESCRIPTION, e.description).set(_.BEGIN, e.begin).set(_.CLOSE, e.close).set(_.URL, e.url).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(_.ID is id)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAllIds(): Query.Select[ExternalCfp.Id] = {
+  private[sql] def selectAllIds(): Query.Select.All[ExternalCfp.Id] = {
     val q1 = table.select[ExternalCfp.Id].fields(Field("id", "ec"))
     val q2 = EXTERNAL_CFPS.select.fields(EXTERNAL_CFPS.ID).all[ExternalCfp.Id]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectAll(id: ExternalEvent.Id): Query.Select[ExternalCfp] = {
+  private[sql] def selectAll(id: ExternalEvent.Id): Query.Select.All[ExternalCfp] = {
     val q1 = table.select[ExternalCfp].where(fr0"ec.event_id=$id")
     val q2 = EXTERNAL_CFPS.select.where(_.EVENT_ID is id).all[ExternalCfp]
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOneFull(id: ExternalCfp.Id): Query.Select[ExternalCfp.Full] = {
+  private[sql] def selectOneFull(id: ExternalCfp.Id): Query.Select.Optional[ExternalCfp.Full] = {
     val q1 = tableFull.select[ExternalCfp.Full].where(fr0"ec.id=$id").one
     val q2 = EXTERNAL_CFPS_FULL.select.where(EXTERNAL_CFPS.ID is id).option[ExternalCfp.Full](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOneCommon(slug: Cfp.Slug): Query.Select[CommonCfp] = {
+  private[sql] def selectOneCommon(slug: Cfp.Slug): Query.Select.Optional[CommonCfp] = {
     val q1 = commonTable.select[CommonCfp].where(fr0"c.int_slug=$slug").one
     val q2 = COMMON_CFPS.select.where(_.int_slug[Cfp.Slug] is slug).option[CommonCfp](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectOneCommon(id: ExternalCfp.Id): Query.Select[CommonCfp] = {
+  private[sql] def selectOneCommon(id: ExternalCfp.Id): Query.Select.Optional[CommonCfp] = {
     val q1 = commonTable.select[CommonCfp].where(fr0"c.ext_id=$id").one
     val q2 = COMMON_CFPS.select.where(_.ext_id[ExternalCfp.Id] is id).option[CommonCfp](limit = true)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectCommonPageIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): Query.SelectPage[CommonCfp] = {
+  private[sql] def selectCommonPageIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[CommonCfp] = {
     val q1 = commonTable.selectPage[CommonCfp](params, adapt(ctx)).where(fr0"c.close IS NULL OR c.close >= ${ctx.now}")
-    val q2 = COMMON_CFPS.select.where(c => c.close.isNull or c.close[Option[LocalDateTime]].gte(Some(TimeUtils.toLocalDateTime(ctx.now)))).page[CommonCfp](params, ctx.toDb)
+    val q2 = COMMON_CFPS.select.where(c => c.close.isNull or c.close[LocalDateTime].gte(TimeUtils.toLocalDateTime(ctx.now))).page[CommonCfp](params, ctx.toDb)
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
-  private[sql] def selectDuplicatesFull(p: ExternalCfp.DuplicateParams): Query.Select[ExternalCfp.Full] = {
+  private[sql] def selectDuplicatesFull(p: ExternalCfp.DuplicateParams): Query.Select.All[ExternalCfp.Full] = {
     val filters = List(
       p.cfpUrl.map(v => fr0"ec.url LIKE ${"%" + v + "%"}"),
       p.cfpEndDate.map(v => fr0"ec.close=$v")
@@ -152,7 +156,7 @@ object ExternalCfpRepoSql {
       EXTERNAL_CFPS_FULL.select.where(f.reduce(_ or _)).all[ExternalCfp.Full]
     }
     GenericRepo.assertEqual(q1.fr, q2.fr)
-    q1
+    q2
   }
 
   private def adapt(ctx: BasicCtx): DbCtx = DbCtx(ctx.now)

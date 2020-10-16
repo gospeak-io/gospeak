@@ -37,7 +37,10 @@ object Generators {
   } yield TimePeriod(length, unit))
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
   implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(aInstant.arbitrary.map(_.atZone(Constants.defaultZoneId).toLocalDateTime))
-  implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(aLocalDateTime.arbitrary.map(_.toLocalDate))
+  implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(for {
+    d <- aLocalDateTime.arbitrary.map(_.toLocalDate)
+    year <- Gen.choose(1990, 2030) // needed as saving LocalDate has strange behavior is some dates (ex: 0004-12-26 => 0004-12-25, 0000-12-30 => 0001-12-29...)
+  } yield d.withYear(year))
   implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toList.map(ZoneId.of)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))

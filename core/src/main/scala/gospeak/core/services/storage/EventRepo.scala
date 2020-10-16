@@ -7,22 +7,22 @@ import cats.effect.IO
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
-import gospeak.libs.scala.domain.{Done, LiquidMarkdown, Page, Tag}
+import gospeak.libs.scala.domain.{LiquidMarkdown, Page, Tag}
 
 trait EventRepo extends OrgaEventRepo with SpeakerEventRepo with UserEventRepo with AuthEventRepo with PublicEventRepo with AdminEventRepo with SuggestEventRepo
 
 trait OrgaEventRepo {
   def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event]
 
-  def edit(event: Event.Slug, data: Event.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(event: Event.Slug, data: Event.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def editNotes(event: Event.Slug, notes: String)(implicit ctx: OrgaCtx): IO[Done]
+  def editNotes(event: Event.Slug, notes: String)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def attachCfp(event: Event.Slug, cfp: Cfp.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def editTalks(event: Event.Slug, talks: List[Proposal.Id])(implicit ctx: OrgaCtx): IO[Done]
+  def editTalks(event: Event.Slug, talks: List[Proposal.Id])(implicit ctx: OrgaCtx): IO[Unit]
 
-  def publish(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Done]
+  def publish(event: Event.Slug)(implicit ctx: OrgaCtx): IO[Unit]
 
   def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]]
 
@@ -70,9 +70,9 @@ trait PublicEventRepo {
 
   def findFirstWait(event: Event.Id): IO[Option[Event.Rsvp]]
 
-  def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
+  def createRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Unit]
 
-  def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Done]
+  def editRsvp(event: Event.Id, answer: Event.Rsvp.Answer)(user: User, now: Instant): IO[Unit]
 
   def listRsvps(event: Event.Id): IO[List[Event.Rsvp]]
 }
@@ -82,7 +82,7 @@ trait AdminEventRepo {
 
   def find(event: Event.Id)(implicit ctx: AdminCtx): IO[Option[Event]]
 
-  def editDescription(event: Event.Id, description: LiquidMarkdown[Message.EventInfo])(implicit ctx: AdminCtx): IO[Done]
+  def editDescription(event: Event.Id, description: LiquidMarkdown[Message.EventInfo])(implicit ctx: AdminCtx): IO[Unit]
 }
 
 trait SuggestEventRepo {

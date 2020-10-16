@@ -12,6 +12,7 @@ class VideoRepoSqlSpec extends RepoSpec {
       val externalEvent = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
       videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()
       val video = videoRepo.create(videoData1, externalEvent.id)(ctx).unsafeRunSync()
+      video.data shouldBe videoData1
       videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video)
 
       val data = videoData2.copy(url = videoData1.url, channel = videoData1.channel, playlist = videoData1.playlist, publishedAt = videoData1.publishedAt)
@@ -25,9 +26,9 @@ class VideoRepoSqlSpec extends RepoSpec {
       val (user, ctx) = createAdmin().unsafeRunSync()
       val externalEvent1 = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
       val externalEvent2 = externalEventRepo.create(externalEventData2)(ctx).unsafeRunSync()
-      val video1 = videoRepo.create(videoData1.copy(title = "aaa"), externalEvent1.id)(ctx).unsafeRunSync()
-      val video2 = videoRepo.create(videoData2.copy(title = "bbb"), externalEvent1.id)(ctx).unsafeRunSync()
-      videoRepo.create(videoData1.copy(title = "aaa"), externalEvent2.id)(ctx).unsafeRunSync()
+      val video1 = videoRepo.create(videoData1.copy(title = "aaaaaa"), externalEvent1.id)(ctx).unsafeRunSync()
+      val video2 = videoRepo.create(videoData2.copy(title = "bbbbbb"), externalEvent1.id)(ctx).unsafeRunSync()
+      videoRepo.create(videoData1.copy(title = "aaaaaa"), externalEvent2.id)(ctx).unsafeRunSync()
 
       videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1, video2)
       videoRepo.remove(videoData1, externalEvent2.id)(ctx).unsafeRunSync() shouldBe false
@@ -38,8 +39,8 @@ class VideoRepoSqlSpec extends RepoSpec {
     it("should select a page") {
       val (user, ctx) = createAdmin().unsafeRunSync()
       val externalEvent = externalEventRepo.create(externalEventData1)(ctx).unsafeRunSync()
-      val video1 = videoRepo.create(videoData1.copy(title = "aaa", lang = "fr"), externalEvent.id)(ctx).unsafeRunSync()
-      val video2 = videoRepo.create(videoData2.copy(title = "bbb", lang = "en"), externalEvent.id)(ctx).unsafeRunSync()
+      val video1 = videoRepo.create(videoData1.copy(title = "aaaaaa", lang = "fr"), externalEvent.id)(ctx).unsafeRunSync()
+      val video2 = videoRepo.create(videoData2.copy(title = "bbbbbb", lang = "en"), externalEvent.id)(ctx).unsafeRunSync()
 
       videoRepo.list(params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(video1, video2)
       videoRepo.list(params.page(2))(ctx.userAwareCtx).unsafeRunSync().items shouldBe List()

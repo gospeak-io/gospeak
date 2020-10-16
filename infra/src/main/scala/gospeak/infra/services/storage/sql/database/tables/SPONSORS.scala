@@ -26,20 +26,20 @@ import scala.concurrent.duration.FiniteDuration
 class SPONSORS private(getAlias: Option[String] = Some("s")) extends Table.SqlTable("PUBLIC", "sponsors", getAlias) {
   type Self = SPONSORS
 
-  val ID: SqlField[Sponsor.Id, SPONSORS] = new SqlField[Sponsor.Id, SPONSORS](this, "id") // CHAR(36) NOT NULL
-  val GROUP_ID: SqlFieldRef[Group.Id, SPONSORS, GROUPS] = new SqlFieldRef[Group.Id, SPONSORS, GROUPS](this, "group_id", GROUPS.table.ID) // CHAR(36) NOT NULL
-  val PARTNER_ID: SqlFieldRef[Partner.Id, SPONSORS, PARTNERS] = new SqlFieldRef[Partner.Id, SPONSORS, PARTNERS](this, "partner_id", PARTNERS.table.ID) // CHAR(36) NOT NULL
-  val SPONSOR_PACK_ID: SqlFieldRef[SponsorPack.Id, SPONSORS, SPONSOR_PACKS] = new SqlFieldRef[SponsorPack.Id, SPONSORS, SPONSOR_PACKS](this, "sponsor_pack_id", SPONSOR_PACKS.table.ID) // CHAR(36) NOT NULL
-  val CONTACT_ID: SqlFieldRefOpt[Contact.Id, SPONSORS, CONTACTS] = new SqlFieldRefOpt[Contact.Id, SPONSORS, CONTACTS](this, "contact_id", CONTACTS.table.ID) // CHAR(36)
-  val START: SqlField[LocalDate, SPONSORS] = new SqlField[LocalDate, SPONSORS](this, "start") // DATE NOT NULL
-  val FINISH: SqlField[LocalDate, SPONSORS] = new SqlField[LocalDate, SPONSORS](this, "finish") // DATE NOT NULL
-  val PAID: SqlFieldOpt[LocalDate, SPONSORS] = new SqlFieldOpt[LocalDate, SPONSORS](this, "paid") // DATE
-  val PRICE: SqlField[Double, SPONSORS] = new SqlField[Double, SPONSORS](this, "price") // DOUBLE PRECISION NOT NULL
-  val CURRENCY: SqlField[Price.Currency, SPONSORS] = new SqlField[Price.Currency, SPONSORS](this, "currency") // VARCHAR(10) NOT NULL
-  val CREATED_AT: SqlField[Instant, SPONSORS] = new SqlField[Instant, SPONSORS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, SPONSORS, USERS] = new SqlFieldRef[User.Id, SPONSORS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, SPONSORS] = new SqlField[Instant, SPONSORS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, SPONSORS, USERS] = new SqlFieldRef[User.Id, SPONSORS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Sponsor.Id, SPONSORS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val GROUP_ID: SqlFieldRef[Group.Id, SPONSORS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, GROUPS.table.ID)
+  val PARTNER_ID: SqlFieldRef[Partner.Id, SPONSORS, PARTNERS] = SqlField(this, "partner_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 3, PARTNERS.table.ID)
+  val SPONSOR_PACK_ID: SqlFieldRef[SponsorPack.Id, SPONSORS, SPONSOR_PACKS] = SqlField(this, "sponsor_pack_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 4, SPONSOR_PACKS.table.ID)
+  val CONTACT_ID: SqlFieldRef[Contact.Id, SPONSORS, CONTACTS] = SqlField(this, "contact_id", "CHAR(36)", JdbcType.Char, nullable = true, 5, CONTACTS.table.ID)
+  val START: SqlField[LocalDate, SPONSORS] = SqlField(this, "start", "DATE NOT NULL", JdbcType.Date, nullable = false, 6)
+  val FINISH: SqlField[LocalDate, SPONSORS] = SqlField(this, "finish", "DATE NOT NULL", JdbcType.Date, nullable = false, 7)
+  val PAID: SqlField[LocalDate, SPONSORS] = SqlField(this, "paid", "DATE", JdbcType.Date, nullable = true, 8)
+  val PRICE: SqlField[Double, SPONSORS] = SqlField(this, "price", "DOUBLE PRECISION NOT NULL", JdbcType.Double, nullable = false, 9)
+  val CURRENCY: SqlField[Price.Currency, SPONSORS] = SqlField(this, "currency", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 10)
+  val CREATED_AT: SqlField[Instant, SPONSORS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 11)
+  val CREATED_BY: SqlFieldRef[User.Id, SPONSORS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 12, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, SPONSORS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 13)
+  val UPDATED_BY: SqlFieldRef[User.Id, SPONSORS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 14, USERS.table.ID)
 
   override def getFields: List[SqlField[_, SPONSORS]] = List(ID, GROUP_ID, PARTNER_ID, SPONSOR_PACK_ID, CONTACT_ID, START, FINISH, PAID, PRICE, CURRENCY, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

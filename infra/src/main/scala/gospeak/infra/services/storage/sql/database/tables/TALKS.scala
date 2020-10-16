@@ -26,21 +26,21 @@ import scala.concurrent.duration.FiniteDuration
 class TALKS private(getAlias: Option[String] = Some("t")) extends Table.SqlTable("PUBLIC", "talks", getAlias) {
   type Self = TALKS
 
-  val ID: SqlField[Talk.Id, TALKS] = new SqlField[Talk.Id, TALKS](this, "id") // CHAR(36) NOT NULL
-  val SLUG: SqlField[Talk.Slug, TALKS] = new SqlField[Talk.Slug, TALKS](this, "slug") // VARCHAR(120) NOT NULL
-  val STATUS: SqlField[Talk.Status, TALKS] = new SqlField[Talk.Status, TALKS](this, "status") // VARCHAR(10) NOT NULL
-  val TITLE: SqlField[Talk.Title, TALKS] = new SqlField[Talk.Title, TALKS](this, "title") // VARCHAR(120) NOT NULL
-  val DURATION: SqlField[FiniteDuration, TALKS] = new SqlField[FiniteDuration, TALKS](this, "duration") // BIGINT NOT NULL
-  val DESCRIPTION: SqlField[Markdown, TALKS] = new SqlField[Markdown, TALKS](this, "description") // VARCHAR(4096) NOT NULL
-  val MESSAGE: SqlField[Markdown, TALKS] = new SqlField[Markdown, TALKS](this, "message") // VARCHAR(4096) DEFAULT '' NOT NULL
-  val SPEAKERS: SqlField[NonEmptyList[User.Id], TALKS] = new SqlField[NonEmptyList[User.Id], TALKS](this, "speakers") // VARCHAR(184) NOT NULL
-  val SLIDES: SqlFieldOpt[Url.Slides, TALKS] = new SqlFieldOpt[Url.Slides, TALKS](this, "slides") // VARCHAR(1024)
-  val VIDEO: SqlFieldOpt[Url.Video, TALKS] = new SqlFieldOpt[Url.Video, TALKS](this, "video") // VARCHAR(1024)
-  val TAGS: SqlField[List[Tag], TALKS] = new SqlField[List[Tag], TALKS](this, "tags") // VARCHAR(150) NOT NULL
-  val CREATED_AT: SqlField[Instant, TALKS] = new SqlField[Instant, TALKS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, TALKS, USERS] = new SqlFieldRef[User.Id, TALKS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, TALKS] = new SqlField[Instant, TALKS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, TALKS, USERS] = new SqlFieldRef[User.Id, TALKS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Talk.Id, TALKS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val SLUG: SqlField[Talk.Slug, TALKS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val STATUS: SqlField[Talk.Status, TALKS] = SqlField(this, "status", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val TITLE: SqlField[Talk.Title, TALKS] = SqlField(this, "title", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val DURATION: SqlField[FiniteDuration, TALKS] = SqlField(this, "duration", "BIGINT NOT NULL", JdbcType.BigInt, nullable = false, 5)
+  val DESCRIPTION: SqlField[Markdown, TALKS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 6)
+  val MESSAGE: SqlField[Markdown, TALKS] = SqlField(this, "message", "VARCHAR(4096) DEFAULT '' NOT NULL", JdbcType.VarChar, nullable = false, 15)
+  val SPEAKERS: SqlField[NonEmptyList[User.Id], TALKS] = SqlField(this, "speakers", "VARCHAR(184) NOT NULL", JdbcType.VarChar, nullable = false, 7)
+  val SLIDES: SqlField[Url.Slides, TALKS] = SqlField(this, "slides", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 8)
+  val VIDEO: SqlField[Url.Video, TALKS] = SqlField(this, "video", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 9)
+  val TAGS: SqlField[List[Tag], TALKS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 10)
+  val CREATED_AT: SqlField[Instant, TALKS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 11)
+  val CREATED_BY: SqlFieldRef[User.Id, TALKS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 12, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, TALKS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 13)
+  val UPDATED_BY: SqlFieldRef[User.Id, TALKS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 14, USERS.table.ID)
 
   override def getFields: List[SqlField[_, TALKS]] = List(ID, SLUG, STATUS, TITLE, DURATION, DESCRIPTION, MESSAGE, SPEAKERS, SLIDES, VIDEO, TAGS, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

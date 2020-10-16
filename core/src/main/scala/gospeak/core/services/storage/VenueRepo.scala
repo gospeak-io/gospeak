@@ -3,7 +3,7 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
-import gospeak.libs.scala.domain.{Done, Page}
+import gospeak.libs.scala.domain.Page
 
 trait VenueRepo extends OrgaVenueRepo with PublicVenueRepo with SuggestVenueRepo
 
@@ -12,9 +12,9 @@ trait OrgaVenueRepo {
 
   def create(partner: Partner.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Venue]
 
-  def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(venue: Venue.Id, data: Venue.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def remove(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]]
 

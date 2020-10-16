@@ -19,7 +19,9 @@ class VenueRepoSqlSpec extends RepoSpec {
       val contact1 = venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner.id))(ctx).unsafeRunSync())
       val contact2 = venueData2.contact.map(_ => contactRepo.create(contactData2.copy(partner = partner.id))(ctx).unsafeRunSync())
       venueRepo.listAllFull()(ctx).unsafeRunSync() shouldBe List()
-      val venue = venueRepo.create(partner.id, venueData1.copy(contact = contact1.map(_.id)))(ctx).unsafeRunSync()
+      val venueData = venueData1.copy(contact = contact1.map(_.id))
+      val venue = venueRepo.create(partner.id, venueData)(ctx).unsafeRunSync()
+      venue.data shouldBe venueData
       val venueFull = Venue.Full(venue, partner, contact1)
       venueRepo.listAllFull()(ctx).unsafeRunSync() shouldBe List(venueFull)
 
@@ -42,18 +44,18 @@ class VenueRepoSqlSpec extends RepoSpec {
       val (partner2, venue2, contact2) = venueRepo.duplicate(venue1.id)(ctx2).unsafeRunSync()
 
       partner2.data shouldBe partner1.data.copy(notes = Markdown(""))
-      venue2.data shouldBe venue1.data.copy(contact = venue2.contact, notes = Markdown(""))
+      venue2.data shouldBe venue1.data.copy(contact = venue2.contact, notes = Markdown(""), refs = Venue.ExtRefs())
       contact2.map(_.data) shouldBe contact1.map(_.data.copy(partner = partner2.id, notes = Markdown("")))
     }
     it("should select a page") {
       val (user, group, ctx) = createOrga().unsafeRunSync()
       val (user2, group2, ctx2) = createOrga(credentials2, userData2, groupData2).unsafeRunSync()
-      val partner1 = partnerRepo.create(partnerData1.copy(name = Partner.Name("aaa")))(ctx).unsafeRunSync()
+      val partner1 = partnerRepo.create(partnerData1.copy(name = Partner.Name("aaaaaa")))(ctx).unsafeRunSync()
       val contact1 = venueData1.contact.map(_ => contactRepo.create(contactData1.copy(partner = partner1.id))(ctx).unsafeRunSync())
       val venue1 = venueRepo.create(partner1.id, venueData1.copy(contact = contact1.map(_.id), roomSize = Some(2)))(ctx).unsafeRunSync()
       val event1 = eventRepo.create(eventData1.copy(venue = Some(venue1.id)))(ctx).unsafeRunSync()
       eventRepo.publish(event1.slug)(ctx).unsafeRunSync()
-      val partner2 = partnerRepo.create(partnerData2.copy(name = Partner.Name("bbb")))(ctx).unsafeRunSync()
+      val partner2 = partnerRepo.create(partnerData2.copy(name = Partner.Name("bbbbbb")))(ctx).unsafeRunSync()
       val contact2 = venueData2.contact.map(_ => contactRepo.create(contactData2.copy(partner = partner2.id))(ctx).unsafeRunSync())
       val venue2 = venueRepo.create(partner2.id, venueData2.copy(contact = contact2.map(_.id), roomSize = Some(1)))(ctx.plusSeconds(10)).unsafeRunSync()
       val event2 = eventRepo.create(eventData2.copy(venue = Some(venue2.id)))(ctx).unsafeRunSync()
@@ -117,7 +119,7 @@ class VenueRepoSqlSpec extends RepoSpec {
       check(selectPagePublic(params), s"SELECT $fieldsPublic FROM $tablePublic GROUP BY pa.slug, pa.name, pa.logo, v.address $orderByPublic LIMIT 20 OFFSET 0")
       unsafeCheck(selectPageCommon(params), s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0")
       check(selectAllFull(group.id), s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $orderBy")
-      check(selectAllFull(group.id, NonEmptyList.of(venue.id)), s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id IN (?)  $orderBy")
+      check(selectAllFull(group.id, NonEmptyList.of(venue.id)), s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? AND v.id IN (?) $orderBy")
       check(selectAllFull(partner.id), s"SELECT $fieldsFull FROM $tableFull WHERE v.partner_id=? $orderBy")
       check(selectAll(group.id, contact.id), s"SELECT $fields FROM $table WHERE v.contact_id=? $orderBy")
     }
@@ -140,12 +142,12 @@ object VenueRepoSqlSpec {
   private val orderByFull = "ORDER BY v.created_at IS NULL, v.created_at"
 
   private val tablePublic = s"$tableWithPartner INNER JOIN $groupTable ON pa.group_id=g.id AND g.id != ? INNER JOIN $eventTable ON g.id=e.group_id AND e.venue=v.id AND e.published IS NOT NULL"
-  private val fieldsPublic = s"pa.slug, pa.name, pa.logo, v.address, MAX(v.id) as id, COALESCE(COUNT(e.id), 0) as events"
+  private val fieldsPublic = s"MAX(v.id) as id, pa.slug, pa.name, pa.logo, v.address, COALESCE(COUNT(e.id), 0) as events"
   private val orderByPublic = "ORDER BY pa.name IS NULL, pa.name"
 
   private val commonTable = s"(" +
-    s"(SELECT false as public, pa.slug, pa.name, pa.logo, v.address, v.id, 0 as events FROM $tableWithPartner WHERE pa.group_id=? ORDER BY v.created_at IS NULL, v.created_at) UNION " +
-    s"(SELECT true as public, $fieldsPublic FROM $tablePublic GROUP BY public, pa.slug, pa.name, pa.logo, v.address ORDER BY pa.name IS NULL, pa.name)) v"
+    s"(SELECT v.id, pa.slug, pa.name, pa.logo, v.address, 0 as events, false as public FROM $tableWithPartner WHERE pa.group_id=? ORDER BY v.created_at IS NULL, v.created_at) UNION " +
+    s"(SELECT $fieldsPublic, true as public FROM $tablePublic GROUP BY pa.slug, pa.name, pa.logo, v.address, public ORDER BY pa.name IS NULL, pa.name)) v"
   private val commonFields = "v.id, v.slug, v.name, v.logo, v.address, v.events, v.public"
   private val commonOrderBy = "ORDER BY v.public IS NULL, v.public, v.name IS NULL, v.name, v.events IS NULL, v.events DESC"
 }

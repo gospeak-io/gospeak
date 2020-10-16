@@ -3,14 +3,14 @@ package gospeak.core.services.storage
 import cats.effect.IO
 import gospeak.core.domain.utils.{UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Cfp, CommonCfp, ExternalCfp, ExternalEvent}
-import gospeak.libs.scala.domain.{Done, Page}
+import gospeak.libs.scala.domain.Page
 
 trait ExternalCfpRepo extends PublicExternalCfpRepo
 
 trait PublicExternalCfpRepo {
   def create(event: ExternalEvent.Id, data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[ExternalCfp]
 
-  def edit(id: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Done]
+  def edit(id: ExternalCfp.Id)(data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[Unit]
 
   def listAllIds(): IO[List[ExternalCfp.Id]]
 

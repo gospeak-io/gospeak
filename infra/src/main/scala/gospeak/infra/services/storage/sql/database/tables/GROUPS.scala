@@ -26,37 +26,37 @@ import scala.concurrent.duration.FiniteDuration
 class GROUPS private(getAlias: Option[String] = Some("g")) extends Table.SqlTable("PUBLIC", "groups", getAlias) {
   type Self = GROUPS
 
-  val ID: SqlField[Group.Id, GROUPS] = new SqlField[Group.Id, GROUPS](this, "id") // CHAR(36) NOT NULL
-  val SLUG: SqlField[Group.Slug, GROUPS] = new SqlField[Group.Slug, GROUPS](this, "slug") // VARCHAR(120) NOT NULL
-  val NAME: SqlField[Group.Name, GROUPS] = new SqlField[Group.Name, GROUPS](this, "name") // VARCHAR(120) NOT NULL
-  val LOGO: SqlFieldOpt[Logo, GROUPS] = new SqlFieldOpt[Logo, GROUPS](this, "logo") // VARCHAR(1024)
-  val BANNER: SqlFieldOpt[Banner, GROUPS] = new SqlFieldOpt[Banner, GROUPS](this, "banner") // VARCHAR(1024)
-  val CONTACT: SqlFieldOpt[EmailAddress, GROUPS] = new SqlFieldOpt[EmailAddress, GROUPS](this, "contact") // VARCHAR(120)
-  val WEBSITE: SqlFieldOpt[Url, GROUPS] = new SqlFieldOpt[Url, GROUPS](this, "website") // VARCHAR(1024)
-  val DESCRIPTION: SqlField[Markdown, GROUPS] = new SqlField[Markdown, GROUPS](this, "description") // VARCHAR(4096) NOT NULL
-  val LOCATION: SqlFieldOpt[GMapPlace, GROUPS] = new SqlFieldOpt[GMapPlace, GROUPS](this, "location") // VARCHAR(4096)
-  val LOCATION_ID: SqlFieldOpt[String, GROUPS] = new SqlFieldOpt[String, GROUPS](this, "location_id") // VARCHAR(150)
-  val LOCATION_LAT: SqlFieldOpt[Double, GROUPS] = new SqlFieldOpt[Double, GROUPS](this, "location_lat") // DOUBLE PRECISION
-  val LOCATION_LNG: SqlFieldOpt[Double, GROUPS] = new SqlFieldOpt[Double, GROUPS](this, "location_lng") // DOUBLE PRECISION
-  val LOCATION_LOCALITY: SqlFieldOpt[String, GROUPS] = new SqlFieldOpt[String, GROUPS](this, "location_locality") // VARCHAR(50)
-  val LOCATION_COUNTRY: SqlFieldOpt[String, GROUPS] = new SqlFieldOpt[String, GROUPS](this, "location_country") // VARCHAR(30)
-  val OWNERS: SqlField[NonEmptyList[User.Id], GROUPS] = new SqlField[NonEmptyList[User.Id], GROUPS](this, "owners") // VARCHAR(369) NOT NULL
-  val SOCIAL_FACEBOOK: SqlFieldOpt[FacebookAccount, GROUPS] = new SqlFieldOpt[FacebookAccount, GROUPS](this, "social_facebook") // VARCHAR(1024)
-  val SOCIAL_INSTAGRAM: SqlFieldOpt[InstagramAccount, GROUPS] = new SqlFieldOpt[InstagramAccount, GROUPS](this, "social_instagram") // VARCHAR(1024)
-  val SOCIAL_TWITTER: SqlFieldOpt[TwitterAccount, GROUPS] = new SqlFieldOpt[TwitterAccount, GROUPS](this, "social_twitter") // VARCHAR(1024)
-  val SOCIAL_LINKEDIN: SqlFieldOpt[LinkedInAccount, GROUPS] = new SqlFieldOpt[LinkedInAccount, GROUPS](this, "social_linkedIn") // VARCHAR(1024)
-  val SOCIAL_YOUTUBE: SqlFieldOpt[YoutubeAccount, GROUPS] = new SqlFieldOpt[YoutubeAccount, GROUPS](this, "social_youtube") // VARCHAR(1024)
-  val SOCIAL_MEETUP: SqlFieldOpt[MeetupAccount, GROUPS] = new SqlFieldOpt[MeetupAccount, GROUPS](this, "social_meetup") // VARCHAR(1024)
-  val SOCIAL_EVENTBRITE: SqlFieldOpt[EventbriteAccount, GROUPS] = new SqlFieldOpt[EventbriteAccount, GROUPS](this, "social_eventbrite") // VARCHAR(1024)
-  val SOCIAL_SLACK: SqlFieldOpt[SlackAccount, GROUPS] = new SqlFieldOpt[SlackAccount, GROUPS](this, "social_slack") // VARCHAR(1024)
-  val SOCIAL_DISCORD: SqlFieldOpt[DiscordAccount, GROUPS] = new SqlFieldOpt[DiscordAccount, GROUPS](this, "social_discord") // VARCHAR(1024)
-  val SOCIAL_GITHUB: SqlFieldOpt[GithubAccount, GROUPS] = new SqlFieldOpt[GithubAccount, GROUPS](this, "social_github") // VARCHAR(1024)
-  val TAGS: SqlField[List[Tag], GROUPS] = new SqlField[List[Tag], GROUPS](this, "tags") // VARCHAR(150) NOT NULL
-  val STATUS: SqlField[Group.Status, GROUPS] = new SqlField[Group.Status, GROUPS](this, "status") // VARCHAR(10) NOT NULL
-  val CREATED_AT: SqlField[Instant, GROUPS] = new SqlField[Instant, GROUPS](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, GROUPS, USERS] = new SqlFieldRef[User.Id, GROUPS, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, GROUPS] = new SqlField[Instant, GROUPS](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, GROUPS, USERS] = new SqlFieldRef[User.Id, GROUPS, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Group.Id, GROUPS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val SLUG: SqlField[Group.Slug, GROUPS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val NAME: SqlField[Group.Name, GROUPS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val LOGO: SqlField[Logo, GROUPS] = SqlField(this, "logo", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 4)
+  val BANNER: SqlField[Banner, GROUPS] = SqlField(this, "banner", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 5)
+  val CONTACT: SqlField[EmailAddress, GROUPS] = SqlField(this, "contact", "VARCHAR(120)", JdbcType.VarChar, nullable = true, 6)
+  val WEBSITE: SqlField[Url, GROUPS] = SqlField(this, "website", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 7)
+  val DESCRIPTION: SqlField[Markdown, GROUPS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 8)
+  val LOCATION: SqlField[GMapPlace, GROUPS] = SqlField(this, "location", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 9)
+  val LOCATION_ID: SqlField[String, GROUPS] = SqlField(this, "location_id", "VARCHAR(150)", JdbcType.VarChar, nullable = true, 31)
+  val LOCATION_LAT: SqlField[Double, GROUPS] = SqlField(this, "location_lat", "DOUBLE PRECISION", JdbcType.Double, nullable = true, 10)
+  val LOCATION_LNG: SqlField[Double, GROUPS] = SqlField(this, "location_lng", "DOUBLE PRECISION", JdbcType.Double, nullable = true, 11)
+  val LOCATION_LOCALITY: SqlField[String, GROUPS] = SqlField(this, "location_locality", "VARCHAR(50)", JdbcType.VarChar, nullable = true, 12)
+  val LOCATION_COUNTRY: SqlField[String, GROUPS] = SqlField(this, "location_country", "VARCHAR(30)", JdbcType.VarChar, nullable = true, 13)
+  val OWNERS: SqlField[NonEmptyList[User.Id], GROUPS] = SqlField(this, "owners", "VARCHAR(369) NOT NULL", JdbcType.VarChar, nullable = false, 14)
+  val SOCIAL_FACEBOOK: SqlField[FacebookAccount, GROUPS] = SqlField(this, "social_facebook", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 15)
+  val SOCIAL_INSTAGRAM: SqlField[InstagramAccount, GROUPS] = SqlField(this, "social_instagram", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 16)
+  val SOCIAL_TWITTER: SqlField[TwitterAccount, GROUPS] = SqlField(this, "social_twitter", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 17)
+  val SOCIAL_LINKEDIN: SqlField[LinkedInAccount, GROUPS] = SqlField(this, "social_linkedIn", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 18)
+  val SOCIAL_YOUTUBE: SqlField[YoutubeAccount, GROUPS] = SqlField(this, "social_youtube", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 19)
+  val SOCIAL_MEETUP: SqlField[MeetupAccount, GROUPS] = SqlField(this, "social_meetup", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 20)
+  val SOCIAL_EVENTBRITE: SqlField[EventbriteAccount, GROUPS] = SqlField(this, "social_eventbrite", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 21)
+  val SOCIAL_SLACK: SqlField[SlackAccount, GROUPS] = SqlField(this, "social_slack", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 22)
+  val SOCIAL_DISCORD: SqlField[DiscordAccount, GROUPS] = SqlField(this, "social_discord", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 23)
+  val SOCIAL_GITHUB: SqlField[GithubAccount, GROUPS] = SqlField(this, "social_github", "VARCHAR(1024)", JdbcType.VarChar, nullable = true, 24)
+  val TAGS: SqlField[List[Tag], GROUPS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 25)
+  val STATUS: SqlField[Group.Status, GROUPS] = SqlField(this, "status", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 26)
+  val CREATED_AT: SqlField[Instant, GROUPS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 27)
+  val CREATED_BY: SqlFieldRef[User.Id, GROUPS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 28, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, GROUPS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 29)
+  val UPDATED_BY: SqlFieldRef[User.Id, GROUPS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 30, USERS.table.ID)
 
   override def getFields: List[SqlField[_, GROUPS]] = List(ID, SLUG, NAME, LOGO, BANNER, CONTACT, WEBSITE, DESCRIPTION, LOCATION, LOCATION_ID, LOCATION_LAT, LOCATION_LNG, LOCATION_LOCALITY, LOCATION_COUNTRY, OWNERS, SOCIAL_FACEBOOK, SOCIAL_INSTAGRAM, SOCIAL_TWITTER, SOCIAL_LINKEDIN, SOCIAL_YOUTUBE, SOCIAL_MEETUP, SOCIAL_EVENTBRITE, SOCIAL_SLACK, SOCIAL_DISCORD, SOCIAL_GITHUB, TAGS, STATUS, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

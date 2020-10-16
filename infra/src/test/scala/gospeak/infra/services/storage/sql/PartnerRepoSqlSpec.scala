@@ -17,6 +17,7 @@ class PartnerRepoSqlSpec extends RepoSpec {
       val (user, group, ctx) = createOrga().unsafeRunSync()
       partnerRepo.list(group.id).unsafeRunSync() shouldBe List()
       val partner = partnerRepo.create(partnerData1)(ctx).unsafeRunSync()
+      partner.data shouldBe partnerData1
       partnerRepo.list(group.id).unsafeRunSync() shouldBe List(partner)
 
       partnerRepo.edit(partner.slug, partnerData2)(ctx).unsafeRunSync()
@@ -32,8 +33,8 @@ class PartnerRepoSqlSpec extends RepoSpec {
     }
     it("should select a page") {
       val (user, group, ctx) = createOrga().unsafeRunSync()
-      val partner1 = partnerRepo.create(partnerData1.copy(slug = Partner.Slug.from("ddd").get, name = Partner.Name("aaa")))(ctx).unsafeRunSync()
-      val partner2 = partnerRepo.create(partnerData2.copy(slug = Partner.Slug.from("bbb").get, name = Partner.Name("ccc")))(ctx).unsafeRunSync()
+      val partner1 = partnerRepo.create(partnerData1.copy(slug = Partner.Slug.from("dddddd").get, name = Partner.Name("aaaaaa")))(ctx).unsafeRunSync()
+      val partner2 = partnerRepo.create(partnerData2.copy(slug = Partner.Slug.from("bbbbbb").get, name = Partner.Name("cccccc")))(ctx).unsafeRunSync()
       val contact = contactRepo.create(contactData1.copy(partner = partner1.id))(ctx).unsafeRunSync()
       val venue = venueRepo.create(partner1.id, venueData1.copy(contact = venueData1.contact.map(_ => contact.id)))(ctx).unsafeRunSync()
       val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
@@ -81,7 +82,7 @@ class PartnerRepoSqlSpec extends RepoSpec {
       check(PartnerRepoSql.selectPage(params), s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
       check(PartnerRepoSql.selectPageFull(params), s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
       check(PartnerRepoSql.selectAll(group.id), s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy")
-      check(PartnerRepoSql.selectAll(NonEmptyList.of(partner.id)), s"SELECT $fields FROM $table WHERE pa.id IN (?)  $orderBy")
+      check(PartnerRepoSql.selectAll(NonEmptyList.of(partner.id)), s"SELECT $fields FROM $table WHERE pa.id IN (?) $orderBy")
       check(PartnerRepoSql.selectOne(group.id, partner.id), s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.id=? $orderBy")
       check(PartnerRepoSql.selectOne(group.id, partner.slug), s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=? $orderBy")
     }

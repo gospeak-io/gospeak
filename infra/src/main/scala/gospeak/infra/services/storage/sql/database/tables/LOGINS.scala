@@ -26,9 +26,9 @@ import scala.concurrent.duration.FiniteDuration
 class LOGINS private(getAlias: Option[String] = Some("lg")) extends Table.SqlTable("PUBLIC", "logins", getAlias) {
   type Self = LOGINS
 
-  val PROVIDER_ID: SqlField[User.ProviderId, LOGINS] = new SqlField[User.ProviderId, LOGINS](this, "provider_id") // VARCHAR(30) NOT NULL
-  val PROVIDER_KEY: SqlField[User.ProviderKey, LOGINS] = new SqlField[User.ProviderKey, LOGINS](this, "provider_key") // VARCHAR(100) NOT NULL
-  val USER_ID: SqlFieldRef[User.Id, LOGINS, USERS] = new SqlFieldRef[User.Id, LOGINS, USERS](this, "user_id", USERS.table.ID) // CHAR(36) NOT NULL
+  val PROVIDER_ID: SqlField[User.ProviderId, LOGINS] = SqlField(this, "provider_id", "VARCHAR(30) NOT NULL", JdbcType.VarChar, nullable = false, 1)
+  val PROVIDER_KEY: SqlField[User.ProviderKey, LOGINS] = SqlField(this, "provider_key", "VARCHAR(100) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val USER_ID: SqlFieldRef[User.Id, LOGINS, USERS] = SqlField(this, "user_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 3, USERS.table.ID)
 
   override def getFields: List[SqlField[_, LOGINS]] = List(PROVIDER_ID, PROVIDER_KEY, USER_ID)
 

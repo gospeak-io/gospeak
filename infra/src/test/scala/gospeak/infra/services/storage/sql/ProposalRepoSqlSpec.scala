@@ -22,6 +22,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       val (user, group, cfp, talk, ctx) = createCfpAndTalk().unsafeRunSync()
       proposalRepo.listFull(cfp.slug, params)(ctx).unsafeRunSync().items shouldBe List()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, NonEmptyList.of(user.id))(ctx).unsafeRunSync()
+      proposal.data shouldBe proposalData1
       val proposalFull = Proposal.Full(proposal, cfp, group, talk, None, None, 0L, None, 0L, None, 0L, 0L, 0L, None)
       proposalRepo.listFull(cfp.slug, params)(ctx).unsafeRunSync().items shouldBe List(proposalFull)
 
@@ -56,7 +57,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       val event = eventRepo.create(eventData)(ctx).unsafeRunSync()
       val proposal = proposalRepo.create(talk.id, cfp.id, proposalData1, NonEmptyList.of(user.id))(ctx).unsafeRunSync()
 
-      val p1 = proposal.copy(title = Talk.Title("aaa"), orgaTags = List(Tag("tag")))
+      val p1 = proposal.copy(title = Talk.Title("aaaaaa"), orgaTags = List(Tag("tag")))
       proposalRepo.edit(cfp.slug, proposal.id, p1.dataOrga)(ctx).unsafeRunSync()
       proposalRepo.find(proposal.id).unsafeRunSync() shouldBe Some(p1)
 
@@ -117,7 +118,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       eventRepo.publish(eventCreated.slug)(ctx).unsafeRunSync()
       val event = eventCreated.copy(published = Some(ctx.now))
 
-      val data1 = proposalData1.copy(title = Talk.Title("bbb"), slides = Some(urlSlides), video = Some(urlVideo), tags = List(Tag("fp"), Tag("oop")))
+      val data1 = proposalData1.copy(title = Talk.Title("bbbbbb"), slides = Some(urlSlides), video = Some(urlVideo), tags = List(Tag("fp"), Tag("oop")))
       val proposalCreated = proposalRepo.create(talk.id, cfp.id, data1, NonEmptyList.of(user.id))(ctx).unsafeRunSync()
       val proposal = proposalCreated.copy(status = Proposal.Status.Accepted, event = Some(event.id), orgaTags = List(Tag("great")))
       proposalRepo.edit(cfp.slug, proposalCreated.id, proposalCreated.dataOrga.copy(orgaTags = proposal.orgaTags))(ctx).unsafeRunSync()
@@ -127,7 +128,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       commentRepo.addComment(proposal.id, commentData1.copy(answers = None))(ctx).unsafeRunSync()
       val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), event.venue.map(_ => Venue.Full(venue, partner, contact)), 1, Some(ctx.now), 0, None, 1, 1, 0, Some(rating.grade))
 
-      val data2 = proposalData2.copy(title = Talk.Title("aaa"), slides = None, video = None)
+      val data2 = proposalData2.copy(title = Talk.Title("aaaaaa"), slides = None, video = None)
       val proposalCreated2 = proposalRepo.create(talk2.id, cfp.id, data2, NonEmptyList.of(user.id))(ctx).unsafeRunSync()
       proposalRepo.accept(cfp.slug, proposalCreated2.id, event.id)(ctx).unsafeRunSync()
       val proposal2 = proposalCreated2.copy(status = Proposal.Status.Accepted, event = Some(event.id))
@@ -144,6 +145,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listFull(cfp.slug, params.filters("comment" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("tags" -> "fp"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("orga-tags" -> "great"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
+      proposalRepo.listFull(cfp.slug, params.filters("status" -> "accepted", "slides" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
     }
     it("should be able to read correctly") {
       val (user, group, cfp, talk, ctx) = createCfpAndTalk().unsafeRunSync()
@@ -179,7 +181,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listFull(List(proposal.id))(ctx.userAwareCtx).unsafeRunSync() shouldBe List(proposalFull)
       proposalRepo.listPublic(List(proposal.id)).unsafeRunSync() shouldBe List(proposal)
       proposalRepo.listPublicFull(List(proposal.id))(ctx.userAwareCtx).unsafeRunSync() shouldBe List(proposalFull)
-      proposalRepo.listTags().unsafeRunSync() shouldBe proposal.tags
+      proposalRepo.listTags().unsafeRunSync() shouldBe proposal.tags.distinct
       proposalRepo.listOrgaTags()(ctx).unsafeRunSync() shouldBe proposal.orgaTags
       proposalRepo.listRatings(proposal.id).unsafeRunSync() shouldBe List(ratingFull)
       proposalRepo.listRatings(cfp.slug)(ctx).unsafeRunSync() shouldBe List(rating)
@@ -246,15 +248,15 @@ class ProposalRepoSqlSpec extends RepoSpec {
       check(selectAllPublicIds(), s"SELECT e.group_id, p.id FROM $tableWithEvent WHERE e.published IS NOT NULL $orderBy")
       check(selectAllFullPublic(user.id), s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.speakers LIKE ? AND e.published IS NOT NULL GROUP BY $fieldsFull ORDER BY p.created_at IS NULL, p.created_at DESC")
       check(selectPageFullPublic(group.id, params), s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE e.group_id=? AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull LIMIT 20 OFFSET 0")
-      check(selectAll(NonEmptyList.of(proposal.id)), s"SELECT $fields FROM $table WHERE p.id IN (?)  $orderBy")
-      check(selectAllFull(NonEmptyList.of(proposal.id)), s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.id IN (?)  GROUP BY $fieldsFull $orderByFull")
+      check(selectAll(NonEmptyList.of(proposal.id)), s"SELECT $fields FROM $table WHERE p.id IN (?) $orderBy")
+      check(selectAllFull(NonEmptyList.of(proposal.id)), s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.id IN (?) GROUP BY $fieldsFull $orderByFull")
       check(selectAllPublic(NonEmptyList.of(proposal.id)), s"SELECT $fields FROM $tableWithEvent WHERE p.id IN (?) AND e.published IS NOT NULL $orderBy")
       check(selectAllFullPublic(NonEmptyList.of(proposal.id)), s"SELECT $fieldsFull, $fieldsFullAgg, $fieldsFullCustom FROM $tableFull WHERE p.id IN (?) AND e.published IS NOT NULL GROUP BY $fieldsFull $orderByFull")
       check(selectTags(), s"SELECT p.tags FROM $table $orderBy")
       check(selectOrgaTags(group.id), s"SELECT p.orga_tags FROM $tableWithCfp WHERE c.group_id=? $orderBy")
 
       check(insert(rating), s"INSERT INTO ${ratingTable.stripSuffix(" pr")} (${mapFields(ratingFields, _.stripPrefix("pr."))}) VALUES (${mapFields(ratingFields, _ => "?")})")
-      check(update(rating), s"UPDATE $ratingTable SET grade=?, created_at=?  WHERE pr.proposal_id=? AND pr.created_by=?")
+      check(update(rating), s"UPDATE $ratingTable SET grade=?, created_at=? WHERE pr.proposal_id=? AND pr.created_by=?")
       check(selectOneRating(proposal.id, user.id), s"SELECT $ratingFields FROM $ratingTable WHERE pr.proposal_id=? AND pr.created_by=? $ratingOrderBy")
       check(selectAllRatings(proposal.id), s"SELECT $ratingFieldsFull FROM $ratingTableFull WHERE pr.proposal_id=? $ratingOrderBy")
       check(selectAllRatings(cfp.slug, user.id), s"SELECT $ratingFields FROM $ratingTable " +

@@ -6,19 +6,22 @@ import gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerF
 import gospeak.infra.services.storage.sql.SponsorPackRepoSqlSpec.{fields => sponsorPackFields, table => sponsorPackTable}
 import gospeak.infra.services.storage.sql.SponsorRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.Price._
 
 class SponsorRepoSqlSpec extends RepoSpec {
   describe("SponsorRepoSql") {
     it("should handle crud operations") { // error saving LocalDate :(
       val (user, group, ctx) = createOrga().unsafeRunSync()
-      val (partner, venue, contact) = createPartnerAndVenue().unsafeRunSync()
+      val (partner, venue, contact) = createPartnerAndVenue()(ctx).unsafeRunSync()
       val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
       sponsorRepo.listAll(ctx).unsafeRunSync() shouldBe List()
-      val sponsor = sponsorRepo.create(sponsorData1.copy(partner = partner.id, pack = sponsorPack.id))(ctx).unsafeRunSync()
+      val sponsorData = sponsorData1.copy(partner = partner.id, pack = sponsorPack.id, contact = contact.map(_.id))
+      val sponsor = sponsorRepo.create(sponsorData)(ctx).unsafeRunSync()
+      sponsor.data shouldBe sponsorData
       sponsorRepo.listAll(ctx).unsafeRunSync() shouldBe List(sponsor)
 
-      val data = sponsorData2.copy(partner = partner.id, pack = sponsorPack.id)
+      val data = sponsorData2.copy(partner = partner.id, pack = sponsorPack.id, contact = contact.map(_.id))
       sponsorRepo.edit(sponsor.id, data)(ctx).unsafeRunSync()
       sponsorRepo.listAll(ctx).unsafeRunSync().map(_.data) shouldBe List(data)
 
@@ -28,15 +31,15 @@ class SponsorRepoSqlSpec extends RepoSpec {
     it("should select a page") { // error saving LocalDate :(
       val (user, group, ctx) = createOrga().unsafeRunSync()
       val (partner, venue, contact) = createPartnerAndVenue()(ctx).unsafeRunSync()
-      val sponsorPack1 = sponsorPackRepo.create(sponsorPackData1.copy(name = SponsorPack.Name("aaa")))(ctx).unsafeRunSync()
+      val sponsorPack1 = sponsorPackRepo.create(sponsorPackData1.copy(name = SponsorPack.Name("aaaaaa")))(ctx).unsafeRunSync()
       val sponsorPack2 = sponsorPackRepo.create(sponsorPackData2)(ctx).unsafeRunSync()
       val date = nowLDT.toLocalDate
       val data1 = sponsorData1.copy(partner = partner.id, pack = sponsorPack1.id, contact = contact.map(_.id), start = date.minusDays(10), finish = date.plusDays(10), price = 20.eur)
       val data2 = sponsorData2.copy(partner = partner.id, pack = sponsorPack2.id, contact = None, start = date.minusDays(20), finish = date.minusDays(10), price = 10.eur)
       val sponsor1 = sponsorRepo.create(data1)(ctx).unsafeRunSync()
       val sponsor2 = sponsorRepo.create(data2)(ctx).unsafeRunSync()
-      val sponsorFull1 = Sponsor.Full(sponsorRepo.find(sponsor1.id)(ctx).unsafeRunSync().get, sponsorPack1, partner, contact) // FIXME until read/write of LocalDate is fixed
-      val sponsorFull2 = Sponsor.Full(sponsorRepo.find(sponsor2.id)(ctx).unsafeRunSync().get, sponsorPack2, partner, None) // FIXME until read/write of LocalDate is fixed
+      val sponsorFull1 = Sponsor.Full(sponsor1, sponsorPack1, partner, contact)
+      val sponsorFull2 = Sponsor.Full(sponsor2, sponsorPack2, partner, None)
 
       sponsorRepo.listFull(params)(ctx).unsafeRunSync().items shouldBe List(sponsorFull1, sponsorFull2)
       sponsorRepo.listFull(params.page(2))(ctx).unsafeRunSync().items shouldBe List()
@@ -48,16 +51,16 @@ class SponsorRepoSqlSpec extends RepoSpec {
     }
     it("should be able to read correctly") { // error saving LocalDate :(
       val (user, group, ctx) = createOrga().unsafeRunSync()
-      val (partner, venue, contact) = createPartnerAndVenue().unsafeRunSync()
+      val (partner, venue, contact) = createPartnerAndVenue()(ctx).unsafeRunSync()
       val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
-      val sponsor = sponsorRepo.create(sponsorData1.copy(partner = partner.id, pack = sponsorPack.id))(ctx).unsafeRunSync()
-      val sponsorFull = Sponsor.Full(sponsor, sponsorPack, partner, None)
+      val sponsor = sponsorRepo.create(sponsorData1.copy(partner = partner.id, pack = sponsorPack.id, contact = contact.map(_.id), finish = sponsorData1.start.plusYears(1)))(ctx).unsafeRunSync()
+      val sponsorFull = Sponsor.Full(sponsor, sponsorPack, partner, contact)
 
       sponsorRepo.find(sponsor.id)(ctx).unsafeRunSync() shouldBe Some(sponsor)
-      sponsorRepo.listFull(params)(ctx).unsafeRunSync().items shouldBe List(sponsor)
-      sponsorRepo.listCurrentFull(group.id, now).unsafeRunSync() shouldBe List(sponsorFull)
+      sponsorRepo.listFull(params)(ctx).unsafeRunSync().items shouldBe List(sponsorFull)
+      sponsorRepo.listCurrentFull(group.id, TimeUtils.toInstant(sponsorData1.start.plusDays(10))).unsafeRunSync() shouldBe List(sponsorFull)
       sponsorRepo.listAll(ctx).unsafeRunSync() shouldBe List(sponsor)
-      // sponsorRepo.listAll(contact.id)(ctx).unsafeRunSync() shouldBe List(sponsor)
+      contact.foreach(c => sponsorRepo.listAll(c.id)(ctx).unsafeRunSync() shouldBe List(sponsor))
       sponsorRepo.listAllFull(partner.id)(ctx).unsafeRunSync() shouldBe List(sponsorFull)
     }
     it("should check queries") {

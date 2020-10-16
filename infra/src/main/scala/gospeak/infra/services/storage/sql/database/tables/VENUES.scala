@@ -26,23 +26,23 @@ import scala.concurrent.duration.FiniteDuration
 class VENUES private(getAlias: Option[String] = Some("v")) extends Table.SqlTable("PUBLIC", "venues", getAlias) {
   type Self = VENUES
 
-  val ID: SqlField[Venue.Id, VENUES] = new SqlField[Venue.Id, VENUES](this, "id") // CHAR(36) NOT NULL
-  val PARTNER_ID: SqlFieldRef[Partner.Id, VENUES, PARTNERS] = new SqlFieldRef[Partner.Id, VENUES, PARTNERS](this, "partner_id", PARTNERS.table.ID) // CHAR(36) NOT NULL
-  val CONTACT_ID: SqlFieldRefOpt[Contact.Id, VENUES, CONTACTS] = new SqlFieldRefOpt[Contact.Id, VENUES, CONTACTS](this, "contact_id", CONTACTS.table.ID) // CHAR(36)
-  val ADDRESS: SqlField[GMapPlace, VENUES] = new SqlField[GMapPlace, VENUES](this, "address") // VARCHAR(4096) NOT NULL
-  val ADDRESS_ID: SqlField[String, VENUES] = new SqlField[String, VENUES](this, "address_id") // VARCHAR(150) DEFAULT '' NOT NULL
-  val ADDRESS_LAT: SqlField[Double, VENUES] = new SqlField[Double, VENUES](this, "address_lat") // DOUBLE PRECISION NOT NULL
-  val ADDRESS_LNG: SqlField[Double, VENUES] = new SqlField[Double, VENUES](this, "address_lng") // DOUBLE PRECISION NOT NULL
-  val ADDRESS_LOCALITY: SqlFieldOpt[String, VENUES] = new SqlFieldOpt[String, VENUES](this, "address_locality") // VARCHAR(150)
-  val ADDRESS_COUNTRY: SqlField[String, VENUES] = new SqlField[String, VENUES](this, "address_country") // VARCHAR(30) NOT NULL
-  val NOTES: SqlField[Markdown, VENUES] = new SqlField[Markdown, VENUES](this, "notes") // VARCHAR(4096) NOT NULL
-  val ROOM_SIZE: SqlFieldOpt[Int, VENUES] = new SqlFieldOpt[Int, VENUES](this, "room_size") // INT
-  val MEETUPGROUP: SqlFieldOpt[MeetupGroup.Slug, VENUES] = new SqlFieldOpt[MeetupGroup.Slug, VENUES](this, "meetupGroup") // VARCHAR(80)
-  val MEETUPVENUE: SqlFieldOpt[MeetupVenue.Id, VENUES] = new SqlFieldOpt[MeetupVenue.Id, VENUES](this, "meetupVenue") // BIGINT
-  val CREATED_AT: SqlField[Instant, VENUES] = new SqlField[Instant, VENUES](this, "created_at") // TIMESTAMP NOT NULL
-  val CREATED_BY: SqlFieldRef[User.Id, VENUES, USERS] = new SqlFieldRef[User.Id, VENUES, USERS](this, "created_by", USERS.table.ID) // CHAR(36) NOT NULL
-  val UPDATED_AT: SqlField[Instant, VENUES] = new SqlField[Instant, VENUES](this, "updated_at") // TIMESTAMP NOT NULL
-  val UPDATED_BY: SqlFieldRef[User.Id, VENUES, USERS] = new SqlFieldRef[User.Id, VENUES, USERS](this, "updated_by", USERS.table.ID) // CHAR(36) NOT NULL
+  val ID: SqlField[Venue.Id, VENUES] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val PARTNER_ID: SqlFieldRef[Partner.Id, VENUES, PARTNERS] = SqlField(this, "partner_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, PARTNERS.table.ID)
+  val CONTACT_ID: SqlFieldRef[Contact.Id, VENUES, CONTACTS] = SqlField(this, "contact_id", "CHAR(36)", JdbcType.Char, nullable = true, 3, CONTACTS.table.ID)
+  val ADDRESS: SqlField[GMapPlace, VENUES] = SqlField(this, "address", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val ADDRESS_ID: SqlField[String, VENUES] = SqlField(this, "address_id", "VARCHAR(150) DEFAULT '' NOT NULL", JdbcType.VarChar, nullable = false, 16)
+  val ADDRESS_LAT: SqlField[Double, VENUES] = SqlField(this, "address_lat", "DOUBLE PRECISION NOT NULL", JdbcType.Double, nullable = false, 5)
+  val ADDRESS_LNG: SqlField[Double, VENUES] = SqlField(this, "address_lng", "DOUBLE PRECISION NOT NULL", JdbcType.Double, nullable = false, 6)
+  val ADDRESS_LOCALITY: SqlField[String, VENUES] = SqlField(this, "address_locality", "VARCHAR(150)", JdbcType.VarChar, nullable = true, 17)
+  val ADDRESS_COUNTRY: SqlField[String, VENUES] = SqlField(this, "address_country", "VARCHAR(30) NOT NULL", JdbcType.VarChar, nullable = false, 7)
+  val NOTES: SqlField[Markdown, VENUES] = SqlField(this, "notes", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 8)
+  val ROOM_SIZE: SqlField[Int, VENUES] = SqlField(this, "room_size", "INT", JdbcType.Integer, nullable = true, 9)
+  val MEETUPGROUP: SqlField[MeetupGroup.Slug, VENUES] = SqlField(this, "meetupGroup", "VARCHAR(80)", JdbcType.VarChar, nullable = true, 10)
+  val MEETUPVENUE: SqlField[MeetupVenue.Id, VENUES] = SqlField(this, "meetupVenue", "BIGINT", JdbcType.BigInt, nullable = true, 11)
+  val CREATED_AT: SqlField[Instant, VENUES] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 12)
+  val CREATED_BY: SqlFieldRef[User.Id, VENUES, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 13, USERS.table.ID)
+  val UPDATED_AT: SqlField[Instant, VENUES] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 14)
+  val UPDATED_BY: SqlFieldRef[User.Id, VENUES, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 15, USERS.table.ID)
 
   override def getFields: List[SqlField[_, VENUES]] = List(ID, PARTNER_ID, CONTACT_ID, ADDRESS, ADDRESS_ID, ADDRESS_LAT, ADDRESS_LNG, ADDRESS_LOCALITY, ADDRESS_COUNTRY, NOTES, ROOM_SIZE, MEETUPGROUP, MEETUPVENUE, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)
 

@@ -18,6 +18,7 @@ class UserRepoSqlSpec extends RepoSpec {
     it("should handle crud operations") {
       userRepo.find(userData1.slug).unsafeRunSync() shouldBe None
       val user = userRepo.create(userData1, now, None).unsafeRunSync()
+      user.data shouldBe userData1
       val ctx = FakeCtx(now, user)
       userRepo.find(userData1.slug).unsafeRunSync() shouldBe Some(user)
 
@@ -57,8 +58,8 @@ class UserRepoSqlSpec extends RepoSpec {
       userRepo.find(userData1.slug).unsafeRunSync().map(_.status) shouldBe Some(User.Status.Private)
     }
     it("should select a page") {
-      val user1 = userRepo.create(userData1.copy(status = User.Status.Public, mentoring = Some(Markdown("m")), lastName = "bbb"), now, None).unsafeRunSync()
-      val user2 = userRepo.create(userData2.copy(status = User.Status.Public, mentoring = None, lastName = "aaa"), now, None).unsafeRunSync()
+      val user1 = userRepo.create(userData1.copy(status = User.Status.Public, mentoring = Some(Markdown("mmmmmm")), lastName = "bbbbbb"), now, None).unsafeRunSync()
+      val user2 = userRepo.create(userData2.copy(status = User.Status.Public, mentoring = None, lastName = "aaaaaa"), now, None).unsafeRunSync()
       val userFull1 = User.Full(user1, 0, 0, 0)
       val userFull2 = User.Full(user2, 0, 0, 0)
 
@@ -108,8 +109,8 @@ class UserRepoSqlSpec extends RepoSpec {
       check(UserRepoSql.selectOnePublic(user.slug), s"SELECT $fieldsFull FROM $tableFull WHERE u.slug=? AND (u.status=? OR u.id=?) $groupByFull $orderByFull LIMIT 1")
       check(UserRepoSql.selectAllPublicSlugs(), s"SELECT u.id, u.slug FROM $table WHERE u.status=? $orderBy")
       check(UserRepoSql.selectPagePublic(params), s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
-      check(UserRepoSql.selectPage(NonEmptyList.of(user.id), params)(orgaCtx), s"SELECT $fieldsFull FROM $tableFull WHERE u.id IN (?)  $groupByFull $orderByFull LIMIT 20 OFFSET 0")
-      check(UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id)), s"SELECT $fields FROM $table WHERE u.id IN (?, ?)  $orderBy")
+      check(UserRepoSql.selectPage(NonEmptyList.of(user.id), params)(orgaCtx), s"SELECT $fieldsFull FROM $tableFull WHERE u.id IN (?) $groupByFull $orderByFull LIMIT 20 OFFSET 0")
+      check(UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id)), s"SELECT $fields FROM $table WHERE u.id IN (?, ?) $orderBy")
     }
   }
 }

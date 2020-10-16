@@ -13,27 +13,27 @@ trait ProposalRepo extends OrgaProposalRepo with SpeakerProposalRepo with UserPr
 trait OrgaProposalRepo {
   val fields: ProposalFields.type = ProposalFields
 
-  def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.DataOrga)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(cfp: Cfp.Slug, proposal: Proposal.Id, data: Proposal.DataOrga)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def accept(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def cancel(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def cancel(cfp: Cfp.Slug, id: Proposal.Id, event: Event.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def reject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Done]
+  def reject(cfp: Cfp.Slug, id: Proposal.Id, by: User.Id, now: Instant): IO[Unit]
 
-  def reject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def reject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def cancelReject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def cancelReject(cfp: Cfp.Slug, id: Proposal.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade)(implicit ctx: OrgaCtx): IO[Done]
+  def rate(cfp: Cfp.Slug, id: Proposal.Id, grade: Proposal.Rating.Grade)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Url.Slides)(implicit ctx: OrgaCtx): IO[Done]
+  def editSlides(cfp: Cfp.Slug, id: Proposal.Id, slides: Url.Slides)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Url.Video)(implicit ctx: OrgaCtx): IO[Done]
+  def editVideo(cfp: Cfp.Slug, id: Proposal.Id, video: Url.Video)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: List[Tag])(implicit ctx: OrgaCtx): IO[Done]
+  def editOrgaTags(cfp: Cfp.Slug, id: Proposal.Id, orgaTags: List[Tag])(implicit ctx: OrgaCtx): IO[Unit]
 
-  def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def removeSpeaker(cfp: Cfp.Slug, id: Proposal.Id, speaker: User.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
   def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]]
 
@@ -61,13 +61,13 @@ trait OrgaProposalRepo {
 trait SpeakerProposalRepo {
   def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal]
 
-  def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Done]
+  def edit(talk: Talk.Slug, cfp: Cfp.Slug, data: Proposal.Data)(implicit ctx: UserCtx): IO[Unit]
 
-  def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done]
+  def editSlides(talk: Talk.Slug, cfp: Cfp.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Unit]
 
-  def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Done]
+  def editVideo(talk: Talk.Slug, cfp: Cfp.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Unit]
 
-  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def removeSpeaker(talk: Talk.Slug, cfp: Cfp.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Unit]
 
   def find(proposal: Proposal.Id): IO[Option[Proposal]]
 
@@ -83,7 +83,7 @@ trait SpeakerProposalRepo {
 }
 
 trait UserProposalRepo {
-  def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Done]
+  def addSpeaker(proposal: Proposal.Id)(speaker: User.Id, by: User.Id, now: Instant): IO[Unit]
 
   def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]]
 }
