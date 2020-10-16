@@ -40,12 +40,7 @@ sealed trait Table {
   def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable =
     if (has(ref)) join(ref.references.table, kind).on(ref is ref.references) else join(ref.table, kind).on(ref.references is ref)
 
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2]): JoinTable = joinOn(ref, _.Inner)
-
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable =
-    if (has(ref)) join(ref.references.table, kind).on(ref is ref.references) else join(ref.table, kind).on(ref.references is ref)
-
-  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRefOpt[A, T, T2]): JoinTable = joinOn(ref, _.LeftOuter)
+  def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](ref: SqlFieldRef[A, T, T2]): JoinTable = joinOn(ref, k => if (ref.nullable) k.LeftOuter else k.Inner)
 
   def select: Select.Builder[this.type] = {
     val (aggFields, otherFields) = getFields.partition {
@@ -58,7 +53,7 @@ sealed trait Table {
       where = WhereClause(None, None, None),
       groupBy = GroupByClause(if (aggFields.nonEmpty) otherFields else List()),
       having = HavingClause(None, None),
-      orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List()), None),
+      orderBy = OrderByClause(getSorts.headOption.map(_.fields.toList).getOrElse(List())),
       limit = LimitClause(None),
       offset = OffsetClause(None))
   }
@@ -148,10 +143,6 @@ object Table {
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2]): JoinTable = joinOn(f(self))
 
     def joinOn[A, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRef[A, T, T2], kind: Join.Kind.type => Join.Kind): JoinTable = joinOn(f(self), kind)
-
-    def joinOn[A, B, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2])(implicit ev: B =:= Option[A]): JoinTable = joinOn(f(self))
-
-    def joinOn[A, B, T <: Table.SqlTable, T2 <: Table.SqlTable](f: Self => SqlFieldRefOpt[A, T, T2], kind: Join.Kind.type => Join.Kind)(implicit ev: B =:= Option[A]): JoinTable = joinOn(f(self), kind)
 
     def insert: Insert.Builder[Self] = Insert.Builder(self, getFields.asInstanceOf[List[SqlField[_, Self]]])
 
@@ -281,8 +272,8 @@ object Table {
       def fromCount(key: String, label: String, field: Field[_]): Bool =
         fromCountExpr(key, label, AggField(s"COALESCE(COUNT(DISTINCT ${field.sql}), 0)"))
 
-      def fromCountExpr(key: String, label: String, field: Field[_]): Bool =
-        new Bool(key, label, aggregation = true, onTrue = _ => field.asInstanceOf[Field[Long]].gt(0), onFalse = _ => field.asInstanceOf[Field[Long]].is(0))
+      def fromCountExpr(key: String, label: String, field: Field[Long]): Bool =
+        new Bool(key, label, aggregation = true, onTrue = _ => field.gt(0), onFalse = _ => field.is(0))
 
       def fromNow(key: String, label: String, startField: Field[_], endField: Field[_], aggregation: Boolean = false)(implicit i: Put[Instant]): Bool =
         new Filter.Bool(key, label, aggregation,

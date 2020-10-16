@@ -12,11 +12,13 @@ import gospeak.libs.sql.testingutils.database.Tables._
 
 /**
  * TODO :
- *  - rename `Builder.Builder.withFields` to `fields` (same here, polymorphism problem...)
+ *  - remove Put[Option[A]], use shapeless ?
+ *  - rename `Builder.withFields` to `fields` (polymorphism problem...)
  *  - keep typed fields after joins (in JoinTable)
  */
 class DslSpec extends SqlSpec {
-  private implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // I don't know why it's needed and Doobie can't build a Put[Option[String]] :(
+  // required because I expect a Put[A] in insert when A is Option[B] instead of Put[B], and this fail when having a None :(
+  private implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // FIXME to remove
   private implicit val instantMeta: Meta[Instant] = doobie.implicits.legacy.instant.JavaTimeInstantMeta
   private val ctx: Query.Ctx = Query.Ctx.Basic(Instant.now())
   private val params = Page.Params(Page.No(1), Page.Size(2))

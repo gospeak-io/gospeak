@@ -12,9 +12,9 @@ import gospeak.libs.sql.testingutils.Entities._
 class USERS private(getAlias: Option[String] = Some("u")) extends Table.SqlTable("PUBLIC", "users", getAlias) {
   type Self = USERS
 
-  val ID: SqlField[User.Id, USERS] = new SqlField[User.Id, USERS](this, "id") // INT NOT NULL
-  val NAME: SqlField[String, USERS] = new SqlField[String, USERS](this, "name") // VARCHAR(50) NOT NULL
-  val EMAIL: SqlFieldOpt[String, USERS] = new SqlFieldOpt[String, USERS](this, "email") // VARCHAR(50)
+  val ID: SqlField[User.Id, USERS] = SqlField(this, "id", "INT NOT NULL", JdbcType.Integer, nullable = false, 1)
+  val NAME: SqlField[String, USERS] = SqlField(this, "name", "VARCHAR(50) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val EMAIL: SqlField[String, USERS] = SqlField(this, "email", "VARCHAR(50)", JdbcType.VarChar, nullable = true, 3)
 
   override def getFields: List[SqlField[_, USERS]] = List(ID, NAME, EMAIL)
 

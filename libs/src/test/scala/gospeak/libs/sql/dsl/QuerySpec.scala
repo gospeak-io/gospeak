@@ -2,6 +2,7 @@ package gospeak.libs.sql.dsl
 
 import java.time.Instant
 
+import doobie.util.Put
 import doobie.util.meta.Meta
 import gospeak.libs.scala.domain.Page
 import gospeak.libs.sql.dsl.Query.Inner._
@@ -19,7 +20,21 @@ class QuerySpec extends BaseSpec {
 
   describe("Query") {
     describe("Insert") {
+      it("should insert data in a table") {
+        CATEGORIES.insert.values(Category.tech.id, Category.tech.name).sql shouldBe "INSERT INTO categories (id, name) VALUES (?, ?)"
+      }
+      it("should handle nullable columns with data") {
+        USERS.insert.values(User.loic.id, User.loic.name, User.loic.email.get).sql shouldBe "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
+      }
+      it("should handle nullable columns with optionals") {
+        // required because I expect a Put[A] in insert when A is Option[B] instead of Put[B], and this fail when having a None :(
+        implicit def optPut[A: Put]: Put[Option[A]] = implicitly[Put[A]].contramap[Option[A]](_.get) // FIXME to remove
 
+        USERS.insert.values(User.loic.id, User.loic.name, User.loic.email).sql shouldBe "INSERT INTO users (id, name, email) VALUES (?, ?, ?)"
+      }
+      it("should fail on bad argument number") {
+        an[Exception] should be thrownBy CATEGORIES.insert.values(Category.tech.id)
+      }
     }
     describe("Update") {
 
@@ -106,7 +121,7 @@ class QuerySpec extends BaseSpec {
         WhereClause(None, Some((Page.Search("q"), List(POSTS.TITLE))), None).sql shouldBe " WHERE p.title ILIKE ?"
         WhereClause(None, Some((Page.Search("q"), List(POSTS.TITLE, POSTS.TEXT))), None).sql shouldBe " WHERE p.title ILIKE ? OR p.text ILIKE ?"
         WhereClause(None, None, Some((Map("future" -> "true"), List(dateFilter, titleFilter), ctx))).sql shouldBe " WHERE p.date > ?"
-        WhereClause(None, None, Some((Map("future" -> "true", "title" -> "hello"), List(dateFilter, titleFilter), ctx))).sql shouldBe " WHERE (p.date > ?) OR (p.title LIKE ?)"
+        WhereClause(None, None, Some((Map("future" -> "true", "title" -> "hello"), List(dateFilter, titleFilter), ctx))).sql shouldBe " WHERE (p.date > ?) AND (p.title LIKE ?)"
 
         WhereClause(Some(POSTS.CATEGORY.is(Category.Id(1))), Some((Page.Search("q"), List(POSTS.TITLE))), None).sql shouldBe " WHERE (p.category=?) AND (p.title ILIKE ?)"
         WhereClause(Some(POSTS.CATEGORY.is(Category.Id(1))), None, Some((Map("future" -> "true"), List(dateFilter), ctx))).sql shouldBe " WHERE (p.category=?) AND (p.date > ?)"
@@ -116,7 +131,7 @@ class QuerySpec extends BaseSpec {
           Some(POSTS.CATEGORY.is(Category.Id(1)) and POSTS.AUTHOR.is(User.Id(1))),
           Some((Page.Search("q"), List(POSTS.TITLE, POSTS.TEXT))),
           Some((Map("future" -> "true", "title" -> "hello"), List(dateFilter, titleFilter), ctx))
-        ).sql shouldBe " WHERE (p.category=? AND p.author=?) AND (p.title ILIKE ? OR p.text ILIKE ?) AND ((p.date > ?) OR (p.title LIKE ?))"
+        ).sql shouldBe " WHERE (p.category=? AND p.author=?) AND (p.title ILIKE ? OR p.text ILIKE ?) AND ((p.date > ?) AND (p.title LIKE ?))"
       }
       it("should compute the GROUP BY clause") {
         GroupByClause(List()).sql shouldBe ""
@@ -130,9 +145,9 @@ class QuerySpec extends BaseSpec {
         HavingClause(None, Some((Map("count" -> "true"), List(countFilter), ctx))).sql shouldBe " HAVING COUNT(id) > ?"
       }
       it("should compute the ORDER BY clause") {
-        OrderByClause(List(), None).sql shouldBe ""
-        OrderByClause(List(POSTS.ID.asc), None).sql shouldBe " ORDER BY p.id IS NULL, p.id"
-        OrderByClause(List(POSTS.ID.asc), Some((Page.OrderBy("title"), List(Table.Sort(POSTS.TITLE.desc)), List(POSTS.TITLE)))).sql shouldBe " ORDER BY p.title IS NULL, p.title DESC"
+        OrderByClause(List(), None, nullsFirst = false).sql shouldBe ""
+        OrderByClause(List(POSTS.ID.asc), None, nullsFirst = false).sql shouldBe " ORDER BY p.id IS NULL, p.id"
+        OrderByClause(List(POSTS.ID.asc), Some((Page.OrderBy("title"), List(Table.Sort(POSTS.TITLE.desc)), List(POSTS.TITLE))), nullsFirst = false).sql shouldBe " ORDER BY p.title IS NULL, p.title DESC"
       }
       it("should compute the LIMIT clause") {
         LimitClause(None).sql shouldBe ""

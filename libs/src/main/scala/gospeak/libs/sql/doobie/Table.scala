@@ -212,13 +212,13 @@ object Table {
 
     object Bool {
       def fromNullable(key: String, label: String, field: String, aggregation: Boolean = false): Bool =
-        new Bool(key, label, aggregation, onTrue = _ => const0(s"($field IS NOT NULL)"), onFalse = _ => const0(s"($field IS NULL)"))
+        new Bool(key, label, aggregation, onTrue = _ => const0(s"$field IS NOT NULL"), onFalse = _ => const0(s"$field IS NULL"))
 
       def fromCount(key: String, label: String, field: String): Bool =
         fromCountExpr(key, label, s"COALESCE(COUNT(DISTINCT $field), 0)")
 
       def fromCountExpr(key: String, label: String, expression: String): Bool =
-        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"($expression > ") ++ fr0"${0})", onFalse = _ => const0(s"($expression = ") ++ fr0"${0})")
+        new Bool(key, label, aggregation = true, onTrue = _ => const0(s"$expression > ") ++ fr0"${0}", onFalse = _ => const0(s"$expression=") ++ fr0"${0}")
 
       def fromNow(key: String, label: String, startField: String, endField: String, aggregation: Boolean = false)(implicit i: Put[Instant]): Bool =
         new Filter.Bool(key, label, aggregation,
@@ -241,12 +241,12 @@ object Table {
 
     object Value {
       def fromField(key: String, label: String, field: String, aggregation: Boolean = false): Value =
-        new Value(key, label, aggregation, v => fr0"(" ++ v.toLowerCase
+        new Value(key, label, aggregation, v => v.toLowerCase
           .split(",")
           .map(_.trim)
           .filter(_.nonEmpty)
-          .map(f => const0(s"LOWER($field) LIKE ") ++ fr0"${"%" + f + "%"}")
-          .reduce((acc, cur) => acc ++ fr0" AND " ++ cur) ++ fr0")")
+          .map(f => const0(s"$field ILIKE ") ++ fr0"${"%" + f + "%"}")
+          .reduce((acc, cur) => acc ++ fr0" AND " ++ cur))
     }
 
   }

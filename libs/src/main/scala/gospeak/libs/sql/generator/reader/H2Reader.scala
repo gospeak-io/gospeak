@@ -19,7 +19,7 @@ class H2Reader(schema: Option[String] = None,
       Database.Schema(schema, tables.groupBy(_.TABLE_NAME).toList.sortBy(_._1).map { case (table, columns) =>
         Database.Table(schema, table, columns.filter(_.IS_VISIBLE).sortBy(_.ORDINAL_POSITION).map { column =>
           val ref = Database.FieldRef(schema, table, column.COLUMN_NAME)
-          Database.Field(schema, table, column.COLUMN_NAME, column.TYPE_NAME, column.COLUMN_TYPE, column.IS_NULLABLE, column.COLUMN_DEFAULT, refs.get(ref))
+          Database.Field(schema, table, column.COLUMN_NAME, column.DATA_TYPE, column.TYPE_NAME, column.COLUMN_TYPE, column.IS_NULLABLE, column.ORDINAL_POSITION, column.COLUMN_DEFAULT, refs.get(ref))
         }.filterNot(f => excludes.forall(e => f.name.matches(e))))
       }.filterNot(t => excludes.forall(e => t.name.matches(e))))
     }.filterNot(s => excludes.forall(e => s.name.matches(e))))

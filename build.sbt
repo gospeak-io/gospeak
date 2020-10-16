@@ -2,8 +2,11 @@ ThisBuild / version := "0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "gospeak"
 
-ThisBuild / fork := true
-ThisBuild / javaOptions += "-Xmx1G"
+/**
+ * See .jmvopts for more options
+ * - xms: memory to use when start jvm
+ * - xmx: max memory available for the jvm
+ */
 
 
 /**

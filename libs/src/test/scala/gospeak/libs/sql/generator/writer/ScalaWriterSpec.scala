@@ -7,8 +7,8 @@ import gospeak.libs.testingutils.BaseSpec
 class ScalaWriterSpec extends BaseSpec {
   private val db = Database(schemas = List(Database.Schema("PUBLIC", tables = List(
     Database.Table("PUBLIC", "users", fields = List(
-      Database.Field("PUBLIC", "users", "id", "INT", "INT NOT NULL", nullable = false, None, None),
-      Database.Field("PUBLIC", "users", "name", "VARCHAR", "VARCHAR(50) NOT NULL", nullable = false, None, None)
+      Database.Field("PUBLIC", "users", "id", 4, "INT", "INT NOT NULL", nullable = false, 1, None, None),
+      Database.Field("PUBLIC", "users", "name", 12, "VARCHAR", "VARCHAR(50) NOT NULL", nullable = false, 2, None, None)
     ))))))
 
   describe("ScalaWriter") {

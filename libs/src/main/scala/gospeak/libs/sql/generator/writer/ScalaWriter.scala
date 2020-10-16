@@ -2,6 +2,7 @@ package gospeak.libs.sql.generator.writer
 
 import cats.data.NonEmptyList
 import gospeak.libs.scala.StringUtils
+import gospeak.libs.sql.dsl.JdbcType
 import gospeak.libs.sql.generator.Database
 import gospeak.libs.sql.generator.Database.{Field, FieldRef, Table}
 import gospeak.libs.sql.generator.writer.ScalaWriter.{DatabaseConfig, TableConfig}
@@ -45,7 +46,7 @@ class ScalaWriter(directory: String,
   override protected def tableFile(table: Table): String = {
     val tableConf = config.table(table)
     val tableName = idf(table.name)
-    val alias = tableConf.alias.map(a => s"""Some("$a")""").getOrElse("None")
+    val alias = tableConf.alias.map(a => s"Some(${str(a)})").getOrElse("None")
     val sorts = tableConf.sorts.map(tableSort).mkString(", ")
     val sortedFields = table.fields.zipWithIndex.map { case (f, i) => (f, config.field(f).index.getOrElse(i)) }.sortBy(_._2).map(_._1)
     val searchFields = tableConf.search.headOption.map(_ => tableConf.search.flatMap(f => table.fields.find(_.name == f))).getOrElse(sortedFields)
@@ -54,7 +55,7 @@ class ScalaWriter(directory: String,
        |${tableImports(table)}
        |
        |${writeScaladoc(Some(table))}
-       |class $tableName private(getAlias: Option[String] = $alias) extends Table.SqlTable("${table.schema}", "${table.name}", getAlias) {
+       |class $tableName private(getAlias: Option[String] = $alias) extends Table.SqlTable(${str(table.schema)}, ${str(table.name)}, getAlias) {
        |  type Self = $tableName
        |
        |${sortedFields.map(tableFieldAttr(table, _)).map("  " + _).mkString("\n")}
@@ -110,22 +111,21 @@ class ScalaWriter(directory: String,
     val valueType = f.ref.filter(_ => config.customTypesFollowReferences).flatMap(config.field(_).customType)
       .orElse(config.field(f).customType)
       .getOrElse(scalaType(f))
+    val jdbcType = JdbcType.fromInt(f.jdbcType)
     f.ref.map { r =>
-      val fieldType = (if (f.nullable) "SqlFieldRefOpt" else "SqlFieldRef") + s"[$valueType, $tableName, ${idf(r.table)}]"
       val fieldRef = (if (r.schema == f.schema && r.table == f.table) "" else s"${idf(r.table)}.table.") + idf(r.field)
-      s"""val $fieldName: $fieldType = new $fieldType(this, "${f.name}", $fieldRef) // ${f.`type`}"""
+      s"val $fieldName: SqlFieldRef[$valueType, $tableName, ${idf(r.table)}] = SqlField(this, ${str(f.name)}, ${str(f.jdbcTypeDeclaration)}, JdbcType.$jdbcType, nullable = ${f.nullable}, ${f.index}, $fieldRef)"
     }.getOrElse {
-      val fieldType = (if (f.nullable) "SqlFieldOpt" else "SqlField") + s"[$valueType, $tableName]"
-      s"""val $fieldName: $fieldType = new $fieldType(this, "${f.name}") // ${f.`type`}"""
+      s"val $fieldName: SqlField[$valueType, $tableName] = SqlField(this, ${str(f.name)}, ${str(f.jdbcTypeDeclaration)}, JdbcType.$jdbcType, nullable = ${f.nullable}, ${f.index})"
     }
   }
 
   protected def tableSort(s: TableConfig.Sort): String = {
     def fieldOrder(f: TableConfig.Sort.Field): String = {
-      f.expr.map(e => s"""Field.Order(${idf(f.name)}, asc = ${f.asc}, Some("$e"))""").getOrElse(idf(f.name) + "." + (if (f.asc) "asc" else "desc"))
+      f.expr.map(e => s"Field.Order(${idf(f.name)}, asc = ${f.asc}, Some(${str(e)}))").getOrElse(idf(f.name) + "." + (if (f.asc) "asc" else "desc"))
     }
 
-    s"""Sort("${s.slug}", "${s.label}", NonEmptyList.of(${s.fields.map(fieldOrder).toList.mkString(", ")}))"""
+    s"Sort(${str(s.slug)}, ${str(s.label)}, NonEmptyList.of(${s.fields.map(fieldOrder).toList.mkString(", ")}))"
   }
 
   /*
@@ -148,7 +148,7 @@ class ScalaWriter(directory: String,
 
   protected def idf(value: String): String = identifierStrategy.format(value)
 
-  protected def scalaType(f: Field): String = f.kind match {
+  protected def scalaType(f: Field): String = f.jdbcTypeName match {
     case "BIGINT" => "Long"
     case "BOOLEAN" => "Boolean"
     case "DATE" => "LocalDate"
@@ -158,6 +158,8 @@ class ScalaWriter(directory: String,
     case "TIMESTAMP" | "TIMESTAMP WITH TIME ZONE" => "Instant"
     case "VARCHAR" | "CHAR" => "String"
   }
+
+  protected def str(s: String): String = "\"" + s.replaceAll("\"", "\\\\\"") + "\""
 }
 
 object ScalaWriter {
