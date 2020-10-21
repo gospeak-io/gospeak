@@ -13,6 +13,7 @@ import gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerF
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import gospeak.libs.scala.domain.LiquidMarkdown
 
 class EventRepoSqlSpec extends RepoSpec {
@@ -165,9 +166,6 @@ class EventRepoSqlSpec extends RepoSpec {
 }
 
 object EventRepoSqlSpec {
-
-  import RepoSpec._
-
   val table = "events e"
   val fields: String = mapFields("id, group_id, cfp_id, slug, name, kind, start, max_attendee, allow_rsvp, description, orga_notes, orga_notes_updated_at, orga_notes_updated_by, venue, talks, tags, published, meetupGroup, meetupEvent, created_at, created_by, updated_at, updated_by", "e." + _)
   val orderBy = "ORDER BY e.start IS NULL, e.start DESC"

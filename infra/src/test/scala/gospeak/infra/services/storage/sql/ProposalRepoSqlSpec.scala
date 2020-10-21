@@ -14,6 +14,7 @@ import gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{fields => talkFields,
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{fields => venueFields, table => venueTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import gospeak.libs.scala.domain.Tag
 
 class ProposalRepoSqlSpec extends RepoSpec {
@@ -274,9 +275,6 @@ class ProposalRepoSqlSpec extends RepoSpec {
 }
 
 object ProposalRepoSqlSpec {
-
-  import RepoSpec._
-
   val table = "proposals p"
   val fields: String = mapFields("id, talk_id, cfp_id, event_id, status, title, duration, description, message, speakers, slides, video, tags, orga_tags, created_at, created_by, updated_at, updated_by", "p." + _)
   val orderBy = "ORDER BY p.created_at IS NULL, p.created_at DESC"

@@ -16,8 +16,7 @@ import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.{Page, Tag, Url}
-import gospeak.libs.sql.doobie.Query
-import gospeak.libs.sql.dsl
+import gospeak.libs.sql.dsl.{Query, Table}
 import org.scalatest.BeforeAndAfterEach
 
 class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
@@ -164,125 +163,80 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
 
   protected def mapFields(fields: String, f: String => String): String = RepoSpec.mapFields(fields, f)
 
-  protected def check[A](query: Query.Insert[A], sql: String): Unit = {
+  protected def check[T <: Table.SqlTable](query: Query.Insert[T], sql: String): Unit = {
     query.fr.update.sql shouldBe sql
     check(query.fr.update)
   }
 
-  protected def check(query: Query.Update, sql: String): Unit = {
+  protected def check[T <: Table.SqlTable](query: Query.Update[T], sql: String): Unit = {
     query.fr.update.sql shouldBe sql
     check(query.fr.update)
   }
 
-  protected def check(query: Query.Delete, sql: String): Unit = {
+  protected def check[T <: Table.SqlTable](query: Query.Delete[T], sql: String): Unit = {
     query.fr.update.sql shouldBe sql
     check(query.fr.update)
   }
 
-  protected def check[A](query: Query.Select[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
-    query.fr.query.sql shouldBe sql
-    check(query.query)
-    query.runList(db.xa).unsafeRunSync()
-  }
-
-  // same as `check[A](query: Query.Select[A], sql: String)` but avoid type check (not null types become nullable on unions...)
-  protected def unsafeCheck[A](query: Query.Select[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
-    query.fr.query.sql shouldBe sql
-    query.runList(db.xa).unsafeRunSync()
-  }
-
-  protected def check[A](query: Query.SelectPage[A], sql: String, checkCount: Boolean = true)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
-    query.fr.query.sql shouldBe sql
-    check(query.query)
-    if (checkCount) {
-      // checkCount is here to avoid test errors with Timestamp type when in sub-query
-      // ex: SELECT COUNT(*) FROM (SELECT e.id FROM events e WHERE e.group_id=? AND e.start > ?) as cnt
-      // => ✕ P02 Timestamp  →  VARCHAR (VARCHAR)
-      //    Timestamp is not coercible to VARCHAR (VARCHAR) according to the
-      //    JDBC specification. Expected schema type was TIMESTAMP.
-      // => but e.start IS a TIMESTAMP type, it's just not recognized by doobie type-checker :(
-      check(query.countQuery)
-    }
-  }
-
-  // same as `check[A](query: Query.SelectPage[A], sql: String, checkCount: Boolean = true)` but avoid type check (not null types become nullable on unions...)
-  protected def unsafeCheck[A](query: Query.SelectPage[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
-    query.fr.query.sql shouldBe sql
-  }
-
-  protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Insert[T], sql: String): Unit = {
-    query.fr.update.sql shouldBe sql
-    check(query.fr.update)
-  }
-
-  protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Update[T], sql: String): Unit = {
-    query.fr.update.sql shouldBe sql
-    check(query.fr.update)
-  }
-
-  protected def check[T <: dsl.Table.SqlTable](query: dsl.Query.Delete[T], sql: String): Unit = {
-    query.fr.update.sql shouldBe sql
-    check(query.fr.update)
-  }
-
-  protected def check[A](query: dsl.Query.Select.All[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
+  protected def check[A](query: Query.Select.All[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
     query.fr.query.sql shouldBe sql
     check(query.query)
     query.run(db.xa).unsafeRunSync()
   }
 
-  protected def check[A](query: dsl.Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
+  protected def check[A](query: Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
     query.fr.query.sql shouldBe sql
     check(query.query)
     query.run(db.xa).unsafeRunSync()
   }
 
-  protected def check[A](query: dsl.Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
+  protected def check[A](query: Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
     query.fr.query.sql shouldBe sql
     check(query.query)
     query.run(db.xa).unsafeRunSync()
   }
 
-  protected def check[A](query: dsl.Query.Select.One[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+  protected def check[A](query: Query.Select.One[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     query.fr.query.sql shouldBe sql
     check(query.query)
     // query.run(db.xa).unsafeRunSync() // can't require that data exist
   }
 
-  protected def check[A](query: dsl.Query.Select.Exists[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Boolean = {
+  protected def check[A](query: Query.Select.Exists[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Boolean = {
     query.fr.query.sql shouldBe sql
     check(query.query)
     query.run(db.xa).unsafeRunSync()
   }
 
-  // same as `check[A](query: dsl.Query.Select.All[A], sql: String)` but avoid type check (not null types become nullable on unions...)
-  protected def unsafeCheck[A](query: dsl.Query.Select.All[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
+  // same as `check[A](query: Query.Select.All[A], sql: String)` but avoid type check (not null types become nullable on unions...)
+  protected def unsafeCheck[A](query: Query.Select.All[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): List[A] = {
     query.fr.query.sql shouldBe sql
     query.run(db.xa).unsafeRunSync()
   }
 
-  protected def unsafeCheck[A](query: dsl.Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
+  protected def unsafeCheck[A](query: Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
     query.fr.query.sql shouldBe sql
     query.run(db.xa).unsafeRunSync()
   }
 
-  protected def unsafeCheck[A](query: dsl.Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
+  protected def unsafeCheck[A](query: Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
     query.fr.query.sql shouldBe sql
     query.run(db.xa).unsafeRunSync()
   }
 
-  protected def unsafeCheck[A](query: dsl.Query.Select.One[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
+  protected def unsafeCheck[A](query: Query.Select.One[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Unit = {
     query.fr.query.sql shouldBe sql
     // query.run(db.xa).unsafeRunSync() // can't require that data exist
   }
 
-  protected def unsafeCheck[A](query: dsl.Query.Select.Exists[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Boolean = {
+  protected def unsafeCheck[A](query: Query.Select.Exists[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Boolean = {
     query.fr.query.sql shouldBe sql
     query.run(db.xa).unsafeRunSync()
   }
 }
 
 object RepoSpec {
-  def mapFields(fields: String, f: String => String): String =
-    fields.split(", ").map(f).mkString(", ")
+  val socialFields: String = List("facebook", "instagram", "twitter", "linkedIn", "youtube", "meetup", "eventbrite", "slack", "discord", "github").map("social_" + _).mkString(", ")
+
+  def mapFields(fields: String, f: String => String): String = fields.split(", ").map(f).mkString(", ")
 }

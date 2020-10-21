@@ -4,9 +4,6 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.Fragments
-import doobie.syntax.string._
-import doobie.util.fragment.Fragment
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, SponsorPack, User}
 import gospeak.core.services.storage.SponsorPackRepo
@@ -53,66 +50,28 @@ class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 }
 
 object SponsorPackRepoSql {
-  private val _ = sponsorPackIdMeta // for intellij not remove DoobieMappings import
-  private val table = Tables.sponsorPacks
+  private[sql] def insert(e: SponsorPack): Query.Insert[SPONSOR_PACKS] =
+    SPONSOR_PACKS.insert.values(e.id, e.group, e.slug, e.name, e.description, e.price.amount, e.price.currency, e.duration, e.active, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
 
-  private[sql] def insert(e: SponsorPack): Query.Insert[SPONSOR_PACKS] = {
-    val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.description}, ${e.price.amount}, ${e.price.currency}, ${e.duration}, ${e.active}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"
-    val q1 = table.insert[SponsorPack](e, _ => values)
-    val q2 = SPONSOR_PACKS.insert.values(e.id, e.group, e.slug, e.name, e.description, e.price.amount, e.price.currency, e.duration, e.active, e.info.createdAt, e.info.createdBy, e.info.updatedAt, e.info.updatedBy)
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): Query.Update[SPONSOR_PACKS] =
+    SPONSOR_PACKS.update.set(_.SLUG, data.slug).set(_.NAME, data.name).set(_.DESCRIPTION, data.description).set(_.PRICE, data.price.amount).set(_.CURRENCY, data.price.currency).set(_.DURATION, data.duration).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where(group, pack))
 
-  private[sql] def update(group: Group.Id, pack: SponsorPack.Slug)(data: SponsorPack.Data, by: User.Id, now: Instant): Query.Update[SPONSOR_PACKS] = {
-    val fields = fr0"slug=${data.slug}, name=${data.name}, description=${data.description}, price=${data.price.amount}, currency=${data.price.currency}, duration=${data.duration}, updated_at=$now, updated_by=$by"
-    val q1 = table.update(fields).where(where(group, pack))
-    val q2 = SPONSOR_PACKS.update.set(_.SLUG, data.slug).set(_.NAME, data.name).set(_.DESCRIPTION, data.description).set(_.PRICE, data.price.amount).set(_.CURRENCY, data.price.currency).set(_.DURATION, data.duration).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(group, pack))
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): Query.Update[SPONSOR_PACKS] =
+    SPONSOR_PACKS.update.set(_.ACTIVE, active).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where(group, pack))
 
-  private[sql] def setActive(group: Group.Id, pack: SponsorPack.Slug)(active: Boolean, by: User.Id, now: Instant): Query.Update[SPONSOR_PACKS] = {
-    val q1 = table.update(fr0"active=$active, updated_at=$now, updated_by=$by").where(where(group, pack))
-    val q2 = SPONSOR_PACKS.update.set(_.ACTIVE, active).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by).where(where2(group, pack))
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): Query.Select.Optional[SponsorPack] =
+    SPONSOR_PACKS.select.where(where(group, pack)).option[SponsorPack]
 
-  private[sql] def selectOne(group: Group.Id, pack: SponsorPack.Slug): Query.Select.Optional[SponsorPack] = {
-    val q1 = table.select[SponsorPack].where(where(group, pack))
-    val q2 = SPONSOR_PACKS.select.where(where2(group, pack)).option[SponsorPack]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): Query.Select.All[SponsorPack] =
+    SPONSOR_PACKS.select.where(_.ID in ids).all[SponsorPack]
 
-  private[sql] def selectAll(ids: NonEmptyList[SponsorPack.Id]): Query.Select.All[SponsorPack] = {
-    val q1 = table.select[SponsorPack].where(Fragments.in(fr"sp.id", ids))
-    val q2 = SPONSOR_PACKS.select.where(_.ID in ids).all[SponsorPack]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectAll(group: Group.Id): Query.Select.All[SponsorPack] =
+    SPONSOR_PACKS.select.where(where(group)).all[SponsorPack]
 
-  private[sql] def selectAll(group: Group.Id): Query.Select.All[SponsorPack] = {
-    val q1 = table.select[SponsorPack].where(where(group))
-    val q2 = SPONSOR_PACKS.select.where(where2(group)).all[SponsorPack]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectActives(group: Group.Id): Query.Select.All[SponsorPack] =
+    SPONSOR_PACKS.select.where(sp => sp.GROUP_ID.is(group) and sp.ACTIVE.is(true)).all[SponsorPack]
 
-  private[sql] def selectActives(group: Group.Id): Query.Select.All[SponsorPack] = {
-    val active = true
-    val q1 = table.select[SponsorPack].where(where(group) ++ fr0" AND sp.active=$active")
-    val q2 = SPONSOR_PACKS.select.where(sp => sp.GROUP_ID.is(group) and sp.ACTIVE.is(active)).all[SponsorPack]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private def where(group: Group.Id, slug: SponsorPack.Slug): Cond = SPONSOR_PACKS.GROUP_ID.is(group) and SPONSOR_PACKS.SLUG.is(slug)
 
-  private def where(group: Group.Id, slug: SponsorPack.Slug): Fragment = fr0"sp.group_id=$group AND sp.slug=$slug"
-
-  private def where2(group: Group.Id, slug: SponsorPack.Slug): Cond = SPONSOR_PACKS.GROUP_ID.is(group) and SPONSOR_PACKS.SLUG.is(slug)
-
-  private def where(group: Group.Id): Fragment = fr0"sp.group_id=$group"
-
-  private def where2(group: Group.Id): Cond = SPONSOR_PACKS.GROUP_ID is group
+  private def where(group: Group.Id): Cond = SPONSOR_PACKS.GROUP_ID is group
 }

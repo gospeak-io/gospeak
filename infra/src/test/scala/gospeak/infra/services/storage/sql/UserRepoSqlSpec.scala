@@ -6,12 +6,11 @@ import gospeak.core.domain.utils.FakeCtx
 import gospeak.infra.services.storage.sql.ExternalProposalRepoSqlSpec.{table => externalProposalTable}
 import gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{table => groupTable}
 import gospeak.infra.services.storage.sql.ProposalRepoSqlSpec.{table => proposalTable}
-import gospeak.infra.services.storage.sql.TablesSpec.socialFields
 import gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{table => talkTable}
 import gospeak.infra.services.storage.sql.UserRepoSql._
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
-import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.{mapFields, socialFields}
 import gospeak.libs.scala.domain.Markdown
 
 class UserRepoSqlSpec extends RepoSpec {

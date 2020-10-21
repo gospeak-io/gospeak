@@ -4,10 +4,9 @@ import cats.data.NonEmptyList
 import gospeak.core.domain.{Group, User}
 import gospeak.infra.services.storage.sql.GroupRepoSql._
 import gospeak.infra.services.storage.sql.GroupRepoSqlSpec._
-import gospeak.infra.services.storage.sql.TablesSpec.socialFields
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
-import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.{mapFields, socialFields}
 import gospeak.libs.scala.Extensions._
 
 class GroupRepoSqlSpec extends RepoSpec {

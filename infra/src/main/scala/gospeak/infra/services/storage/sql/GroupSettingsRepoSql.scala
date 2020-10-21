@@ -4,7 +4,6 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.Fragments
 import doobie.syntax.string._
 import gospeak.core.GsConf
 import gospeak.core.domain.Group.Settings
@@ -21,7 +20,6 @@ import gospeak.infra.services.storage.sql.database.tables.GROUP_SETTINGS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{Liquid, LiquidMarkdown}
-import gospeak.libs.sql.doobie.Field
 import gospeak.libs.sql.dsl.Query
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
@@ -75,105 +73,50 @@ class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: G
 }
 
 object GroupSettingsRepoSql {
-  private val _ = groupIdMeta // for intellij not remove DoobieMappings import
-  private val table = Tables.groupSettings
-  private val meetupFields = List("meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name").map(n => Field(n, table.prefix))
-  private val slackFields = List("slack_token", "slack_bot_name", "slack_bot_avatar").map(n => Field(n, table.prefix))
   private val MEETUP_FIELDS = GROUP_SETTINGS.getFields.filter(_.name.startsWith("meetup_"))
   private val SLACK_FIELDS = GROUP_SETTINGS.getFields.filter(_.name.startsWith("slack_"))
 
-  private[sql] def insert(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Insert[GROUP_SETTINGS] = {
-    val values = fr0"$group, " ++
+  private[sql] def insert(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Insert[GROUP_SETTINGS] =
+  // GROUP_SETTINGS.insert.values(group,
+  //   settings.accounts.meetup.map(_.accessToken), settings.accounts.meetup.map(_.refreshToken), settings.accounts.meetup.map(_.group), settings.accounts.meetup.map(_.loggedUserId), settings.accounts.meetup.map(_.loggedUserName),
+  //   settings.accounts.slack.map(_.token), settings.accounts.slack.map(_.name), settings.accounts.slack.map(_.avatar),
+  //   settings.event.description, settings.event.templates, settings.proposal.tweet, settings.actions, now, by)
+    GROUP_SETTINGS.insert.values(fr0"$group, " ++
       fr0"${settings.accounts.meetup.map(_.accessToken)}, ${settings.accounts.meetup.map(_.refreshToken)}, ${settings.accounts.meetup.map(_.group)}, ${settings.accounts.meetup.map(_.loggedUserId)}, ${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"${settings.accounts.slack.map(_.token)}, ${settings.accounts.slack.map(_.name)}, ${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.proposal.tweet}, ${settings.actions}, $now, $by"
-    val q1 = table.insert[Group.Settings](settings, _ => values)
-    // val q2 = GROUP_SETTINGS.insert.values(group,
-    //   settings.accounts.meetup.map(_.accessToken), settings.accounts.meetup.map(_.refreshToken), settings.accounts.meetup.map(_.group), settings.accounts.meetup.map(_.loggedUserId), settings.accounts.meetup.map(_.loggedUserName),
-    //   settings.accounts.slack.map(_.token), settings.accounts.slack.map(_.name), settings.accounts.slack.map(_.avatar),
-    //   settings.event.description, settings.event.templates, settings.proposal.tweet, settings.actions, now, by)
-    val q2 = GROUP_SETTINGS.insert.values(values)
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.proposal.tweet}, ${settings.actions}, $now, $by")
 
-  private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Update[GROUP_SETTINGS] = {
-    val fields = fr0"meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, meetup_group_slug=${settings.accounts.meetup.map(_.group)}, meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
-      fr0"slack_token=${settings.accounts.slack.map(_.token)}, slack_bot_name=${settings.accounts.slack.map(_.name)}, slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, proposal_tweet=${settings.proposal.tweet}, " ++
-      fr0"actions=${settings.actions}, updated_at=$now, updated_by=$by"
-    val q1 = table.update(fields).where(where(group))
-    val q2 = GROUP_SETTINGS.update.set(_.MEETUP_ACCESS_TOKEN, settings.accounts.meetup.map(_.accessToken)).set(_.MEETUP_REFRESH_TOKEN, settings.accounts.meetup.map(_.refreshToken)).set(_.MEETUP_GROUP_SLUG, settings.accounts.meetup.map(_.group)).set(_.MEETUP_LOGGED_USER_ID, settings.accounts.meetup.map(_.loggedUserId)).set(_.MEETUP_LOGGED_USER_NAME, settings.accounts.meetup.map(_.loggedUserName))
+  private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Update[GROUP_SETTINGS] =
+    GROUP_SETTINGS.update.set(_.MEETUP_ACCESS_TOKEN, settings.accounts.meetup.map(_.accessToken)).set(_.MEETUP_REFRESH_TOKEN, settings.accounts.meetup.map(_.refreshToken)).set(_.MEETUP_GROUP_SLUG, settings.accounts.meetup.map(_.group)).set(_.MEETUP_LOGGED_USER_ID, settings.accounts.meetup.map(_.loggedUserId)).set(_.MEETUP_LOGGED_USER_NAME, settings.accounts.meetup.map(_.loggedUserName))
       .set(_.SLACK_TOKEN, settings.accounts.slack.map(_.token)).set(_.SLACK_BOT_NAME, settings.accounts.slack.map(_.name)).set(_.SLACK_BOT_AVATAR, settings.accounts.slack.flatMap(_.avatar))
       .set(_.EVENT_DESCRIPTION, settings.event.description).set(_.EVENT_TEMPLATES, settings.event.templates).set(_.PROPOSAL_TWEET, settings.proposal.tweet)
       .set(_.ACTIONS, settings.actions).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by)
       .where(_.GROUP_ID.is(group))
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
 
-  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Query.Select.All[(Group.Id, Group.Settings)] = {
-    val q1 = table.select[(Group.Id, Group.Settings)].fields(table.fields.dropRight(2)).where(Fragments.in(fr"gs.group_id", ids))
-    val q2 = GROUP_SETTINGS.select.withoutFields(_.UPDATED_AT, _.UPDATED_BY).where(_.GROUP_ID.in(ids)).all[(Group.Id, Group.Settings)]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Query.Select.All[(Group.Id, Group.Settings)] =
+    GROUP_SETTINGS.select.withoutFields(_.UPDATED_AT, _.UPDATED_BY).where(_.GROUP_ID.in(ids)).all[(Group.Id, Group.Settings)]
 
-  private[sql] def selectOne(group: Group.Id): Query.Select.Optional[Group.Settings] = {
-    val q1 = table.select[Group.Settings].fields(table.fields.drop(1).dropRight(2)).where(where(group))
-    val q2 = GROUP_SETTINGS.select.withoutFields(_.GROUP_ID, _.UPDATED_AT, _.UPDATED_BY).where(_.GROUP_ID.is(group)).option[Group.Settings]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOne(group: Group.Id): Query.Select.Optional[Group.Settings] =
+    GROUP_SETTINGS.select.withoutFields(_.GROUP_ID, _.UPDATED_AT, _.UPDATED_BY).where(_.GROUP_ID.is(group)).option[Group.Settings]
 
-  private[sql] def selectOneAccounts(group: Group.Id): Query.Select.Optional[Settings.Accounts] = {
-    val q1 = table.select[Group.Settings.Accounts].fields(meetupFields ++ slackFields).where(where(group))
-    val q2 = GROUP_SETTINGS.select.fields(MEETUP_FIELDS ++ SLACK_FIELDS).where(_.GROUP_ID.is(group)).option[Settings.Accounts]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOneAccounts(group: Group.Id): Query.Select.Optional[Settings.Accounts] =
+    GROUP_SETTINGS.select.fields(MEETUP_FIELDS ++ SLACK_FIELDS).where(_.GROUP_ID.is(group)).option[Settings.Accounts]
 
-  private[sql] def selectOneMeetup(group: Group.Id): Query.Select.Optional[Option[MeetupCredentials]] = {
-    val q1 = table.select[Option[MeetupCredentials]].fields(meetupFields).where(where(group))
-    val q2 = GROUP_SETTINGS.select.fields(MEETUP_FIELDS).where(_.GROUP_ID.is(group)).option[Option[MeetupCredentials]]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOneMeetup(group: Group.Id): Query.Select.Optional[Option[MeetupCredentials]] =
+    GROUP_SETTINGS.select.fields(MEETUP_FIELDS).where(_.GROUP_ID.is(group)).option[Option[MeetupCredentials]]
 
-  private[sql] def selectOneSlack(group: Group.Id): Query.Select.Optional[Option[SlackCredentials]] = {
-    val q1 = table.select[Option[SlackCredentials]].fields(slackFields).where(where(group))
-    val q2 = GROUP_SETTINGS.select.fields(SLACK_FIELDS).where(_.GROUP_ID.is(group)).option[Option[SlackCredentials]]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOneSlack(group: Group.Id): Query.Select.Optional[Option[SlackCredentials]] =
+    GROUP_SETTINGS.select.fields(SLACK_FIELDS).where(_.GROUP_ID.is(group)).option[Option[SlackCredentials]]
 
-  private[sql] def selectOneEventDescription(group: Group.Id): Query.Select.Optional[LiquidMarkdown[Message.EventInfo]] = {
-    val q1 = table.select[LiquidMarkdown[Message.EventInfo]].fields(Field("event_description", "gs")).where(where(group))
-    val q2 = GROUP_SETTINGS.select.withFields(_.EVENT_DESCRIPTION).where(_.GROUP_ID.is(group)).option[LiquidMarkdown[Message.EventInfo]]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOneEventDescription(group: Group.Id): Query.Select.Optional[LiquidMarkdown[Message.EventInfo]] =
+    GROUP_SETTINGS.select.withFields(_.EVENT_DESCRIPTION).where(_.GROUP_ID.is(group)).option[LiquidMarkdown[Message.EventInfo]]
 
-  private[sql] def selectOneEventTemplates(group: Group.Id): Query.Select.Optional[Map[String, Liquid[Message.EventInfo]]] = {
-    val q1 = table.select[Map[String, Liquid[Message.EventInfo]]].fields(Field("event_templates", "gs")).where(where(group))
-    val q2 = GROUP_SETTINGS.select.withFields(_.EVENT_TEMPLATES).where(_.GROUP_ID.is(group)).option[Map[String, Liquid[Message.EventInfo]]]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOneEventTemplates(group: Group.Id): Query.Select.Optional[Map[String, Liquid[Message.EventInfo]]] =
+    GROUP_SETTINGS.select.withFields(_.EVENT_TEMPLATES).where(_.GROUP_ID.is(group)).option[Map[String, Liquid[Message.EventInfo]]]
 
-  private[sql] def selectOneProposalTweet(group: Group.Id): Query.Select.Optional[Liquid[Message.ProposalInfo]] = {
-    val q1 = table.select[Liquid[Message.ProposalInfo]].fields(Field("proposal_tweet", "gs")).where(where(group))
-    val q2 = GROUP_SETTINGS.select.withFields(_.PROPOSAL_TWEET).where(_.GROUP_ID.is(group)).option[Liquid[Message.ProposalInfo]]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
+  private[sql] def selectOneProposalTweet(group: Group.Id): Query.Select.Optional[Liquid[Message.ProposalInfo]] =
+    GROUP_SETTINGS.select.withFields(_.PROPOSAL_TWEET).where(_.GROUP_ID.is(group)).option[Liquid[Message.ProposalInfo]]
 
-  private[sql] def selectOneActions(group: Group.Id): Query.Select.Optional[Map[Action.Trigger, List[Settings.Action]]] = {
-    val q1 = table.select[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]].fields(Field("actions", "gs")).where(where(group))
-    val q2 = GROUP_SETTINGS.select.withFields(_.ACTIONS).where(_.GROUP_ID.is(group)).option[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]]
-    GenericRepo.assertEqual(q1.fr, q2.fr)
-    q2
-  }
-
-  private def where(group: Group.Id) = fr0"gs.group_id=$group"
+  private[sql] def selectOneActions(group: Group.Id): Query.Select.Optional[Map[Action.Trigger, List[Settings.Action]]] =
+    GROUP_SETTINGS.select.withFields(_.ACTIONS).where(_.GROUP_ID.is(group)).option[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]]
 }

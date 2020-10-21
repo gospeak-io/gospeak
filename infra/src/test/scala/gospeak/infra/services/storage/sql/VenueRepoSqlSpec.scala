@@ -9,6 +9,7 @@ import gospeak.infra.services.storage.sql.PartnerRepoSqlSpec.{fields => partnerF
 import gospeak.infra.services.storage.sql.VenueRepoSql._
 import gospeak.infra.services.storage.sql.VenueRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import gospeak.libs.scala.domain.Markdown
 
 class VenueRepoSqlSpec extends RepoSpec {
@@ -127,9 +128,6 @@ class VenueRepoSqlSpec extends RepoSpec {
 }
 
 object VenueRepoSqlSpec {
-
-  import RepoSpec._
-
   val table = "venues v"
   val fieldsInsert: String = mapFields("id, partner_id, contact_id, address, address_id, address_lat, address_lng, address_locality, address_country, notes, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
   val fields: String = mapFields("id, partner_id, contact_id, address, notes, room_size, meetupGroup, meetupVenue, created_at, created_by, updated_at, updated_by", "v." + _)
