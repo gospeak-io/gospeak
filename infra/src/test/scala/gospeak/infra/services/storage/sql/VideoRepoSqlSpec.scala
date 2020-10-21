@@ -3,6 +3,7 @@ package gospeak.infra.services.storage.sql
 import gospeak.infra.services.storage.sql.VideoRepoSql._
 import gospeak.infra.services.storage.sql.VideoRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 import gospeak.libs.scala.domain.Url
 
 class VideoRepoSqlSpec extends RepoSpec {
@@ -86,9 +87,6 @@ class VideoRepoSqlSpec extends RepoSpec {
 }
 
 object VideoRepoSqlSpec {
-
-  import RepoSpec._
-
   val tableSources = "video_sources vis"
   val fieldsSources: String = mapFields("video_id, talk_id, proposal_id, external_proposal_id, external_event_id", "vis." + _)
 

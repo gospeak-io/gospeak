@@ -4,6 +4,7 @@ import gospeak.infra.services.storage.sql.CommentRepoSql._
 import gospeak.infra.services.storage.sql.CommentRepoSqlSpec._
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec.{fields => userFields, table => userTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class CommentRepoSqlSpec extends RepoSpec {
   describe("CommentRepoSql") {
@@ -35,9 +36,6 @@ class CommentRepoSqlSpec extends RepoSpec {
 }
 
 object CommentRepoSqlSpec {
-
-  import RepoSpec._
-
   val table = "comments co"
   val selectFields: String = mapFields("id, kind, answers, text, created_at, created_by", "co." + _)
   val fields: String = mapFields("event_id, proposal_id", "co." + _) + ", " + selectFields

@@ -6,10 +6,9 @@ import gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{table => contactTa
 import gospeak.infra.services.storage.sql.PartnerRepoSql._
 import gospeak.infra.services.storage.sql.PartnerRepoSqlSpec._
 import gospeak.infra.services.storage.sql.SponsorRepoSqlSpec.{table => sponsorTable}
-import gospeak.infra.services.storage.sql.TablesSpec.socialFields
 import gospeak.infra.services.storage.sql.VenueRepoSqlSpec.{table => venueTable}
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
-import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
+import gospeak.infra.services.storage.sql.testingutils.RepoSpec.{mapFields, socialFields}
 import gospeak.libs.scala.Extensions._
 
 class PartnerRepoSqlSpec extends RepoSpec {
