@@ -82,9 +82,13 @@ final case class Table(name: String,
 
   def aggregate(formula: String, name: String): Table = copy(aggFields = aggFields :+ AggregateField(formula, name))
 
+  def setSorts(sorts: NonEmptyList[Table.Sort]): Table = copy(sorts = Table.Sorts(sorts))
+
   def setSorts(first: Table.Sort, others: Table.Sort*): Table = copy(sorts = Table.Sorts(first, others: _*))
 
-  def filters(f: Table.Filter*): Table = copy(filters = f.toList)
+  def filters(f: List[Table.Filter]): Table = copy(filters = f)
+
+  def filters(f: Table.Filter*): Table = filters(f.toList)
 
   def insert[A](elt: A, build: A => Fragment): Query.Insert[A] = Query.Insert[A](name, fields, elt, build)
 

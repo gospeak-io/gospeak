@@ -163,7 +163,20 @@ object ProposalRepoSql {
     .join(Tables.cfps, _.cfp_id -> _.id).get
   private val tableWithEvent = table
     .joinOpt(Tables.events, _.event_id -> _.id).get.dropFields(_.prefix == Tables.events.prefix)
-  val tableFullBase: Table = table
+  private val filters: List[Table.Filter] = List(
+    Table.Filter.Enum.fromEnum("status", "Status", "p.status", Proposal.Status.all.map(s => s.value.toLowerCase -> s.value)),
+    Table.Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
+    Table.Filter.Bool.fromNullable("video", "With video", "p.video"),
+    Table.Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)"),
+    Table.Filter.Value.fromField("tags", "With tag", "p.tags"),
+    Table.Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags"))
+  private val sorts: NonEmptyList[Table.Sort] = NonEmptyList.of(
+    Table.Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings pr WHERE pr.proposal_id=p.id)", ""), Field("-created_at", "p")),
+    Table.Sort("title", Field("LOWER(p.title)", "")),
+    Table.Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
+    Table.Sort("created", Field("-created_at", "p")),
+    Table.Sort("updated", Field("-updated_at", "p")))
+  private val tableFullBase: Table = table
     .join(Tables.cfps, _.cfp_id -> _.id).get
     .join(Tables.groups.dropFields(_.name.startsWith("location_")), _.group_id("c") -> _.id).get
     .join(Tables.talks, _.talk_id("p") -> _.id).get
@@ -180,19 +193,8 @@ object ProposalRepoSql {
     .addField(CustomField(fr0"(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings pr WHERE pr.proposal_id=p.id)", "score"))
     .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings pr WHERE pr.proposal_id=p.id AND pr.grade=${Proposal.Rating.Grade.Like: Proposal.Rating.Grade})", "likes"))
     .addField(CustomField(fr0"(SELECT COUNT(grade) FROM proposal_ratings pr WHERE pr.proposal_id=p.id AND pr.grade=${Proposal.Rating.Grade.Dislike: Proposal.Rating.Grade})", "dislikes"))
-    .filters(
-      Table.Filter.Enum.fromEnum("status", "Status", "p.status", Proposal.Status.all.map(s => s.value.toLowerCase -> s.value)),
-      Table.Filter.Bool.fromNullable("slides", "With slides", "p.slides"),
-      Table.Filter.Bool.fromNullable("video", "With video", "p.video"),
-      Table.Filter.Bool.fromCountExpr("comment", "With comments", "COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)"),
-      Table.Filter.Value.fromField("tags", "With tag", "p.tags"),
-      Table.Filter.Value.fromField("orga-tags", "With orga tag", "p.orga_tags"))
-    .setSorts(
-      Table.Sort("score", Field("-(SELECT COALESCE(SUM(grade), 0) FROM proposal_ratings pr WHERE pr.proposal_id=p.id)", ""), Field("-created_at", "p")),
-      Table.Sort("title", Field("LOWER(p.title)", "")),
-      Table.Sort("comment", "last comment", Field("-MAX(GREATEST(sco.created_at, oco.created_at))", "")),
-      Table.Sort("created", Field("-created_at", "p")),
-      Table.Sort("updated", Field("-updated_at", "p")))
+    .filters(filters)
+    .setSorts(sorts)
 
   private def tableFull(user: Option[User]): Table = tableFullBase.addField(CustomField(
     user.map(u => fr0"(SELECT pr.grade FROM proposal_ratings pr WHERE pr.created_by=${u.id} AND pr.proposal_id=p.id)").getOrElse(fr0"null"), "user_grade"))
@@ -209,6 +211,19 @@ object ProposalRepoSql {
     .dropFields(_.prefix == Tables.cfps.prefix)
   private val PROPOSALS_WITH_CFPS = PROPOSALS.joinOn(_.CFP_ID)
   private val PROPOSALS_WITH_EVENTS = PROPOSALS.joinOn(_.EVENT_ID).dropFields(EVENTS.getFields)
+  val FILTERS = List(
+    dsl.Table.Filter.Enum.fromValues("status", "Status", PROPOSALS.STATUS, Proposal.Status.all.map(s => s.value.toLowerCase -> s)),
+    dsl.Table.Filter.Bool.fromNullable("slides", "With slides", PROPOSALS.SLIDES),
+    dsl.Table.Filter.Bool.fromNullable("video", "With video", PROPOSALS.VIDEO),
+    dsl.Table.Filter.Bool.fromCountExpr("comment", "With comments", AggField("COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")),
+    dsl.Table.Filter.Value.fromField("tags", "With tag", PROPOSALS.TAGS),
+    dsl.Table.Filter.Value.fromField("orga-tags", "With orga tag", PROPOSALS.ORGA_TAGS))
+  val SORTS = List(
+    dsl.Table.Sort("score", dsl.Field(PROPOSAL_RATINGS.select.fields(AggField("COALESCE(SUM(grade), 0)")).where(_.PROPOSAL_ID is PROPOSALS.ID, unsafe = true).orderBy().one[Long], "score").desc, PROPOSALS.CREATED_AT.desc),
+    dsl.Table.Sort("title", dsl.TableField("LOWER(p.title)").asc),
+    dsl.Table.Sort("comment", "last comment", dsl.TableField("MAX(GREATEST(sco.created_at, oco.created_at))").desc),
+    dsl.Table.Sort("created", PROPOSALS.CREATED_AT.desc),
+    dsl.Table.Sort("updated", PROPOSALS.UPDATED_AT.desc))
   private val PROPOSALS_FULL_BASE = PROPOSALS
     .joinOn(_.CFP_ID)
     .joinOn(CFPS.GROUP_ID).dropFields(_.name.startsWith("location_"))
@@ -227,19 +242,8 @@ object ProposalRepoSql {
       AggField(PROPOSAL_RATINGS.select.fields(AggField("COALESCE(SUM(grade), 0)")).where(_.PROPOSAL_ID is PROPOSALS.ID, unsafe = true).orderBy().one[Long], "score"),
       AggField(PROPOSAL_RATINGS.select.fields(AggField("COUNT(grade)")).where(pr => pr.PROPOSAL_ID.is(PROPOSALS.ID) and pr.GRADE.is(Proposal.Rating.Grade.Like), unsafe = true).orderBy().one[Long], "likes"),
       AggField(PROPOSAL_RATINGS.select.fields(AggField("COUNT(grade)")).where(pr => pr.PROPOSAL_ID.is(PROPOSALS.ID) and pr.GRADE.is(Proposal.Rating.Grade.Dislike), unsafe = true).orderBy().one[Long], "dislikes"))
-    .filters(
-      dsl.Table.Filter.Enum.fromValues("status", "Status", PROPOSALS.STATUS, Proposal.Status.all.map(s => s.value.toLowerCase -> s)),
-      dsl.Table.Filter.Bool.fromNullable("slides", "With slides", PROPOSALS.SLIDES),
-      dsl.Table.Filter.Bool.fromNullable("video", "With video", PROPOSALS.VIDEO),
-      dsl.Table.Filter.Bool.fromCountExpr("comment", "With comments", AggField("COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")),
-      dsl.Table.Filter.Value.fromField("tags", "With tag", PROPOSALS.TAGS),
-      dsl.Table.Filter.Value.fromField("orga-tags", "With orga tag", PROPOSALS.ORGA_TAGS))
-    .sorts(
-      dsl.Table.Sort("score", dsl.Field(PROPOSAL_RATINGS.select.fields(AggField("COALESCE(SUM(grade), 0)")).where(_.PROPOSAL_ID is PROPOSALS.ID, unsafe = true).orderBy().one[Long], "score").desc, PROPOSALS.CREATED_AT.desc),
-      dsl.Table.Sort("title", dsl.TableField("LOWER(p.title)").asc),
-      dsl.Table.Sort("comment", "last comment", dsl.TableField("MAX(GREATEST(sco.created_at, oco.created_at))").desc),
-      dsl.Table.Sort("created", PROPOSALS.CREATED_AT.desc),
-      dsl.Table.Sort("updated", PROPOSALS.UPDATED_AT.desc))
+    .filters(FILTERS)
+    .sorts(SORTS)
 
   private def PROPOSALS_FULL(user: Option[User]): dsl.Table.JoinTable = PROPOSALS_FULL_BASE.addFields(
     user.map(u => AggField(PROPOSAL_RATINGS.select.withFields(_.GRADE).where(pr => pr.CREATED_BY.is(u.id) and pr.PROPOSAL_ID.is(PROPOSALS.ID), unsafe = true).orderBy().one[Long], "user_grade")).getOrElse(NullField("user_grade")))
