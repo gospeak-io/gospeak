@@ -8,6 +8,7 @@ import gospeak.infra.services.storage.sql.GroupRepoSqlSpec.{table => groupTable}
 import gospeak.infra.services.storage.sql.ProposalRepoSqlSpec.{table => proposalTable}
 import gospeak.infra.services.storage.sql.TablesSpec.socialFields
 import gospeak.infra.services.storage.sql.TalkRepoSqlSpec.{table => talkTable}
+import gospeak.infra.services.storage.sql.UserRepoSql._
 import gospeak.infra.services.storage.sql.UserRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
@@ -90,27 +91,27 @@ class UserRepoSqlSpec extends RepoSpec {
       userRepo.list(List(user.id)).unsafeRunSync() shouldBe List(user)
     }
     it("should check queries") {
-      check(UserRepoSql.insertLoginRef(credentials.ref(user.id)), s"INSERT INTO ${loginsTable.stripSuffix(" lg")} (${mapFields(loginsFields, _.stripPrefix("lg."))}) VALUES (${mapFields(loginsFields, _ => "?")})")
+      check(insertLoginRef(credentials.ref(user.id)), s"INSERT INTO ${loginsTable.stripSuffix(" lg")} (${mapFields(loginsFields, _.stripPrefix("lg."))}) VALUES (${mapFields(loginsFields, _ => "?")})")
 
-      check(UserRepoSql.insertCredentials(credentials), s"INSERT INTO ${credentialsTable.stripSuffix(" cd")} (${mapFields(credentialsFields, _.stripPrefix("cd."))}) VALUES (${mapFields(credentialsFields, _ => "?")})")
-      check(UserRepoSql.updateCredentials(credentials.login)(credentials.pass), s"UPDATE $credentialsTable SET hasher=?, password=?, salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
-      check(UserRepoSql.deleteCredentials(credentials.login), s"DELETE FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=?")
-      check(UserRepoSql.selectCredentials(credentials.login), s"SELECT $credentialsFields FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=? $credentialsOrderBy")
+      check(insertCredentials(credentials), s"INSERT INTO ${credentialsTable.stripSuffix(" cd")} (${mapFields(credentialsFields, _.stripPrefix("cd."))}) VALUES (${mapFields(credentialsFields, _ => "?")})")
+      check(updateCredentials(credentials.login)(credentials.pass), s"UPDATE $credentialsTable SET hasher=?, password=?, salt=? WHERE cd.provider_id=? AND cd.provider_key=?")
+      check(deleteCredentials(credentials.login), s"DELETE FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=?")
+      check(selectCredentials(credentials.login), s"SELECT $credentialsFields FROM $credentialsTable WHERE cd.provider_id=? AND cd.provider_key=? $credentialsOrderBy")
 
-      check(UserRepoSql.insert(user), s"INSERT INTO ${table.stripSuffix(" u")} (${mapFields(fields, _.stripPrefix("u."))}) VALUES (${mapFields(fields, _ => "?")})")
-      check(UserRepoSql.update(user.id)(user.data, now), s"UPDATE $table SET slug=?, status=?, first_name=?, last_name=?, email=?, avatar=?, title=?, bio=?, mentoring=?, company=?, location=?, phone=?, website=?, " +
+      check(insert(user), s"INSERT INTO ${table.stripSuffix(" u")} (${mapFields(fields, _.stripPrefix("u."))}) VALUES (${mapFields(fields, _ => "?")})")
+      check(update(user.id)(user.data, now), s"UPDATE $table SET slug=?, status=?, first_name=?, last_name=?, email=?, avatar=?, title=?, bio=?, mentoring=?, company=?, location=?, phone=?, website=?, " +
         s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, social_github=?, " +
         s"updated_at=? WHERE u.id=?")
-      check(UserRepoSql.validateAccount(user.email, now), s"UPDATE $table SET email_validated=? WHERE u.email=?")
-      check(UserRepoSql.selectOne(credentials.login), s"SELECT $fields FROM $tableWithLogin WHERE lg.provider_id=? AND lg.provider_key=? $orderBy")
-      check(UserRepoSql.selectOne(user.email), s"SELECT $fields FROM $table WHERE u.email=? $orderBy")
-      check(UserRepoSql.selectOne(user.slug), s"SELECT $fields FROM $table WHERE u.slug=? $orderBy")
-      check(UserRepoSql.selectOne(user.id), s"SELECT $fields FROM $table WHERE u.id=? $orderBy")
-      check(UserRepoSql.selectOnePublic(user.slug), s"SELECT $fieldsFull FROM $tableFull WHERE u.slug=? AND (u.status=? OR u.id=?) $groupByFull $orderByFull LIMIT 1")
-      check(UserRepoSql.selectAllPublicSlugs(), s"SELECT u.id, u.slug FROM $table WHERE u.status=? $orderBy")
-      check(UserRepoSql.selectPagePublic(params), s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
-      check(UserRepoSql.selectPage(NonEmptyList.of(user.id), params)(orgaCtx), s"SELECT $fieldsFull FROM $tableFull WHERE u.id IN (?) $groupByFull $orderByFull LIMIT 20 OFFSET 0")
-      check(UserRepoSql.selectAll(NonEmptyList.of(user.id, user.id)), s"SELECT $fields FROM $table WHERE u.id IN (?, ?) $orderBy")
+      check(validateAccount(user.email, now), s"UPDATE $table SET email_validated=? WHERE u.email=?")
+      check(selectOne(credentials.login), s"SELECT $fields FROM $tableWithLogin WHERE lg.provider_id=? AND lg.provider_key=? $orderBy")
+      check(selectOne(user.email), s"SELECT $fields FROM $table WHERE u.email=? $orderBy")
+      check(selectOne(user.slug), s"SELECT $fields FROM $table WHERE u.slug=? $orderBy")
+      check(selectOne(user.id), s"SELECT $fields FROM $table WHERE u.id=? $orderBy")
+      check(selectOnePublic(user.slug), s"SELECT $fieldsFull FROM $tableFull WHERE u.slug=? AND (u.status=? OR u.id=?) $groupByFull $orderByFull LIMIT 1")
+      check(selectAllPublicSlugs(), s"SELECT u.id, u.slug FROM $table WHERE u.status=? $orderBy")
+      check(selectPagePublic(params), s"SELECT $fieldsFull FROM $tableFull WHERE u.status=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
+      check(selectPage(NonEmptyList.of(user.id), params)(orgaCtx), s"SELECT $fieldsFull FROM $tableFull WHERE u.id IN (?) $groupByFull $orderByFull LIMIT 20 OFFSET 0")
+      check(selectAll(NonEmptyList.of(user.id, user.id)), s"SELECT $fields FROM $table WHERE u.id IN (?, ?) $orderBy")
     }
   }
 }

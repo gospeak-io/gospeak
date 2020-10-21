@@ -47,13 +47,14 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 object SponsorRepoSql {
   private val _ = sponsorIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.sponsors
-  val tableFull: Table = table
+  private val filters = List(Table.Filter.Bool.fromNow("active", "Is active", "s.start", "s.finish"))
+  private val tableFull: Table = table
     .join(Tables.sponsorPacks, _.sponsor_pack_id -> _.id).get
     .join(Tables.partners, _.partner_id -> _.id).get
     .joinOpt(Tables.contacts, _.contact_id -> _.id).get
-    .filters(Table.Filter.Bool.fromNow("active", "Is active", "s.start", "s.finish"))
-  private val SPONSORS_FULL = SPONSORS.joinOn(_.SPONSOR_PACK_ID).joinOn(SPONSORS.PARTNER_ID).joinOn(SPONSORS.CONTACT_ID)
-    .filters(dsl.Table.Filter.Bool.fromNow("active", "Is active", SPONSORS.START, SPONSORS.FINISH))
+    .filters(filters)
+  val FILTERS = List(dsl.Table.Filter.Bool.fromNow("active", "Is active", SPONSORS.START, SPONSORS.FINISH))
+  val SPONSORS_FULL: dsl.Table.JoinTable = SPONSORS.joinOn(_.SPONSOR_PACK_ID).joinOn(SPONSORS.PARTNER_ID).joinOn(SPONSORS.CONTACT_ID).filters(FILTERS)
 
   private[sql] def insert(e: Sponsor): Query.Insert[SPONSORS] = {
     val values = fr0"${e.id}, ${e.group}, ${e.partner}, ${e.pack}, ${e.contact}, ${e.start}, ${e.finish}, ${e.paid}, ${e.price.amount}, ${e.price.currency}, ${e.info.createdAt}, ${e.info.createdBy}, ${e.info.updatedAt}, ${e.info.updatedBy}"

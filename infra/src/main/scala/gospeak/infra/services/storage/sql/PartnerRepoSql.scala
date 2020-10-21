@@ -58,7 +58,18 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 object PartnerRepoSql {
   private val _ = partnerIdMeta // for intellij not remove DoobieMappings import
   private val table = Tables.partners
-  val tableFull: Table = table
+  private val filters: List[Table.Filter] = List(
+    Table.Filter.Bool.fromCount("venues", "With venues", "v.id"),
+    Table.Filter.Bool.fromCount("sponsors", "With sponsors", "s.id"),
+    Table.Filter.Bool.fromCount("contacts", "With contacts", "ct.id"),
+    Table.Filter.Bool.fromCount("events", "With events", "e.id"))
+  private val sorts: NonEmptyList[Table.Sort] = NonEmptyList.of(
+    Table.Sort("name", Field("LOWER(pa.name)", "")),
+    Table.Sort("sponsor", "last sponsor date", Field("-MAX(s.finish)", ""), Field("LOWER(pa.name)", "")),
+    Table.Sort("event", "last event date", Field("-MAX(s.start)", ""), Field("LOWER(pa.name)", "")),
+    Table.Sort("created", Field("-created_at", "pa")),
+    Table.Sort("updated", Field("-updated_at", "pa")))
+  private val tableFull: Table = table
     .joinOpt(Tables.venues, _.id("pa") -> _.partner_id).get
     .joinOpt(Tables.sponsors, _.id("pa") -> _.partner_id).get
     .joinOpt(Tables.contacts, _.id("pa") -> _.partner_id).get
@@ -70,17 +81,20 @@ object PartnerRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount")
     .aggregate("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount")
     .aggregate("MAX(e.start)", "lastEventDate")
-    .filters(
-      Table.Filter.Bool.fromCount("venues", "With venues", "v.id"),
-      Table.Filter.Bool.fromCount("sponsors", "With sponsors", "s.id"),
-      Table.Filter.Bool.fromCount("contacts", "With contacts", "ct.id"),
-      Table.Filter.Bool.fromCount("events", "With events", "e.id"))
-    .setSorts(
-      Table.Sort("name", Field("LOWER(pa.name)", "")),
-      Table.Sort("sponsor", "last sponsor date", Field("-MAX(s.finish)", ""), Field("LOWER(pa.name)", "")),
-      Table.Sort("event", "last event date", Field("-MAX(s.start)", ""), Field("LOWER(pa.name)", "")),
-      Table.Sort("created", Field("-created_at", "pa")),
-      Table.Sort("updated", Field("-updated_at", "pa")))
+    .filters(filters)
+    .setSorts(sorts)
+
+  val FILTERS: List[dsl.Table.Filter] = List(
+    dsl.Table.Filter.Bool.fromCount("venues", "With venues", VENUES.ID),
+    dsl.Table.Filter.Bool.fromCount("sponsors", "With sponsors", SPONSORS.ID),
+    dsl.Table.Filter.Bool.fromCount("contacts", "With contacts", CONTACTS.ID),
+    dsl.Table.Filter.Bool.fromCount("events", "With events", EVENTS.ID))
+  val SORTS: List[dsl.Table.Sort] = List(
+    dsl.Table.Sort("name", TableField("LOWER(pa.name)").asc),
+    dsl.Table.Sort("sponsor", "last sponsor date", TableField("MAX(s.finish)").desc, TableField("LOWER(pa.name)").asc),
+    dsl.Table.Sort("event", "last event date", TableField("MAX(s.start)").desc, TableField("LOWER(pa.name)").asc),
+    dsl.Table.Sort("created", PARTNERS.CREATED_AT.desc),
+    dsl.Table.Sort("updated", PARTNERS.UPDATED_AT.desc))
   private val PARTNERS_FULL = PARTNERS
     .join(VENUES, _.LeftOuter).on(_.ID is _.PARTNER_ID)
     .join(SPONSORS, _.LeftOuter).on(PARTNERS.ID is _.PARTNER_ID)
@@ -94,17 +108,8 @@ object PartnerRepoSql {
       AggField("COALESCE(COUNT(DISTINCT ct.id), 0)", "contactCount"),
       AggField("COALESCE(COUNT(DISTINCT e.id), 0)", "eventCount"),
       AggField("MAX(e.start)", "lastEventDate"))
-    .filters(
-      dsl.Table.Filter.Bool.fromCount("venues", "With venues", VENUES.ID),
-      dsl.Table.Filter.Bool.fromCount("sponsors", "With sponsors", SPONSORS.ID),
-      dsl.Table.Filter.Bool.fromCount("contacts", "With contacts", CONTACTS.ID),
-      dsl.Table.Filter.Bool.fromCount("events", "With events", EVENTS.ID))
-    .sorts(
-      dsl.Table.Sort("name", TableField("LOWER(pa.name)").asc),
-      dsl.Table.Sort("sponsor", "last sponsor date", TableField("MAX(s.finish)").desc, TableField("LOWER(pa.name)").asc),
-      dsl.Table.Sort("event", "last event date", TableField("MAX(s.start)").desc, TableField("LOWER(pa.name)").asc),
-      dsl.Table.Sort("created", PARTNERS.CREATED_AT.desc),
-      dsl.Table.Sort("updated", PARTNERS.UPDATED_AT.desc))
+    .filters(FILTERS)
+    .sorts(SORTS)
 
   private[sql] def insert(e: Partner): Query.Insert[PARTNERS] = {
     val values = fr0"${e.id}, ${e.group}, ${e.slug}, ${e.name}, ${e.notes}, ${e.description}, ${e.logo}, " ++

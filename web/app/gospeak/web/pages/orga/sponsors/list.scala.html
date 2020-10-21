@@ -23,6 +23,6 @@
         </div>
 
         <h1 class="text-capitalize">@sponsors.plural("sponsor")</h1>
-        @sponsors.render(SponsorCtrl.list(req.group.slug, _), SponsorRepoSql.tableFull.filters, SponsorRepoSql.tableFull.sorts.toList)(sponsorItem(_))
+        @sponsors.render(SponsorCtrl.list(req.group.slug, _), SponsorRepoSql.FILTERS, SponsorRepoSql.SPONSORS_FULL.getSorts)(sponsorItem(_))
     }
 }()

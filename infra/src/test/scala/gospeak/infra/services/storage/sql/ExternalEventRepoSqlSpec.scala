@@ -1,6 +1,7 @@
 package gospeak.infra.services.storage.sql
 
 import gospeak.core.domain.{CommonEvent, Event}
+import gospeak.infra.services.storage.sql.ExternalEventRepoSql._
 import gospeak.infra.services.storage.sql.ExternalEventRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
@@ -55,14 +56,14 @@ class ExternalEventRepoSqlSpec extends RepoSpec {
       externalEventRepo.listLogos().unsafeRunSync() shouldBe event.logo.toList
     }
     it("should check queries") {
-      check(ExternalEventRepoSql.insert(externalEvent), s"INSERT INTO ${table.stripSuffix(" ee")} (${mapFields(fieldsInsert, _.stripPrefix("ee."))}) VALUES (${mapFields(fieldsInsert, _ => "?")})")
-      check(ExternalEventRepoSql.update(externalEvent.id)(externalEvent.data, user.id, now), s"UPDATE $table SET name=?, kind=?, logo=?, description=?, start=?, finish=?, location=?, location_id=?, location_lat=?, location_lng=?, location_locality=?, location_country=?, url=?, tickets_url=?, videos_url=?, twitter_account=?, twitter_hashtag=?, tags=?, updated_at=?, updated_by=? WHERE ee.id=?")
-      check(ExternalEventRepoSql.selectOne(externalEvent.id), s"SELECT $fields FROM $table WHERE ee.id=? $orderBy LIMIT 1")
-      check(ExternalEventRepoSql.selectAllIds(), s"SELECT ee.id FROM $table $orderBy")
-      check(ExternalEventRepoSql.selectPage(params), s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
-      unsafeCheck(ExternalEventRepoSql.selectPageCommon(params), s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0")
-      check(ExternalEventRepoSql.selectTags(), s"SELECT ee.tags FROM $table $orderBy")
-      check(ExternalEventRepoSql.selectLogos(), s"SELECT ee.logo FROM $table WHERE ee.logo IS NOT NULL $orderBy")
+      check(insert(externalEvent), s"INSERT INTO ${table.stripSuffix(" ee")} (${mapFields(fieldsInsert, _.stripPrefix("ee."))}) VALUES (${mapFields(fieldsInsert, _ => "?")})")
+      check(update(externalEvent.id)(externalEvent.data, user.id, now), s"UPDATE $table SET name=?, kind=?, logo=?, description=?, start=?, finish=?, location=?, location_id=?, location_lat=?, location_lng=?, location_locality=?, location_country=?, url=?, tickets_url=?, videos_url=?, twitter_account=?, twitter_hashtag=?, tags=?, updated_at=?, updated_by=? WHERE ee.id=?")
+      check(selectOne(externalEvent.id), s"SELECT $fields FROM $table WHERE ee.id=? $orderBy LIMIT 1")
+      check(selectAllIds(), s"SELECT ee.id FROM $table $orderBy")
+      check(selectPage(params), s"SELECT $fields FROM $table $orderBy LIMIT 20 OFFSET 0")
+      unsafeCheck(selectPageCommon(params), s"SELECT $commonFields FROM $commonTable $commonOrderBy LIMIT 20 OFFSET 0")
+      check(selectTags(), s"SELECT ee.tags FROM $table $orderBy")
+      check(selectLogos(), s"SELECT ee.logo FROM $table WHERE ee.logo IS NOT NULL $orderBy")
     }
   }
 }

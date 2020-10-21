@@ -3,6 +3,7 @@ package gospeak.infra.services.storage.sql
 import cats.data.NonEmptyList
 import gospeak.core.domain.Partner
 import gospeak.infra.services.storage.sql.ContactRepoSqlSpec.{table => contactTable}
+import gospeak.infra.services.storage.sql.PartnerRepoSql._
 import gospeak.infra.services.storage.sql.PartnerRepoSqlSpec._
 import gospeak.infra.services.storage.sql.SponsorRepoSqlSpec.{table => sponsorTable}
 import gospeak.infra.services.storage.sql.TablesSpec.socialFields
@@ -74,17 +75,17 @@ class PartnerRepoSqlSpec extends RepoSpec {
       partnerRepo.find(group.id, partner.slug).unsafeRunSync() shouldBe Some(partner)
     }
     it("should check queries") {
-      check(PartnerRepoSql.insert(partner), s"INSERT INTO ${table.stripSuffix(" pa")} (${mapFields(fields, _.stripPrefix("pa."))}) VALUES (${mapFields(fields, _ => "?")})")
-      check(PartnerRepoSql.update(group.id, partner.slug)(partner.data, user.id, now), s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, " +
+      check(insert(partner), s"INSERT INTO ${table.stripSuffix(" pa")} (${mapFields(fields, _.stripPrefix("pa."))}) VALUES (${mapFields(fields, _ => "?")})")
+      check(update(group.id, partner.slug)(partner.data, user.id, now), s"UPDATE $table SET slug=?, name=?, notes=?, description=?, logo=?, " +
         s"social_facebook=?, social_instagram=?, social_twitter=?, social_linkedIn=?, social_youtube=?, social_meetup=?, social_eventbrite=?, social_slack=?, social_discord=?, social_github=?, " +
         s"updated_at=?, updated_by=? WHERE pa.group_id=? AND pa.slug=?")
-      check(PartnerRepoSql.delete(group.id, partner.slug), s"DELETE FROM $table WHERE pa.group_id=? AND pa.slug=?")
-      check(PartnerRepoSql.selectPage(params), s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
-      check(PartnerRepoSql.selectPageFull(params), s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
-      check(PartnerRepoSql.selectAll(group.id), s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy")
-      check(PartnerRepoSql.selectAll(NonEmptyList.of(partner.id)), s"SELECT $fields FROM $table WHERE pa.id IN (?) $orderBy")
-      check(PartnerRepoSql.selectOne(group.id, partner.id), s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.id=? $orderBy")
-      check(PartnerRepoSql.selectOne(group.id, partner.slug), s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=? $orderBy")
+      check(delete(group.id, partner.slug), s"DELETE FROM $table WHERE pa.group_id=? AND pa.slug=?")
+      check(selectPage(params), s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy LIMIT 20 OFFSET 0")
+      check(selectPageFull(params), s"SELECT $fieldsFull FROM $tableFull WHERE pa.group_id=? $groupByFull $orderByFull LIMIT 20 OFFSET 0")
+      check(selectAll(group.id), s"SELECT $fields FROM $table WHERE pa.group_id=? $orderBy")
+      check(selectAll(NonEmptyList.of(partner.id)), s"SELECT $fields FROM $table WHERE pa.id IN (?) $orderBy")
+      check(selectOne(group.id, partner.id), s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.id=? $orderBy")
+      check(selectOne(group.id, partner.slug), s"SELECT $fields FROM $table WHERE pa.group_id=? AND pa.slug=? $orderBy")
     }
   }
 }

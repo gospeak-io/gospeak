@@ -98,7 +98,18 @@ object UserRepoSql {
   private val tableWithLogin = table.join(loginsTable, _.id -> _.user_id).get
   private val proposalsWithCfps = Tables.proposals.join(Tables.cfps, _.cfp_id -> _.id).get
   private val proposalsWithCfpEvents = proposalsWithCfps.join(Tables.events, _.event_id -> _.id).get
-  val tableFull: Table = table
+  private val filters = List(Table.Filter.Bool.fromNullable("mentor", "Is mentor", "u.mentoring"))
+  private val sorts = NonEmptyList.of(
+    Table.Sort("contribution",
+      Field("mentoring IS NULL", "u"),
+      Field("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))", ""),
+      Field("-COALESCE(COUNT(DISTINCT t.id), 0)", ""),
+      Field("-MAX(p.created_at)", ""),
+      Field("created_at", "u")),
+    Table.Sort("name", Field("LOWER(u.last_name)", ""), Field("LOWER(u.first_name)", "")),
+    Table.Sort("created", Field("-created_at", "u")),
+    Table.Sort("updated", Field("-updated_at", "u")))
+  private val tableFull: Table = table
     .joinOpt(Tables.groups, fr0"g.owners LIKE CONCAT('%', u.id, '%')").get.dropFields(_.prefix == Tables.groups.prefix)
     .joinOpt(Tables.talks, fr0"t.speakers LIKE CONCAT('%', u.id, '%')").get.dropFields(_.prefix == Tables.talks.prefix)
     .joinOpt(Tables.proposals, fr0"p.speakers LIKE CONCAT('%', u.id, '%') AND p.status=${Proposal.Status.Accepted: Proposal.Status}").get.dropFields(_.prefix == Tables.proposals.prefix)
@@ -106,18 +117,20 @@ object UserRepoSql {
     .aggregate("COALESCE(COUNT(DISTINCT g.id), 0)", "groupCount")
     .aggregate("COALESCE(COUNT(DISTINCT t.id), 0)", "talkCount")
     .aggregate("COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)", "proposalCount")
-    .filters(Table.Filter.Bool.fromNullable("mentor", "Is mentor", "u.mentoring"))
-    .setSorts(
-      Table.Sort("contribution",
-        Field("mentoring IS NULL", "u"),
-        Field("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))", ""),
-        Field("-COALESCE(COUNT(DISTINCT t.id), 0)", ""),
-        Field("-MAX(p.created_at)", ""),
-        Field("created_at", "u")),
-      Table.Sort("name", Field("LOWER(u.last_name)", ""), Field("LOWER(u.first_name)", "")),
-      Table.Sort("created", Field("-created_at", "u")),
-      Table.Sort("updated", Field("-updated_at", "u")))
+    .filters(filters)
+    .setSorts(sorts)
   private val USERS_WITH_LOGINS = USERS.join(LOGINS).on(_.ID is _.USER_ID).dropFields(LOGINS.getFields)
+  val FILTERS = List(dsl.Table.Filter.Bool.fromNullable("mentor", "Is mentor", USERS.MENTORING))
+  val SORTS = List(
+    dsl.Table.Sort("contribution",
+      dsl.Field.Order("u.mentoring IS NULL"),
+      dsl.Field.Order("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))"),
+      dsl.Field.Order("-COALESCE(COUNT(DISTINCT t.id), 0)"),
+      dsl.Field.Order("-MAX(p.created_at)"),
+      dsl.Field.Order("u.created_at")),
+    dsl.Table.Sort("name", dsl.Field.Order("LOWER(u.last_name)"), dsl.Field.Order("LOWER(u.first_name)")),
+    dsl.Table.Sort("created", USERS.CREATED_AT.desc),
+    dsl.Table.Sort("updated", USERS.UPDATED_AT.desc))
   private val USERS_FULL = USERS
     .join(GROUPS, _.LeftOuter).on(_.OWNERS cond fr0" LIKE CONCAT('%', u.id, '%')").dropFields(GROUPS.getFields)
     .join(TALKS, _.LeftOuter).on(_.SPEAKERS cond fr0" LIKE CONCAT('%', u.id, '%')").dropFields(TALKS.getFields)
@@ -127,17 +140,8 @@ object UserRepoSql {
       dsl.AggField("COALESCE(COUNT(DISTINCT g.id), 0)", "groupCount"),
       dsl.AggField("COALESCE(COUNT(DISTINCT t.id), 0)", "talkCount"),
       dsl.AggField("COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)", "proposalCount"))
-    .filters(dsl.Table.Filter.Bool.fromNullable("mentor", "Is mentor", USERS.MENTORING))
-    .sorts(
-      dsl.Table.Sort("contribution",
-        dsl.Field.Order("u.mentoring IS NULL"),
-        dsl.Field.Order("-(COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0))"),
-        dsl.Field.Order("-COALESCE(COUNT(DISTINCT t.id), 0)"),
-        dsl.Field.Order("-MAX(p.created_at)"),
-        dsl.Field.Order("u.created_at")),
-      dsl.Table.Sort("name", dsl.Field.Order("LOWER(u.last_name)"), dsl.Field.Order("LOWER(u.first_name)")),
-      dsl.Table.Sort("created", USERS.CREATED_AT.desc),
-      dsl.Table.Sort("updated", USERS.UPDATED_AT.desc))
+    .filters(FILTERS)
+    .sorts(SORTS)
 
   private[sql] def insertLoginRef(i: User.LoginRef): Query.Insert[LOGINS] = {
     val q1 = loginsTable.insert[User.LoginRef](i, _ => fr0"${i.login.providerId}, ${i.login.providerKey}, ${i.user}")

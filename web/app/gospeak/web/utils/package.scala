@@ -7,7 +7,7 @@ import java.util.Locale
 import gospeak.core.domain._
 import gospeak.core.domain.utils.Constants
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.doobie.Table.{Filter, Sort}
+import gospeak.libs.sql.dsl.Table
 import io.circe.Encoder
 import play.api.data.{Form, FormError}
 import play.api.mvc.{AnyContent, Call, Flash}
@@ -197,13 +197,13 @@ package object utils {
   implicit class RichPage[A](val p: Page[A]) extends AnyVal {
     def plural(word: String, plural: String = "")(implicit req: BasicReq[AnyContent]): String = p.total.value.plural(word, plural)
 
-    def render(link: Page.Params => Call, filters: List[Filter] = List(), sorts: List[Sort] = List())(item: A => Html): Html =
+    def render(link: Page.Params => Call, filters: List[Table.Filter] = List(), sorts: List[Table.Sort] = List())(item: A => Html): Html =
       Html(List(
         paginationHeader(link, filters, sorts),
         paginationBody(item),
         paginationFooter(link)).map(_.body).mkString)
 
-    def renderCustom(link: Page.Params => Call, filters: List[Filter] = List(), sorts: List[Sort] = List())(header: Page[A] => Html)(empty: Html)(item: A => Html)(footer: Page[A] => Html): Html =
+    def renderCustom(link: Page.Params => Call, filters: List[Table.Filter] = List(), sorts: List[Table.Sort] = List())(header: Page[A] => Html)(empty: Html)(item: A => Html)(footer: Page[A] => Html): Html =
       Html(List(
         paginationHeader(link, filters, sorts),
         header(p),
@@ -211,7 +211,7 @@ package object utils {
         footer(p),
         paginationFooter(link)).map(_.body).mkString)
 
-    private def paginationHeader(link: Page.Params => Call, filters: List[Filter], sorts: List[Sort]): Html = {
+    private def paginationHeader(link: Page.Params => Call, filters: List[Table.Filter], sorts: List[Table.Sort]): Html = {
       import gospeak.web.pages.partials.html
       Html(
         s"""<div class="row"${if (p.params.search.isEmpty && !p.hasManyPages) " style=\"display: none !important;\"" else ""}>

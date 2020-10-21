@@ -11,6 +11,6 @@
     <h1 class="text-capitalize">@proposals.plural("proposal") <small>(from any CFP)</small></h1>
     @proposals.render(
         ProposalCtrl.list(req.group.slug, _),
-        ProposalRepoSql.tableFullBase.filters,
-        ProposalRepoSql.tableFullBase.sorts.toList)(proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, _)))
+        ProposalRepoSql.FILTERS,
+        ProposalRepoSql.SORTS)(proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, _)))
 }()

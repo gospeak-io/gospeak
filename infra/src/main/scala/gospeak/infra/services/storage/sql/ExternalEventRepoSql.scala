@@ -44,11 +44,16 @@ object ExternalEventRepoSql {
   import GenericQuery._
 
   private val _ = externalEventIdMeta // for intellij not remove DoobieMappings import
-  val table: Table = Tables.externalEvents
-  private val tableSelect = table.dropFields(_.name.startsWith("location_")).filters(
+  private val table = Tables.externalEvents
+  private val filters: List[Table.Filter] = List(
     Table.Filter.Enum.fromEnum("type", "Type", "ee.kind", Event.Kind.all.map(k => k.value.toLowerCase -> k.value)),
     Table.Filter.Bool.fromNullable("video", "With video", "ee.videos_url"))
-  val commonTable: Table = Table(
+  private val tableSelect: Table = table.dropFields(_.name.startsWith("location_")).filters(filters)
+  private val commonFilters: List[Table.Filter] = List(
+    Table.Filter.Enum.fromEnum("type", "Type", "e.kind", Event.Kind.all.map(k => k.value.toLowerCase -> k.value)),
+    Table.Filter.Bool.fromNullable("video", "With video", "e.ext_videos"),
+    Table.Filter.Bool("past", "Is past", aggregation = false, ctx => fr0"e.start < ${ctx.now}", ctx => fr0"e.start > ${ctx.now}"))
+  private val commonTable: Table = Table(
     name = "((SELECT e.name, e.kind, e.start, v.address as location, g.social_twitter as twitter_account, null as twitter_hashtag, e.tags, null as ext_id, null as ext_logo, null as ext_description, null as ext_url, null as ext_tickets, null as ext_videos, e.id as int_id, e.slug as int_slug, e.description as int_description, g.id as int_group_id, g.slug as int_group_slug, g.name as int_group_name, g.logo as int_group_logo, c.id as int_cfp_id, c.slug as int_cfp_slug, c.name as int_cfp_name, v.id as int_venue_id, pa.name as int_venue_name, pa.logo as int_venue_logo, e.created_at, e.created_by, e.updated_at, e.updated_by FROM events e INNER JOIN groups g ON e.group_id=g.id LEFT OUTER JOIN cfps c ON e.cfp_id=c.id LEFT OUTER JOIN venues v ON e.venue=v.id LEFT OUTER JOIN partners pa ON v.partner_id=pa.id WHERE e.published IS NOT NULL) " +
       "UNION (SELECT ee.name, ee.kind, ee.start, ee.location, ee.twitter_account, ee.twitter_hashtag, ee.tags, ee.id as ext_id, ee.logo as ext_logo, ee.description as ext_description, ee.url as ext_url, ee.tickets_url as ext_tickets, ee.videos_url as ext_videos, null as int_id, null as int_slug, null as int_description, null as int_group_id, null as int_group_slug, null as int_group_name, null as int_group_logo, null as int_cfp_id, null as int_cfp_slug, null as int_cfp_name, null as int_venue_id, null as int_venue_name, null as int_venue_logo, ee.created_at, ee.created_by, ee.updated_at, ee.updated_by FROM external_events ee))",
     prefix = "e",
@@ -62,14 +67,13 @@ object ExternalEventRepoSql {
     customFields = List(),
     sorts = Table.Sorts("start", Field("-start", "e"), Field("-created_at", "e")),
     search = List("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description").map(Field(_, "e")),
-    filters = List(
-      Table.Filter.Enum.fromEnum("type", "Type", "e.kind", Event.Kind.all.map(k => k.value.toLowerCase -> k.value)),
-      Table.Filter.Bool.fromNullable("video", "With video", "e.ext_videos"),
-      Table.Filter.Bool("past", "Is past", aggregation = false, ctx => fr0"e.start < ${ctx.now}", ctx => fr0"e.start > ${ctx.now}")))
-  private val EXTERNAL_EVENTS_SELECT = EXTERNAL_EVENTS.dropFields(_.name.startsWith("location_")).filters(
+    filters = commonFilters)
+
+  val FILTERS: List[dsl.Table.Filter] = List(
     dsl.Table.Filter.Enum.fromValues("type", "Type", EXTERNAL_EVENTS.KIND, Event.Kind.all.map(k => k.value.toLowerCase -> k)),
     dsl.Table.Filter.Bool.fromNullable("video", "With video", EXTERNAL_EVENTS.VIDEOS_URL))
-  private val COMMON_EVENTS = {
+  private val EXTERNAL_EVENTS_SELECT = EXTERNAL_EVENTS.dropFields(_.name.startsWith("location_")).filters(FILTERS)
+  private val ce = {
     val (g, e, c, v, p, ee) = (GROUPS, EVENTS, CFPS, VENUES, PARTNERS, EXTERNAL_EVENTS)
     val internalEvents = e.joinOn(e.GROUP_ID).joinOn(e.CFP_ID).joinOn(e.VENUE).joinOn(v.PARTNER_ID, _.LeftOuter).select.fields(
       e.NAME, e.KIND, e.START, v.ADDRESS.as("location"), g.SOCIAL_TWITTER.as("twitter_account"), ee.TWITTER_HASHTAG.asNull, e.TAGS,
@@ -87,12 +91,13 @@ object ExternalEventRepoSql {
       c.ID.asNull("int_cfp_id"), c.SLUG.asNull("int_cfp_slug"), c.NAME.asNull("int_cfp_name"),
       v.ID.asNull("int_venue_id"), p.NAME.asNull("int_venue_name"), p.LOGO.asNull("int_venue_logo"), ee.CREATED_AT, ee.CREATED_BY, ee.UPDATED_AT, ee.UPDATED_BY
     ).orderBy()
-    val ce = internalEvents.union(externalEvents, alias = Some("e"), sorts = List(("start", "start", List("-start", "-created_at"))), search = List("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description"))
-    ce.filters(
-      dsl.Table.Filter.Enum.fromValues("type", "Type", ce.kind, Event.Kind.all.map(k => k.value.toLowerCase -> k)),
-      dsl.Table.Filter.Bool.fromNullable("video", "With video", ce.ext_videos),
-      new dsl.Table.Filter.Bool("past", "Is past", aggregation = false, ctx => ce.start.lt(ctx.now), ctx => ce.start.gt(ctx.now)))
+    internalEvents.union(externalEvents, alias = Some("e"), sorts = List(("start", "start", List("-start", "-created_at"))), search = List("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description"))
   }
+  val COMMON_FILTERS = List(
+    dsl.Table.Filter.Enum.fromValues("type", "Type", ce.kind, Event.Kind.all.map(k => k.value.toLowerCase -> k)),
+    dsl.Table.Filter.Bool.fromNullable("video", "With video", ce.ext_videos),
+    new dsl.Table.Filter.Bool("past", "Is past", aggregation = false, ctx => ce.start.lt(ctx.now), ctx => ce.start.gt(ctx.now)))
+  private val COMMON_EVENTS = ce.filters(COMMON_FILTERS)
 
   private[sql] def insert(e: ExternalEvent): Query.Insert[EXTERNAL_EVENTS] = {
     val values = fr0"${e.id}, ${e.name}, ${e.kind}, ${e.logo}, ${e.description}, ${e.start}, ${e.finish}, " ++ insertLocation(e.location) ++ fr0", ${e.url}, ${e.tickets}, ${e.videos}, ${e.twitterAccount}, ${e.twitterHashtag}, ${e.tags}, " ++ insertInfo(e.info)

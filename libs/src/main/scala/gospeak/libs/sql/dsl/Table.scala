@@ -184,7 +184,9 @@ object Table {
 
     def dropFields(fields: Field[_]*): JoinTable = dropFields(fields.contains(_))
 
-    def sorts(s: Sort*): JoinTable = copy(getSorts = s.toList)
+    def sorts(s: List[Sort]): JoinTable = copy(getSorts = s)
+
+    def sorts(s: Sort*): JoinTable = sorts(s.toList)
 
     def filters(f: List[Filter]): JoinTable = copy(getFilters = f)
 
@@ -237,7 +239,9 @@ object Table {
 
   }
 
-  case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_]])
+  case class Sort(slug: String, label: String, fields: NonEmptyList[Field.Order[_]]) {
+    def desc: String = s"-$slug"
+  }
 
   object Sort {
     def apply(order: Field.Order[_]): Sort = new Sort(order.field.name, order.field.name, NonEmptyList.of(order))
