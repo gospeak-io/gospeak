@@ -125,13 +125,13 @@ class QuerySpec extends BaseSpec {
 
         WhereClause(Some(POSTS.CATEGORY.is(Category.Id(1))), Some((Page.Search("q"), List(POSTS.TITLE))), None).sql shouldBe " WHERE (p.category=?) AND (p.title ILIKE ?)"
         WhereClause(Some(POSTS.CATEGORY.is(Category.Id(1))), None, Some((Map("future" -> "true"), List(dateFilter), ctx))).sql shouldBe " WHERE (p.category=?) AND (p.date > ?)"
-        WhereClause(None, Some((Page.Search("q"), List(POSTS.TITLE))), Some((Map("future" -> "true"), List(dateFilter), ctx))).sql shouldBe " WHERE (p.title ILIKE ?) AND (p.date > ?)"
+        WhereClause(None, Some((Page.Search("q"), List(POSTS.TITLE))), Some((Map("future" -> "true"), List(dateFilter), ctx))).sql shouldBe " WHERE (p.date > ?) AND (p.title ILIKE ?)"
 
         WhereClause(
           Some(POSTS.CATEGORY.is(Category.Id(1)) and POSTS.AUTHOR.is(User.Id(1))),
           Some((Page.Search("q"), List(POSTS.TITLE, POSTS.TEXT))),
           Some((Map("future" -> "true", "title" -> "hello"), List(dateFilter, titleFilter), ctx))
-        ).sql shouldBe " WHERE (p.category=? AND p.author=?) AND (p.title ILIKE ? OR p.text ILIKE ?) AND ((p.date > ?) AND (p.title LIKE ?))"
+        ).sql shouldBe " WHERE (p.category=? AND p.author=?) AND ((p.date > ?) AND (p.title LIKE ?)) AND (p.title ILIKE ? OR p.text ILIKE ?)"
       }
       it("should compute the GROUP BY clause") {
         GroupByClause(List()).sql shouldBe ""

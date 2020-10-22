@@ -19,7 +19,7 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
 import gospeak.libs.sql.doobie.{CustomField, DbCtx, Field, Table}
 import gospeak.libs.sql.dsl
-import gospeak.libs.sql.dsl.{AggField, Cond, NullField, Query}
+import gospeak.libs.sql.dsl.{AggField, Cond, Query}
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal] = {
@@ -246,7 +246,7 @@ object ProposalRepoSql {
     .sorts(SORTS)
 
   private def PROPOSALS_FULL(user: Option[User]): dsl.Table.JoinTable = PROPOSALS_FULL_BASE.addFields(
-    user.map(u => AggField(PROPOSAL_RATINGS.select.withFields(_.GRADE).where(pr => pr.CREATED_BY.is(u.id) and pr.PROPOSAL_ID.is(PROPOSALS.ID), unsafe = true).orderBy().one[Long], "user_grade")).getOrElse(NullField("user_grade")))
+    user.map(u => AggField(PROPOSAL_RATINGS.select.withFields(_.GRADE).where(pr => pr.CREATED_BY.is(u.id) and pr.PROPOSAL_ID.is(PROPOSALS.ID), unsafe = true).orderBy().one[Long], "user_grade")).getOrElse(AggField("null", "user_grade")))
 
   private def PROPOSALS_FULL(user: User): dsl.Table.JoinTable = PROPOSALS_FULL(Some(user))
 

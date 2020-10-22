@@ -146,6 +146,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listFull(cfp.slug, params.filters("tags" -> "fp"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("orga-tags" -> "great"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("status" -> "accepted", "slides" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
+
+      proposalRepo.listFull(cfp.slug, params.search(proposal.title.value).filters("slides" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
     }
     it("should be able to read correctly") {
       val (user, group, cfp, talk, ctx) = createCfpAndTalk().unsafeRunSync()
@@ -160,6 +162,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       val ratingFull = Proposal.Rating.Full(rating, user, proposal)
       proposalRepo.rate(cfp.slug, proposal.id, rating.grade)(ctx).unsafeRunSync()
       val proposalFull = Proposal.Full(proposal, cfp, group, talk, Some(event), event.venue.map(_ => Venue.Full(venue, partner, contact)), 0, None, 0, None, 1, 1, 0, Some(rating.grade))
+      val proposalFullAnno = proposalFull.copy(userGrade = None)
 
       proposalRepo.find(proposal.id).unsafeRunSync() shouldBe Some(proposal)
       proposalRepo.find(cfp.slug, proposal.id).unsafeRunSync() shouldBe Some(proposal)
@@ -168,6 +171,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.findFull(proposal.id)(ctx).unsafeRunSync() shouldBe Some(proposalFull)
       proposalRepo.findFull(talk.slug, cfp.slug)(ctx).unsafeRunSync() shouldBe Some(proposalFull)
       proposalRepo.findPublicFull(group.id, proposal.id)(ctx.userAwareCtx).unsafeRunSync() shouldBe Some(proposalFull)
+      proposalRepo.findPublicFull(group.id, proposal.id)(ctx.anonymousCtx).unsafeRunSync() shouldBe Some(proposalFullAnno)
       // proposalRepo.listFull(params)(ctx: UserCtx).unsafeRunSync().items shouldBe List(proposalFull)
       // proposalRepo.listFull(params)(ctx: OrgaCtx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params)(ctx).unsafeRunSync().items shouldBe List(proposalFull)
@@ -177,6 +181,7 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listAllPublicIds()(ctx.userAwareCtx).unsafeRunSync() shouldBe List(group.id -> proposal.id)
       proposalRepo.listAllPublicFull(user.id)(ctx.userAwareCtx).unsafeRunSync() shouldBe List(proposalFull)
       proposalRepo.listPublicFull(group.id, params)(ctx.userAwareCtx).unsafeRunSync().items shouldBe List(proposalFull)
+      proposalRepo.listPublicFull(group.id, params)(ctx.anonymousCtx).unsafeRunSync().items shouldBe List(proposalFullAnno)
       proposalRepo.list(List(proposal.id)).unsafeRunSync() shouldBe List(proposal)
       proposalRepo.listFull(List(proposal.id))(ctx.userAwareCtx).unsafeRunSync() shouldBe List(proposalFull)
       proposalRepo.listPublic(List(proposal.id)).unsafeRunSync() shouldBe List(proposal)

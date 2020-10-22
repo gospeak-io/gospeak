@@ -356,8 +356,8 @@ object Query {
       def fr: Fragment = {
         List(
           cond,
-          search.filter(_._2.nonEmpty).flatMap { case (s, f) => f.map(_.ilike("%" + s.value + "%")).mk(_ or _) },
-          computeFilters(filter, aggregation = false)
+          computeFilters(filter, aggregation = false),
+          search.filter(_._2.nonEmpty).flatMap { case (s, f) => f.map(_.ilike("%" + s.value + "%")).mk(_ or _) }
         ).flatten match {
           case List() => fr0""
           case List(clause) => fr0" WHERE " ++ clause.fr
