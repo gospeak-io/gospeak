@@ -285,13 +285,13 @@ object Table {
           onFalse = ctx => startField.asInstanceOf[Field[Instant]].gt(ctx.now) or endField.asInstanceOf[Field[Instant]].lt(ctx.now))
     }
 
-    final case class Enum(key: String, label: String, aggregation: Boolean, values: List[(String, Query.Ctx => Cond)]) extends Filter {
-      override def filter(value: String)(implicit ctx: Query.Ctx): Option[Cond] = values.find(_._1 == value).map(_._2(ctx))
+    final case class Enum(key: String, label: String, aggregation: Boolean, values: List[((String, String), Query.Ctx => Cond)]) extends Filter {
+      override def filter(value: String)(implicit ctx: Query.Ctx): Option[Cond] = values.find(_._1._1 == value).map(_._2(ctx))
     }
 
     object Enum {
-      def fromValues[A: Put](key: String, label: String, field: Field[A], values: List[(String, A)], aggregation: Boolean = false): Enum =
-        new Enum(key, label, aggregation, values.map { case (paramValue, fieldValue) => (paramValue, (_: Query.Ctx) => field.is(fieldValue)) })
+      def fromValues[A: Put](key: String, label: String, field: Field[A], values: List[(String, String, A)], aggregation: Boolean = false): Enum =
+        new Enum(key, label, aggregation, values.map { case (paramValue, paramLabel, fieldValue) => (paramValue -> paramLabel, (_: Query.Ctx) => field.is(fieldValue)) })
     }
 
     final case class Value(key: String, label: String, aggregation: Boolean, f: String => Cond) extends Filter {

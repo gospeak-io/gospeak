@@ -118,9 +118,9 @@ class ProposalRepoSqlSpec extends RepoSpec {
       eventRepo.publish(eventCreated.slug)(ctx).unsafeRunSync()
       val event = eventCreated.copy(published = Some(ctx.now))
 
-      val data1 = proposalData1.copy(title = Talk.Title("bbbbbb"), slides = Some(urlSlides), video = Some(urlVideo), tags = List(Tag("fp"), Tag("oop")))
+      val data1 = proposalData1.copy(title = Talk.Title("bbbbbb"), slides = Some(urlSlides), video = Some(urlVideo), tags = List(Tag("tag1"), Tag("tag2")))
       val proposalCreated = proposalRepo.create(talk.id, cfp.id, data1, NonEmptyList.of(user.id))(ctx).unsafeRunSync()
-      val proposal = proposalCreated.copy(status = Proposal.Status.Accepted, event = Some(event.id), orgaTags = List(Tag("great")))
+      val proposal = proposalCreated.copy(status = Proposal.Status.Accepted, event = Some(event.id), orgaTags = List(Tag("tag3")))
       proposalRepo.edit(cfp.slug, proposalCreated.id, proposalCreated.dataOrga.copy(orgaTags = proposal.orgaTags))(ctx).unsafeRunSync()
       proposalRepo.accept(cfp.slug, proposalCreated.id, event.id)(ctx).unsafeRunSync()
       val rating = Proposal.Rating(proposal.id, Proposal.Rating.Grade.Like, ctx.now, user.id)
@@ -143,8 +143,8 @@ class ProposalRepoSqlSpec extends RepoSpec {
       proposalRepo.listFull(cfp.slug, params.filters("slides" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("video" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("comment" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
-      proposalRepo.listFull(cfp.slug, params.filters("tags" -> "fp"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
-      proposalRepo.listFull(cfp.slug, params.filters("orga-tags" -> "great"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
+      proposalRepo.listFull(cfp.slug, params.filters("tags" -> "tag1"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
+      proposalRepo.listFull(cfp.slug, params.filters("orga-tags" -> "tag3"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
       proposalRepo.listFull(cfp.slug, params.filters("status" -> "accepted", "slides" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)
 
       proposalRepo.listFull(cfp.slug, params.search(proposal.title.value).filters("slides" -> "true"))(ctx).unsafeRunSync().items shouldBe List(proposalFull)

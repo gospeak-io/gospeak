@@ -100,7 +100,7 @@ class QuerySpec extends BaseSpec {
           }
           it("should support enum filters") {
             USERS
-              .filters(Table.Filter.Enum.fromValues("name", "Name", USERS.NAME, List("loic" -> "loic")))
+              .filters(Table.Filter.Enum.fromValues("name", "Name", USERS.NAME, List(("loic", "Loic", "loic"))))
               .select.page[User](p.filters("name" -> "loic"), ctx).sql shouldBe
               "SELECT u.id, u.name, u.email FROM users u WHERE u.name=? LIMIT 20 OFFSET 0"
           }
