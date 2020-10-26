@@ -12,6 +12,7 @@ import gospeak.infra.services.storage.sql.database.Tables._
 import gospeak.infra.services.storage.sql.database.tables.EXTERNAL_EVENTS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.{GenericQuery, GenericRepo}
+import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.{Logo, Page, Tag}
 import gospeak.libs.sql.doobie.{DbCtx, Field, Table}
 import gospeak.libs.sql.dsl
@@ -70,7 +71,7 @@ object ExternalEventRepoSql {
     filters = commonFilters)
 
   val FILTERS: List[dsl.Table.Filter] = List(
-    dsl.Table.Filter.Enum.fromValues("type", "Type", EXTERNAL_EVENTS.KIND, Event.Kind.all.map(k => k.value.toLowerCase -> k)),
+    dsl.Table.Filter.Enum.fromValues("type", "Type", EXTERNAL_EVENTS.KIND, Event.Kind.all.map(k => (StringUtils.slugify(k.value), k.label, k))),
     dsl.Table.Filter.Bool.fromNullable("video", "With video", EXTERNAL_EVENTS.VIDEOS_URL))
   private val EXTERNAL_EVENTS_SELECT = EXTERNAL_EVENTS.dropFields(_.name.startsWith("location_")).filters(FILTERS)
   private val ce = {
@@ -94,7 +95,7 @@ object ExternalEventRepoSql {
     internalEvents.union(externalEvents, alias = Some("e"), sorts = List(("start", "start", List("-start", "-created_at"))), search = List("name", "kind", "location", "twitter_account", "tags", "int_group_name", "int_cfp_name", "int_description", "ext_description"))
   }
   val COMMON_FILTERS = List(
-    dsl.Table.Filter.Enum.fromValues("type", "Type", ce.kind, Event.Kind.all.map(k => k.value.toLowerCase -> k)),
+    dsl.Table.Filter.Enum.fromValues("type", "Type", ce.kind, Event.Kind.all.map(k => (StringUtils.slugify(k.value), k.label, k))),
     dsl.Table.Filter.Bool.fromNullable("video", "With video", ce.ext_videos),
     new dsl.Table.Filter.Bool("past", "Is past", aggregation = false, ctx => ce.start.lt(ctx.now), ctx => ce.start.gt(ctx.now)))
   private val COMMON_EVENTS = ce.filters(COMMON_FILTERS)

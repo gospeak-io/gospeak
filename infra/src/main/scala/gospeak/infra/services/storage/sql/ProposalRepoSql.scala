@@ -16,6 +16,7 @@ import gospeak.infra.services.storage.sql.database.tables.{PROPOSALS, PROPOSAL_R
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain._
 import gospeak.libs.sql.doobie.{CustomField, DbCtx, Field, Table}
 import gospeak.libs.sql.dsl
@@ -212,7 +213,7 @@ object ProposalRepoSql {
   private val PROPOSALS_WITH_CFPS = PROPOSALS.joinOn(_.CFP_ID)
   private val PROPOSALS_WITH_EVENTS = PROPOSALS.joinOn(_.EVENT_ID).dropFields(EVENTS.getFields)
   val FILTERS = List(
-    dsl.Table.Filter.Enum.fromValues("status", "Status", PROPOSALS.STATUS, Proposal.Status.all.map(s => s.value.toLowerCase -> s)),
+    dsl.Table.Filter.Enum.fromValues("status", "Status", PROPOSALS.STATUS, Proposal.Status.all.map(s => (StringUtils.slugify(s.value), s.value, s))),
     dsl.Table.Filter.Bool.fromNullable("slides", "With slides", PROPOSALS.SLIDES),
     dsl.Table.Filter.Bool.fromNullable("video", "With video", PROPOSALS.VIDEO),
     dsl.Table.Filter.Bool.fromCountExpr("comment", "With comments", AggField("COALESCE(COUNT(DISTINCT sco.id), 0) + COALESCE(COUNT(DISTINCT oco.id), 0)")),
