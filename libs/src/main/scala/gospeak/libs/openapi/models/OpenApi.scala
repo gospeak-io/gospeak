@@ -1,6 +1,5 @@
 package gospeak.libs.openapi.models
 
-import cats.data.NonEmptyList
 import gospeak.libs.openapi.OpenApiUtils
 import gospeak.libs.openapi.error.OpenApiError
 import gospeak.libs.openapi.models.utils.{TODO, Version}

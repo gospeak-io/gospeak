@@ -59,7 +59,7 @@ class DataClassSpec extends BaseSpec {
   }
   describe("EnumBuilder") {
     val builder = new EnumBuilder[Status]("Status") {
-      val all: Seq[Status] = Seq(Status.Start, Status.Run, Status.End)
+      val all: List[Status] = List(Status.Start, Status.Run, Status.End)
     }
     it("should parse and serialize all Status") {
       builder.all.foreach { status =>

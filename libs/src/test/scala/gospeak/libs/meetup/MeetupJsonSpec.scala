@@ -23,17 +23,17 @@ class MeetupJsonSpec extends BaseSpec {
   }
   it("should parse event response") {
     decode[MeetupEvent](FileUtils.read(basePath + "/event.json").get).toTry.get
-    decode[Seq[MeetupEvent]](FileUtils.read(basePath + "/events.json").get).toTry.get
+    decode[List[MeetupEvent]](FileUtils.read(basePath + "/events.json").get).toTry.get
     decode[MeetupEvent](FileUtils.read(basePath + "/eventCreated.json").get).toTry.get
   }
   it("should parse attendees response") {
-    decode[Seq[MeetupAttendee]](FileUtils.read(basePath + "/attendees.json").get).toTry.get
+    decode[List[MeetupAttendee]](FileUtils.read(basePath + "/attendees.json").get).toTry.get
   }
   it("should parse venues response") {
-    decode[Seq[MeetupVenue]](FileUtils.read(basePath + "/venues.json").get).toTry.get
+    decode[List[MeetupVenue]](FileUtils.read(basePath + "/venues.json").get).toTry.get
   }
   it("should parse locations response") {
-    decode[Seq[MeetupLocation]](FileUtils.read(basePath + "/locations.json").get).toTry.get
+    decode[List[MeetupLocation]](FileUtils.read(basePath + "/locations.json").get).toTry.get
   }
   it("should parse error responses") {
     decode[MeetupError.NotAuthorized](FileUtils.read(basePath + "/errors/not_authorized.json").get).toTry.get

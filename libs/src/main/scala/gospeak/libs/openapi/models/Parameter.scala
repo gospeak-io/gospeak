@@ -39,7 +39,7 @@ object Parameter {
 
     final case object Cookie extends Location("cookie")
 
-    val all: Seq[Location] = Seq(Path, Query, Header, Cookie)
+    val all: List[Location] = List(Path, Query, Header, Cookie)
 
     def from(value: String): Either[OpenApiError, Location] =
       all.find(_.value == value).toRight(OpenApiError.badFormat(value, "Parameter.Location", all.map(_.value).mkString(", ")))

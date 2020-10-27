@@ -14,7 +14,7 @@ class EventCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
                 externalEventRepo: PublicExternalEventRepo) extends ApiCtrl(cc, silhouette, conf) {
-  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[Seq[ApiEvent.Common]] { implicit req =>
+  def list(params: Page.Params): Action[AnyContent] = UserAwareAction[List[ApiEvent.Common]] { implicit req =>
     externalEventRepo.listCommon(params).map(ApiResult.of(_, ApiEvent.common))
   }
 }

@@ -6,17 +6,17 @@
 <div class="card mb-3">
     <div class="card-header">CFP infos</div>
     <div class="card-body">
-        @fieldHorizontal(form("url"), Seq("label" -> "Url", "help" -> "Url where to submit a proposal for this CFP")) { (field, args) =>
-            @inputUrl(field, Seq("placeholder" -> "ex: https://cfp.devoxx.fr", "autofocus" -> "true") ++ args)
+        @fieldHorizontal(form("url"), List("label" -> "Url", "help" -> "Url where to submit a proposal for this CFP")) { (field, args) =>
+            @inputUrl(field, List("placeholder" -> "ex: https://cfp.devoxx.fr", "autofocus" -> "true") ++ args)
         }
-        @fieldHorizontal(form("close"), Seq("label" -> "Dates")) { (field, args) =>
+        @fieldHorizontal(form("close"), List("label" -> "Dates")) { (field, args) =>
             <div class="row">
-                <div class="col">@inputLocalDate(form("begin"), Seq("placeholder" -> "Begin date") ++ args)</div>
-                <div class="col">@inputLocalDate(field, Seq("placeholder" -> "Closing date") ++ args)</div>
+                <div class="col">@inputLocalDate(form("begin"), List("placeholder" -> "Begin date") ++ args)</div>
+                <div class="col">@inputLocalDate(field, List("placeholder" -> "Closing date") ++ args)</div>
             </div>
         }
-        @fieldHorizontal(form("description"), Seq("label" -> "Description")) { (field, args) =>
-            @inputMarkdown(field, Seq("placeholder" -> "Tell us a bit more about this CFP and conference") ++ args)
+        @fieldHorizontal(form("description"), List("label" -> "Description")) { (field, args) =>
+            @inputMarkdown(field, List("placeholder" -> "Tell us a bit more about this CFP and conference") ++ args)
         }
     </div>
 </div>

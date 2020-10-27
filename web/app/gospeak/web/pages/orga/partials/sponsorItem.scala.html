@@ -16,6 +16,6 @@
     </div>
     <div class="d-flex">
         <a href="@SponsorCtrl.edit(req.group.slug, sponsor.id, None)" class="btn btn-primary btn-xs mr-2">Update</a>
-        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), Seq("class" -> "btn-danger btn-xs", "confirm" -> s"Remove ${sponsor.partner.name.value} sponsoring starting ${sponsor.start.asDate}?")) {Remove}
+        @formBtn(SponsorCtrl.remove(req.group.slug, sponsor.id), List("class" -> "btn-danger btn-xs", "confirm" -> s"Remove ${sponsor.partner.name.value} sponsoring starting ${sponsor.start.asDate}?")) {Remove}
     </div>
 </div>

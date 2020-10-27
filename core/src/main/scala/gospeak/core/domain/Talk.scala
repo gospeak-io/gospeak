@@ -16,13 +16,13 @@ final case class Talk(id: Talk.Id,
                       speakers: NonEmptyList[User.Id],
                       slides: Option[Url.Slides],
                       video: Option[Url.Video],
-                      tags: Seq[Tag],
+                      tags: List[Tag],
                       info: Info) {
   def data: Talk.Data = Talk.Data(this)
 
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
-  def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
+  def speakerUsers(users: List[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
 
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
@@ -62,7 +62,7 @@ object Talk {
       def description = "When your talk is not actual anymore. Will be hidden everywhere."
     }
 
-    val all: Seq[Status] = Seq(Public, Private, Archived)
+    val all: List[Status] = List(Public, Private, Archived)
     val current: NonEmptyList[Status] = NonEmptyList.of(Public, Private)
   }
 
@@ -73,7 +73,7 @@ object Talk {
                         message: Markdown,
                         slides: Option[Url.Slides],
                         video: Option[Url.Video],
-                        tags: Seq[Tag])
+                        tags: List[Tag])
 
   object Data {
     def apply(t: Talk): Data = Data(t.slug, t.title, t.duration, t.description, t.message, t.slides, t.video, t.tags)

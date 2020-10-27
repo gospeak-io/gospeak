@@ -8,7 +8,7 @@
 @import gospeak.web.pages.published.events.routes.EventCtrl
 @import gospeak.web.utils._
 
-@(event: ExternalEvent, cfps: Seq[ExternalCfp], proposals: Page[ExternalProposal], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(event: ExternalEvent, cfps: List[ExternalCfp], proposals: Page[ExternalProposal], users: List[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.event} ${event.name.value}", PageMeta.event(event, b), b)() {
     <div class="row">
         <div class="col-lg-8">
@@ -61,8 +61,8 @@
                         </div>
                     }
                     @cfps match {
-                        case Seq() => {}
-                        case Seq(cfp) => {
+                        case List() => {}
+                        case List(cfp) => {
                             <div class="text-center mt-5">
                                 @if(cfp.isPast(req.nowLDT)) {
                                     <a href="@CfpCtrl.detailExt(cfp.id)" class="btn btn-sm btn-soft-secondary" @cfp.close.map { d => title="closed on @d.asDate" data-toggle="tooltip" }>

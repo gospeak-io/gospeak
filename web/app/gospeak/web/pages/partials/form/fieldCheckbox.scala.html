@@ -1,7 +1,7 @@
 @import gospeak.web.pages.partials.form.Utils
 @import gospeak.web.utils.BasicReq
 
-@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit req: BasicReq[AnyContent])
+@(field: Field, args: List[(String, String)] = List())(input: (Field, List[(String, String)]) => Html)(implicit req: BasicReq[AnyContent])
 <div class="form-group custom-control custom-checkbox @Utils.getArg(args, "class")">
     @input(field, args)
     @if(Utils.hasErrors(field)) {

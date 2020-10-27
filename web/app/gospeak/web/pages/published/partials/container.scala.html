@@ -34,7 +34,7 @@
                             <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
                         }
                         <li class="nav-item u-header__nav-item">@navbarLink(CfpCtrl.list()) {Call For Proposals}</li>
-                        <li class="nav-item u-header__nav-item">@navbarLink(EventCtrl.list(Page.Params.defaults.withFilters("type" -> "conference", "video" -> "true"))) {Events}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(EventCtrl.list(Page.Params.defaults.filters("type" -> "conference", "video" -> "true"))) {Events}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(SpeakerCtrl.list()) {Speakers}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(GroupCtrl.list()) {Groups}</li>
                         @req.secured.map { r =>
@@ -59,7 +59,7 @@
             @alert("warning", "d-flex justify-content-between align-items-center") {
                 <span class="align-self-center">
                     Your email is not validated, please click on the validation link in the signup email</span>
-                @formBtn(AuthCtrl.resendEmailValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
+                @formBtn(AuthCtrl.resendEmailValidation(), List("class" -> "btn-sm btn-warning")) {Resend validation email}
             }
         }
         @flash(req.flash)

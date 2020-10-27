@@ -6,7 +6,7 @@
 @import gospeak.web.pages.published.partials.html.{container, groupItem}
 @import gospeak.web.utils._
 
-@(groups: Page[Group.Full], orgas: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(groups: Page[Group.Full], orgas: List[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.gospeak} Gospeak groups", PageMeta.default(GroupCtrl.list()), b)() {
     <div class="w-md-80 w-lg-80 text-center mx-md-auto mb-5">
         <h2 class="text-primary">Gospeak <span class="font-weight-semi-bold">User groups</span></h2>

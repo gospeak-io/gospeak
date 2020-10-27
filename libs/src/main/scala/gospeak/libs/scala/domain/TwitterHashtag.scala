@@ -14,8 +14,8 @@ object TwitterHashtag {
     else Left(CustomException(s"'$in' is an invalid TwitterHashtag", errs))
   }
 
-  private def errors(in: String): Seq[CustomError] =
-    Seq(
+  private def errors(in: String): List[CustomError] =
+    List(
       if (in.contains(" ")) Some("Should not contain space") else None
     ).flatten.map(CustomError)
 }

@@ -6,11 +6,11 @@
 @import gospeak.web.pages.orga.proposals.routes.ProposalCtrl
 @import gospeak.web.utils._
 
-@(proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(proposals: Page[Proposal.Full], speakers: List[User], userRatings: List[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} proposals", b)() {
     <h1 class="text-capitalize">@proposals.plural("proposal") <small>(from any CFP)</small></h1>
     @proposals.render(
         ProposalCtrl.list(req.group.slug, _),
-        ProposalRepoSql.tableFullBase.filters,
-        ProposalRepoSql.tableFullBase.sorts.toList)(proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, _)))
+        ProposalRepoSql.FILTERS,
+        ProposalRepoSql.SORTS)(proposalItem(_, speakers, userRatings, proposals.params, ProposalCtrl.list(req.group.slug, _)))
 }()

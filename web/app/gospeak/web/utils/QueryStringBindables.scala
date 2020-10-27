@@ -39,12 +39,12 @@ object QueryStringBindables {
           pageSize <- i.bind(Page.Size.key, params).map(_.flatMap(p => Page.Size.from(p))).getOrElse(Right(Page.Params.defaults.pageSize))
           search <- s.bind(Page.Search.key, params).map(_.map(s => Some(Page.Search(s)))).getOrElse(Right(Page.Params.defaults.search))
           orderBy <- s.bind(Page.OrderBy.key, params).map(_.map(Page.OrderBy.parse)).getOrElse(Right(Page.Params.defaults.orderBy))
-          ignoreKeys = Seq(Page.No.key, Page.Size.key, Page.Search.key, Page.OrderBy.key)
+          ignoreKeys = Set(Page.No.key, Page.Size.key, Page.Search.key, Page.OrderBy.key)
           filters = params.filterKeys(!ignoreKeys.contains(_)).collect { case (key, Seq(value)) => key -> value }
         } yield Page.Params(page, pageSize, search, orderBy, filters))
 
       override def unbind(key: String, value: Page.Params): String =
-        (Seq(
+        (List(
           Some(value.page).filter(_.nonEmpty).map(p => i.unbind(p.key, p.value)),
           Some(value.pageSize).filter(_.nonEmpty).map(p => i.unbind(p.key, p.value)),
           value.search.filter(_.nonEmpty).map(p => s.unbind(p.key, p.value)),
@@ -66,7 +66,7 @@ object QueryStringBindables {
         } yield ExternalCfp.DuplicateParams(cfpUrl, cfpName, cfpEndDate, eventUrl, eventStartDate, twitterAccount, twitterHashtag))
 
       override def unbind(key: String, value: ExternalCfp.DuplicateParams): String =
-        Seq(
+        List(
           value.cfpUrl.filter(_.nonEmpty).map(p => s.unbind("cfpUrl", p)),
           value.cfpName.filter(_.nonEmpty).map(p => s.unbind("cfpName", p)),
           value.cfpEndDate.map(p => d.unbind("cfpEndDate", p)),

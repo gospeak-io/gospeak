@@ -14,7 +14,7 @@ object MeetupError {
     def toErr: MeetupError = MeetupError(code, Some(message))
   }
 
-  final case class Multi(errors: Seq[Code]) {
+  final case class Multi(errors: List[Code]) {
     def toErr: MeetupError = errors.headOption.map(_.toErr).getOrElse(MeetupError("empty_error_list", Some("List of errors is empty")))
   }
 

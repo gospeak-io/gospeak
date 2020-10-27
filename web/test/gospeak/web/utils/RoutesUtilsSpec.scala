@@ -9,9 +9,9 @@ class RoutesUtilsSpec extends BaseSpec {
       RoutesUtils.parseRoute(2, "GET     /why    gospeak.HomeCtrl.why") shouldBe Right(Route(2, "GET", "/why", "gospeak.HomeCtrl.why"))
     }
     it("should extract variables") {
-      Route(1, "GET", "/users/:user/messages/:message", "").variables shouldBe Seq("user", "message")
-      Route(1, "GET", "/users/:user/assets/*file", "").variables shouldBe Seq("user", "file")
-      Route(1, "GET", "/users/$id<[0-9]+>/messages/:message", "").variables shouldBe Seq("id", "message")
+      Route(1, "GET", "/users/:user/messages/:message", "").variables shouldBe List("user", "message")
+      Route(1, "GET", "/users/:user/assets/*file", "").variables shouldBe List("user", "file")
+      Route(1, "GET", "/users/$id<[0-9]+>/messages/:message", "").variables shouldBe List("id", "message")
     }
     it("should map variables") {
       Route(1, "GET", "/users/:user/messages/:message", "").mapVariables(_ => "?").path shouldBe "/users/?/messages/?"

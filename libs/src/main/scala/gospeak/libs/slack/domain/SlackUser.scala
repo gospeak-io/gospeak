@@ -44,7 +44,7 @@ object SlackUser {
                            image_72: String,
                            image_192: String)
 
-  final case class List(members: Seq[SlackUser],
+  final case class List(members: scala.List[SlackUser],
                         ok: Boolean)
 
 }

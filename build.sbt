@@ -2,8 +2,11 @@ ThisBuild / version := "0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "gospeak"
 
-ThisBuild / fork := true
-ThisBuild / javaOptions += "-Xmx1G"
+/**
+ * See .jmvopts for more options
+ * - xms: memory to use when start jvm
+ * - xmx: max memory available for the jvm
+ */
 
 
 /**
@@ -33,7 +36,7 @@ val circe = Seq(
   "io.circe" %% "circe-literal" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-java8" % "0.11.1")
-val doobieVersion = "0.8.6" // "0.8.7" & "0.8.8" versions causes: Can't infer the SQL type to use for an instance of java.time.Instant. Use setObject() with an explicit Types value to specify the type to use.
+val doobieVersion = "0.9.2"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",
@@ -53,7 +56,8 @@ val youtubeApi = Seq(
 )
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
-val googleMaps = Seq("com.google.maps" % "google-maps-services" % "0.15.0") // https://github.com/googlemaps/google-maps-services-java
+val googleMaps = Seq("com.google.maps" % "google-maps-services" % "0.14.0") // https://github.com/googlemaps/google-maps-services-java
+val jooq = Seq("org.jooq" % "jooq-codegen-maven" % "3.13.4")
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.4")
 val cron = Seq(
   "eu.timepit" %% "fs2-cron-core" % "0.2.2",
@@ -102,9 +106,9 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
+val libsDependencies = cats ++ doobie ++ jooq ++ flyway ++ hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ youtubeApi ++ playJson ++ scalaTest ++ scalaCheck ++ doobieTest
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
+val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ scalaTest ++ scalaCheck ++ doobieTest
 val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 

@@ -10,7 +10,7 @@
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils._
 
-@(proposal: Proposal.Full, speakers: Seq[User], comments: Seq[Comment.Full], invites: Seq[UserRequest.ProposalInvite])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(proposal: Proposal.Full, speakers: List[User], comments: List[Comment.Full], invites: List[UserRequest.ProposalInvite])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(proposal.title.value, b)() {
     @if(req.isSpeaker(proposal.talk)){ <a href="@TalkCtrl.detail(proposal.talk.slug)"><i class="fas fa-chevron-left"></i> Back to talk</a> }
     <div class="d-flex justify-content-between align-items-center">
@@ -35,7 +35,7 @@
                 <span class="badge badge-pill badge-primary" data-hovercard="@UtilsCtrl.hovercardUser(speaker.slug)">
                     @if(speaker.isPublic) { <a href="@SpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }
                     @if(speaker.id != proposal.info.createdBy) {
-                        @formBtn(ProposalCtrl.removeSpeaker(proposal.talk.slug, proposal.cfp.slug, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                        @formBtn(ProposalCtrl.removeSpeaker(proposal.talk.slug, proposal.cfp.slug, speaker.slug), List("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                     }
                 </span>
             }
@@ -44,7 +44,7 @@
         @invites.map { i =>
             <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
                 @i.email.value
-                @formBtn(ProposalCtrl.cancelInviteSpeaker(proposal.talk.slug, proposal.cfp.slug, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+                @formBtn(ProposalCtrl.cancelInviteSpeaker(proposal.talk.slug, proposal.cfp.slug, i.id), List("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
             </span>
         }
         <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>

@@ -7,7 +7,7 @@
 @import gospeak.web.pages.published.cfps.routes.{CfpCtrl => PublicCfpCtrl}
 @import gospeak.web.utils._
 
-@(cfp: Cfp, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(cfp: Cfp, proposals: Page[Proposal.Full], speakers: List[User], userRatings: List[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(cfp.name.value, b)() {
     <h1 class="d-flex justify-content-between align-items-center">
         <span>@cfp.name.value</span>
@@ -32,6 +32,6 @@
     <p class="mt-2 mb-0">You voted on @userRatings.plural("proposal") on a total of @proposals.total.value</p>
     @proposals.render(
         CfpCtrl.detail(req.group.slug, cfp.slug, _),
-        ProposalRepoSql.tableFullBase.filters,
-        ProposalRepoSql.tableFullBase.sorts.toList)(proposalItem(_, speakers, userRatings, proposals.params, CfpCtrl.detail(req.group.slug, cfp.slug, _)))
+        ProposalRepoSql.FILTERS,
+        ProposalRepoSql.SORTS)(proposalItem(_, speakers, userRatings, proposals.params, CfpCtrl.detail(req.group.slug, cfp.slug, _)))
 }()

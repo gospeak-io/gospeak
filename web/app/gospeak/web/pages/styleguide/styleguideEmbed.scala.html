@@ -3,7 +3,7 @@
 @import gospeak.web.pages.partials.display.html.embed
 @import gospeak.web.utils.UserReq
 
-@(urls: Seq[(String, String)])(implicit req: UserReq[AnyContent])
+@(urls: List[(String, String)])(implicit req: UserReq[AnyContent])
 @main("Styleguide - Gospeak", PageMeta.noIndex, Html(""), Html("")) {
     <div class="container">
         <h1>Embed demo</h1>

@@ -8,7 +8,7 @@ import gospeak.libs.scala.domain.Page
 
 class ListSpec extends TwirlSpec with RandomDataGenerator {
   private val talk = random[Talk]
-  private val cfps = random[Cfp](10)
+  private val cfps = random[Cfp](10).toList
 
   describe("speaker.talks.cfps.list.scala.html") {
     it("should display a jumbotron on empty page") {

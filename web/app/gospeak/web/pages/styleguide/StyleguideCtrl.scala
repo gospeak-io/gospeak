@@ -54,7 +54,7 @@ class StyleguideCtrl(cc: ControllerComponents,
   private val identity = AuthUser(
     loginInfo = LoginInfo(providerID = "credentials", providerKey = email.value),
     user = user,
-    groups = Seq())
+    groups = List())
   private val authenticator = CookieAuthenticator("cookie", identity.loginInfo, dt, dt.plusMinutes(1), None, None, None)
   private val group = Group(
     id = Group.Id.generate(),
@@ -74,7 +74,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     location = None,
     owners = NonEmptyList.of(user.id),
     social = SocialAccounts.fromUrls(),
-    tags = Seq("tag").map(Tag(_)),
+    tags = List("tag").map(Tag(_)),
     status = Group.Status.Active,
     info = Info(user.id, now))
   private val cfp = Cfp(
@@ -89,7 +89,7 @@ class StyleguideCtrl(cc: ControllerComponents,
         |
         |We choose talks every week so don't wait
       """.stripMargin),
-    Seq("Scala", "UX").map(Tag(_)),
+    tags = List("Scala", "UX").map(Tag(_)),
     info = Info(user.id, now))
   private val event = Event(
     id = Event.Id.generate(),
@@ -104,8 +104,8 @@ class StyleguideCtrl(cc: ControllerComponents,
     description = LiquidMarkdown(""),
     orgaNotes = Event.Notes("", now, user.id),
     venue = None,
-    talks = Seq(),
-    tags = Seq("tag").map(Tag(_)),
+    talks = List(),
+    tags = List("tag").map(Tag(_)),
     published = Some(now),
     refs = Event.ExtRefs(),
     info = Info(user.id, now))
@@ -124,7 +124,7 @@ class StyleguideCtrl(cc: ControllerComponents,
     speakers = NonEmptyList.of(user.id),
     slides = None,
     video = None,
-    tags = Seq("tag").map(Tag(_)),
+    tags = List("tag").map(Tag(_)),
     info = Info(user.id, now))
   private val proposal = Proposal(
     id = Proposal.Id.generate(),
@@ -139,8 +139,8 @@ class StyleguideCtrl(cc: ControllerComponents,
     speakers = talk.speakers,
     slides = talk.slides,
     video = talk.video,
-    tags = Seq("tag").map(Tag(_)),
-    orgaTags = Seq("orgaTags").map(Tag(_)),
+    tags = List("tag").map(Tag(_)),
+    orgaTags = List("orgaTags").map(Tag(_)),
     info = Info(user.id, now))
   private val partner = Partner(
     id = Partner.Id.generate(),
@@ -261,7 +261,7 @@ class StyleguideCtrl(cc: ControllerComponents,
   }
 
   def embed(): Action[AnyContent] = UserAction { implicit req =>
-    val urls = Seq(
+    val urls = List(
       "YouTube" -> "https://youtu.be/9J9ouo-VNao",
       "YouTube" -> "https://www.youtube.com/watch?v=EAf41LZxoM8",
       "YouTube" -> "https://www.youtube.com/watch?v=_TmJ8MuhAdI&feature=youtu.be",
@@ -315,8 +315,8 @@ class StyleguideCtrl(cc: ControllerComponents,
   def published(id: String): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     val res = id match {
-      case "index" => pages.published.html.index()(Breadcrumb(Seq()))
-      case "why" => pages.published.html.why()(Breadcrumb(Seq()))
+      case "index" => pages.published.html.index()(Breadcrumb(List()))
+      case "why" => pages.published.html.why()(Breadcrumb(List()))
     }
     IO.pure(Ok(res))
   }
@@ -332,10 +332,10 @@ class StyleguideCtrl(cc: ControllerComponents,
   def answers(id: String): Action[AnyContent] = UserAction { implicit req =>
     implicit val userAware: UserAwareReq[AnyContent] = req.userAware
     val res = id match {
-      case "GroupInvite" => pages.user.html.answerGroupInvite(groupInvite, group, user)(Breadcrumb(Seq()))
-      case "TalkInvite" => pages.user.html.answerTalkInvite(talkInvite, talk, user)(Breadcrumb(Seq()))
-      case "ProposalInvite" => pages.user.html.answerProposalInvite(proposalInvite, proposal, user)(Breadcrumb(Seq()))
-      // case "ProposalCreation" => pages.user.html.answerProposalCreation(proposalCreation, group, cfp, Some(event), user, UserRequestForms.loggedProposalInvite)(Breadcrumb(Seq()))
+      case "GroupInvite" => pages.user.html.answerGroupInvite(groupInvite, group, user)(Breadcrumb(List()))
+      case "TalkInvite" => pages.user.html.answerTalkInvite(talkInvite, talk, user)(Breadcrumb(List()))
+      case "ProposalInvite" => pages.user.html.answerProposalInvite(proposalInvite, proposal, user)(Breadcrumb(List()))
+      // case "ProposalCreation" => pages.user.html.answerProposalCreation(proposalCreation, group, cfp, Some(event), user, UserRequestForms.loggedProposalInvite)(Breadcrumb(List()))
     }
     IO.pure(Ok(res))
   }

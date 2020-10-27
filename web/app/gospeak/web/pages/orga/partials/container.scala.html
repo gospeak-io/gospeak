@@ -40,7 +40,7 @@
                     <ul class="navbar-nav u-header__navbar-nav">
                         <li class="nav-item u-header__nav-item">@navbarLink(UserCtrl.index()) {Dashboard}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicCfpCtrl.list()) {Call For Proposals}</li>
-                        <li class="nav-item u-header__nav-item">@navbarLink(PublicEventCtrl.list(Page.Params.defaults.withFilters("type" -> "conference", "video" -> "true"))) {Events}</li>
+                        <li class="nav-item u-header__nav-item">@navbarLink(PublicEventCtrl.list(Page.Params.defaults.filters("type" -> "conference", "video" -> "true"))) {Events}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicSpeakerCtrl.list()) {Speakers}</li>
                         <li class="nav-item u-header__nav-item">@navbarLink(PublicGroupCtrl.list()) {Groups}</li>
                         @userDropdown(req.user, req.groups, Some(req.group))
@@ -56,7 +56,7 @@
             <span class="align-self-center">
                 Your email is not validated, please click on the validation link in the signup email
             </span>
-            @formBtn(AuthCtrl.resendEmailValidation(), Seq("class" -> "btn-sm btn-warning")) {Resend validation email}
+            @formBtn(AuthCtrl.resendEmailValidation(), List("class" -> "btn-sm btn-warning")) {Resend validation email}
         }
     }
     <div class="row">
@@ -90,10 +90,10 @@
                         <ul class="nav flex-column">
                             <li class="nav-item">@navbarLink(EventCtrl.list(req.group.slug), "data-hotkey" -> "1") {Events}</li>
                             <li class="nav-item">@navbarLink(CfpCtrl.list(req.group.slug), "data-hotkey" -> "2") {CFPs}</li>
-                            <li class="nav-item">@navbarLink(ProposalCtrl.list(req.group.slug, Page.Params.defaults.withFilters("status" -> "pending")), "data-hotkey" -> "3") {Proposals}</li>
+                            <li class="nav-item">@navbarLink(ProposalCtrl.list(req.group.slug, Page.Params.defaults.filters("status" -> "pending")), "data-hotkey" -> "3") {Proposals}</li>
                             <li class="nav-item">@navbarLink(SpeakerCtrl.list(req.group.slug), "data-hotkey" -> "4") {Speakers}</li>
                             <li class="nav-item">@navbarLink(PartnerCtrl.list(req.group.slug), "data-hotkey" -> "5") {Partners}</li>
-                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug, Page.Params.defaults.withFilters("active" -> "true")), "data-hotkey" -> "6") {Sponsors}</li>
+                            <li class="nav-item">@navbarLink(SponsorCtrl.list(req.group.slug, Page.Params.defaults.filters("active" -> "true")), "data-hotkey" -> "6") {Sponsors}</li>
                         </ul>
                     </div>
                 </div>

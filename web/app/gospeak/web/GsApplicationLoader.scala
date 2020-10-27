@@ -148,7 +148,7 @@ class GsComponents(context: ApplicationLoader.Context)
     val socialStateHandler = new DefaultSocialStateHandler(Set(csrfStateItemHandler), signer)
     val cookieSecretProvider = new CookieSecretProvider(conf.auth.cookie.authenticator.toCookieSecretSettings, signer, crypter, clock)
     val httpLayer: HTTPLayer = new PlayHTTPLayer(wsClient)
-    val providers: Seq[AuthConf.SocialConf] = Seq(
+    val providers: List[AuthConf.SocialConf] = List(
       conf.auth.google,
       conf.auth.twitter,
       conf.auth.facebook,

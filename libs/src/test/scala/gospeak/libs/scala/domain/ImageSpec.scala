@@ -9,7 +9,7 @@ class ImageSpec extends BaseSpec {
         cloudName = "dev-gospeak",
         resource = "image",
         kind = "upload",
-        transformations = Seq(),
+        transformations = List(),
         version = None,
         publicId = "users/eba3d19a-8cd5-4f3d-b148-8783c8ec1a4f/avatar",
         format = "png")
@@ -28,13 +28,13 @@ class ImageSpec extends BaseSpec {
       }
       it("should parse and format a cloudinary url with transformations") {
         val url = "https://res.cloudinary.com/dev-gospeak/image/upload/c_limit,h_60,w_90/v1576350888/users/eba3d19a-8cd5-4f3d-b148-8783c8ec1a4f/avatar.png"
-        val res = baseUrl.copy(version = Some(1576350888), transformations = Seq(Seq("c_limit", "h_60", "w_90")))
+        val res = baseUrl.copy(version = Some(1576350888), transformations = List(List("c_limit", "h_60", "w_90")))
         Image.CloudinaryUrl.parse(url).get shouldBe res
         res.value shouldBe url
       }
       it("should parse and format a cloudinary url with multiple transformations") {
         val url = "https://res.cloudinary.com/dev-gospeak/image/upload/h_200,c_scale/c_limit,h_60,w_90/v1576350888/users/eba3d19a-8cd5-4f3d-b148-8783c8ec1a4f/avatar.png"
-        val res = baseUrl.copy(version = Some(1576350888), transformations = Seq(Seq("h_200", "c_scale"), Seq("c_limit", "h_60", "w_90")))
+        val res = baseUrl.copy(version = Some(1576350888), transformations = List(List("h_200", "c_scale"), List("c_limit", "h_60", "w_90")))
         Image.CloudinaryUrl.parse(url).get shouldBe res
         res.value shouldBe url
       }
@@ -62,7 +62,7 @@ class ImageSpec extends BaseSpec {
         val url = "https://secure.gravatar.com/avatar/9a2ae971f81eaff1f0da3d56cbf4a2ee"
         val res = Image.GravatarUrl(
           hash = "9a2ae971f81eaff1f0da3d56cbf4a2ee",
-          params = Seq())
+          params = List())
         Image.GravatarUrl.parse(url).get shouldBe res
         res.value shouldBe url
       }
@@ -70,7 +70,7 @@ class ImageSpec extends BaseSpec {
         val url = "https://secure.gravatar.com/avatar/9a2ae971f81eaff1f0da3d56cbf4a2ee?size=100&default=wavatar"
         val res = Image.GravatarUrl(
           hash = "9a2ae971f81eaff1f0da3d56cbf4a2ee",
-          params = Seq("size" -> "100", "default" -> "wavatar"))
+          params = List("size" -> "100", "default" -> "wavatar"))
         Image.GravatarUrl.parse(url).get shouldBe res
         res.value shouldBe url
       }
@@ -78,7 +78,7 @@ class ImageSpec extends BaseSpec {
         val url = "https://secure.gravatar.com/avatar/9a2ae971f81eaff1f0da3d56cbf4a2ee?size=100&default=https://api.adorable.io/avatars/285/loic-knuchel.png"
         val res = Image.GravatarUrl(
           hash = "9a2ae971f81eaff1f0da3d56cbf4a2ee",
-          params = Seq("size" -> "100", "default" -> "https://api.adorable.io/avatars/285/loic-knuchel.png"))
+          params = List("size" -> "100", "default" -> "https://api.adorable.io/avatars/285/loic-knuchel.png"))
         Image.GravatarUrl.parse(url).get shouldBe res
         res.value shouldBe url
       }

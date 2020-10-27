@@ -4,7 +4,7 @@
 @import gospeak.web.pages.published.routes.UtilsCtrl
 @import gospeak.web.utils._
 
-@(comments: Seq[Comment.Full], sendComment: Call, pageUrl: Call, userProfile: User => Option[Call], tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
+@(comments: List[Comment.Full], sendComment: Call, pageUrl: Call, userProfile: User => Option[Call], tabindex: Int = 10)(implicit req: UserAwareReq[AnyContent])
 <div class="comment-section">
     <div class="comment-submit">
         @req.user.map { user =>
@@ -16,7 +16,7 @@
                             @user.name.value
                             <button type="submit" class="btn btn-primary btn-sm" tabindex="@{tabindex + 1}">Send</button>
                         </h5>
-                        @inputTextarea(GsForms.comment("text"), Seq("placeholder" -> "Add comment...", "tabindex" -> tabindex.toString, "value" -> req.getOrElseFlash("text", "")))
+                        @inputTextarea(GsForms.comment("text"), List("placeholder" -> "Add comment...", "tabindex" -> tabindex.toString, "value" -> req.getOrElseFlash("text", "")))
                     </div>
                 </div>
             }

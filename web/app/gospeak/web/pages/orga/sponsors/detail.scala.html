@@ -20,9 +20,9 @@
             <span class="dropdown-menu dropdown-menu-right">
                 @* <a class="dropdown-item" href="@SponsorCtrl.edit(group.slug, pack.slug)">Edit</a> *@
                 @if(pack.active) {
-                    @formBtn(SponsorCtrl.disablePack(req.group.slug, pack.slug), Seq("class" -> "dropdown-item")) {Disable this pack}
+                    @formBtn(SponsorCtrl.disablePack(req.group.slug, pack.slug), List("class" -> "dropdown-item")) {Disable this pack}
                 } else {
-                    @formBtn(SponsorCtrl.enablePack(req.group.slug, pack.slug), Seq("class" -> "dropdown-item")) {Enable this pack}
+                    @formBtn(SponsorCtrl.enablePack(req.group.slug, pack.slug), List("class" -> "dropdown-item")) {Enable this pack}
                 }
             </span>
         </span>

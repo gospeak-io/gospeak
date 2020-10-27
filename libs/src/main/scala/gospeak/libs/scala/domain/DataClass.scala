@@ -21,7 +21,7 @@ abstract class DataClass(val value: String) {
   }
 
   override def hashCode(): Int = {
-    val state = Seq(value)
+    val state = List(value)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 
@@ -33,6 +33,8 @@ trait IId {
 }
 
 abstract class UuidIdBuilder[A <: IId](clazz: String, build: String => A) {
+  val empty: A = build(UUID.fromString("00000000-0000-0000-0000-000000000000").toString)
+
   def generate(): A = build(UUID.randomUUID().toString)
 
   def from(id: IId): A = build(id.value)
@@ -43,9 +45,9 @@ abstract class UuidIdBuilder[A <: IId](clazz: String, build: String => A) {
     else Left(CustomException(s"'$in' is an invalid $clazz", errs))
   }
 
-  private[domain] def errors(in: String): Seq[CustomError] = {
+  private[domain] def errors(in: String): List[CustomError] = {
     val tryUuid = Try(UUID.fromString(in))
-    Seq(
+    List(
       tryUuid.failed.map(_.getMessage).toOption
     ).flatten.map(CustomError)
   }
@@ -65,8 +67,8 @@ abstract class SlugBuilder[A <: ISlug](clazz: String, build: String => A) {
     else Left(CustomException(s"'$in' is an invalid $clazz", errs))
   }
 
-  private[domain] def errors(in: String): Seq[CustomError] =
-    Seq(
+  private[domain] def errors(in: String): List[CustomError] =
+    List(
       if (in.length > maxLength) Some(s"$clazz should not exceed $maxLength chars") else None,
       in match {
         case pattern() => None
@@ -85,7 +87,7 @@ trait StringEnum extends Product with Serializable {
 }
 
 abstract class EnumBuilder[A <: StringEnum](clazz: String) {
-  val all: Seq[A]
+  val all: List[A]
 
   def from(str: String): Either[CustomException, A] =
     all.find(_.value == str).toEither(CustomException(s"'$str' in not a valid $clazz"))

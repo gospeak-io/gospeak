@@ -13,7 +13,7 @@
 @import gospeak.web.pages.user.talks.routes.TalkCtrl
 @import gospeak.web.utils._
 
-@(user: User.Full, userGroups: Seq[Group.Full], userTalks: Seq[Talk], userProposals: Map[Talk.Id, Seq[CommonProposal]], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(user: User.Full, userGroups: List[Group.Full], userTalks: List[Talk], userProposals: Map[Talk.Id, List[CommonProposal]], users: List[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @eventLink(p: CommonProposal) = @{
     p.fold(e => EventCtrl.detailExt(e.event.id))(i => i.event.map(e => GroupCtrl.event(i.group.slug, e.slug)).getOrElse(GroupCtrl.detail(i.group.slug)))
 }
@@ -71,7 +71,7 @@
                     <h3 class="h6 mb-0">Social Profiles</h3>
                 </div>
                 <div class="card-body pt-3 pb-4 px-4">
-                    @Seq(
+                    @List(
                         user.website.map(url => ("website", url.value, url.handle)).toList,
                         user.social.all.map(s => (s.name, s.link, s.handle))
                     ).flatten.zipWithIndex.map { case ((name, link, handle), i) => @socialItem(name, link, handle, i) }
@@ -107,11 +107,11 @@
                         <h3 id="current-talks" class="h5 mb-3">Current talks</h3>
                         @userTalks.zipWithIndex.map { case (talk, i) =>
                             <div class="align-items-center @if(i != 0) {mt-5}">
-                                @userProposals.getOrElse(talk.id, Seq()) match {
-                                    case Seq() => {
+                                @userProposals.getOrElse(talk.id, List()) match {
+                                    case List() => {
                                         <small class="d-block text-secondary">Not presented yet</small>
                                     }
-                                    case Seq(proposal) => {
+                                    case List(proposal) => {
                                         <small class="d-block text-secondary">Presented at <a href="@eventLink(proposal)" class="no-style">@proposal.eventName</a></small>
                                     }
                                     case proposals => {
@@ -188,10 +188,10 @@
         <div class="modal-content">
             @formElt(GsForms.speakerContact, SpeakerCtrl.contactSpeaker(user.slug)) {
                 <div class="modal-body">
-                    @fieldHorizontal(GsForms.speakerContact("subject"), Seq("label" -> "Subject")) { (field, args) =>
-                        @inputText(field, Seq("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
+                    @fieldHorizontal(GsForms.speakerContact("subject"), List("label" -> "Subject")) { (field, args) =>
+                        @inputText(field, List("placeholder" -> "ex: Availability for a BBL", "autofocus" -> "true") ++ args)
                     }
-                    @fieldHorizontal(GsForms.speakerContact("content"), Seq("label" -> "Message")) { (field, args) =>
+                    @fieldHorizontal(GsForms.speakerContact("content"), List("label" -> "Message")) { (field, args) =>
                         @inputMarkdown(field, args)
                     }
                 </div>

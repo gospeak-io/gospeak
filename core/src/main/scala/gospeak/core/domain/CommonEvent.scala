@@ -13,7 +13,7 @@ final case class CommonEvent(name: Event.Name,
                              location: Option[GMapPlace],
                              twitterAccount: Option[TwitterAccount],
                              twitterHashtag: Option[TwitterHashtag],
-                             tags: Seq[Tag],
+                             tags: List[Tag],
                              extra: Either[CommonEvent.External, CommonEvent.Internal],
                              info: Info) {
   def logo: Option[Logo] = extra.fold(_.logo, i => i.group.logo.orElse(i.venue.map(_.logo)))
@@ -28,6 +28,22 @@ final case class CommonEvent(name: Event.Name,
 }
 
 object CommonEvent {
+  def apply(event: ExternalEvent): CommonEvent = new CommonEvent(
+    name = event.name,
+    kind = event.kind,
+    start = event.start,
+    location = event.location,
+    twitterAccount = event.twitterAccount,
+    twitterHashtag = event.twitterHashtag,
+    tags = event.tags,
+    extra = Left(External(
+      id = event.id,
+      logo = event.logo,
+      description = event.description,
+      url = event.url,
+      tickets = event.tickets,
+      videos = event.videos)),
+    info = event.info)
 
   final case class InternalGroup(id: Group.Id,
                                  slug: Group.Slug,

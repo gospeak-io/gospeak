@@ -7,8 +7,8 @@
         <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-user"></i></span>
         </div>
-        @inputText(form("first-name"), Seq("placeholder" -> "First Name", "autofocus" -> "true"))
-        @inputText(form("last-name"), Seq("placeholder" -> "Last Name"))
+        @inputText(form("first-name"), List("placeholder" -> "First Name", "autofocus" -> "true"))
+        @inputText(form("last-name"), List("placeholder" -> "Last Name"))
     </div>
     <div class="row">
         <div class="col invalid-feedback">@req.formatErrors(form("first-name"))</div>
@@ -21,7 +21,7 @@
         <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-user-secret"></i></span>
         </div>
-        @inputText(form("slug"), Seq("placeholder" -> "Username", "slug-for" -> Seq(form("first-name"), form("last-name")).map(_.id).mkString(",")))
+        @inputText(form("slug"), List("placeholder" -> "Username", "slug-for" -> List(form("first-name"), form("last-name")).map(_.id).mkString(",")))
     </div>
     <small class="form-text text-muted">Should be lowercase alphanum with - and _ allowed.</small>
     <div class="invalid-feedback">@req.formatErrors(form("slug"))</div>
@@ -32,7 +32,7 @@
         <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
         </div>
-        @inputEmail(form("email"), Seq("placeholder" -> "Email"))
+        @inputEmail(form("email"), List("placeholder" -> "Email"))
     </div>
     <div class="invalid-feedback">@req.formatErrors(form("email"))</div>
 </div>
@@ -42,12 +42,12 @@
         <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-key"></i></span>
         </div>
-        @inputPassword(form("password"), Seq("placeholder" -> "Password"))
+        @inputPassword(form("password"), List("placeholder" -> "Password"))
     </div>
     <div class="invalid-feedback">@req.formatErrors(form("password"))</div>
 </div>
 
 <div class="form-group custom-control custom-checkbox @if(form("rememberMe").hasErrors){is-invalid}">
-    @inputCheckbox(form("rememberMe"), Seq("label" -> "Remember me"))
+    @inputCheckbox(form("rememberMe"), List("label" -> "Remember me"))
     <div class="invalid-feedback">@req.formatErrors(form("rememberMe"))</div>
 </div>

@@ -148,7 +148,7 @@ class AuthSrv(userRepo: AuthUserRepo,
     } yield authUser
   }
 
-  def providerIds: Seq[String] = socialProviderRegistry.providers.map(_.id)
+  def providerIds: List[String] = socialProviderRegistry.providers.map(_.id).toList
 
   def authenticate(providerID: String)(implicit req: UserAwareReq[AnyContent]): IO[Either[Result, CommonSocialProfile]] = {
     for {
@@ -187,5 +187,5 @@ object AuthSrv {
 
   def loginInfo(email: EmailAddress): LoginInfo = new LoginInfo(CredentialsProvider.ID, email.value)
 
-  def authUser(user: User, groups: Seq[Group]): AuthUser = AuthUser(loginInfo(user.email), user, groups)
+  def authUser(user: User, groups: List[Group]): AuthUser = AuthUser(loginInfo(user.email), user, groups)
 }

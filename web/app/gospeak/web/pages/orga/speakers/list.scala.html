@@ -9,8 +9,5 @@
 @(speakers: Page[User.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"${req.group.name.value} speakers", b)() {
     <h1 class="text-capitalize">@speakers.plural("speaker")</h1>
-    @speakers.render(
-        SpeakerCtrl.list(req.group.slug, _),
-        UserRepoSql.tableFull.filters,
-        UserRepoSql.tableFull.sorts.toList)(speakerItem(_))
+    @speakers.render(SpeakerCtrl.list(req.group.slug, _), UserRepoSql.FILTERS, UserRepoSql.SORTS)(speakerItem(_))
 }()

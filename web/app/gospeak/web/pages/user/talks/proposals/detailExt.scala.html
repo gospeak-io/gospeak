@@ -11,7 +11,7 @@
 @import gospeak.web.pages.published.events.routes.{EventCtrl => PublicEventCtrl}
 @import gospeak.web.utils._
 
-@(proposal: ExternalProposal.Full, invites: Seq[UserRequest.ExternalProposalInvite], speakers: Seq[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
+@(proposal: ExternalProposal.Full, invites: List[UserRequest.ExternalProposalInvite], speakers: List[User])(b: Breadcrumb)(implicit req: UserReq[AnyContent])
 @container(proposal.title.value, b)() {
     @if(req.isSpeaker(proposal.talk)){ <a href="@TalkCtrl.detail(proposal.talk.slug)"><i class="fas fa-chevron-left"></i> Back to talk</a> }
     <div class="d-flex justify-content-between align-items-center">
@@ -22,7 +22,7 @@
             </button>
             <span class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" href="@ProposalCtrl.editExt(proposal.talk.slug, proposal.id)">Edit</a>
-                @formBtn(ProposalCtrl.doRemoveExt(proposal.talk.slug, proposal.id), Seq("class" -> "dropdown-item", "confirm" -> s"Delete proposal to ${proposal.event.name.value}?")) {Delete}
+                @formBtn(ProposalCtrl.doRemoveExt(proposal.talk.slug, proposal.id), List("class" -> "dropdown-item", "confirm" -> s"Delete proposal to ${proposal.event.name.value}?")) {Delete}
             </span>
         </span>
     </div>
@@ -41,7 +41,7 @@
                 <span class="badge badge-pill badge-primary">
                     @if(speaker.isPublic) { <a href="@PublicSpeakerCtrl.detail(speaker.slug)">@speaker.name.value</a> } else { @speaker.name.value }
                     @if(speaker.id != proposal.info.createdBy) {
-                        @formBtn(ProposalCtrl.removeSpeakerExt(proposal.talk.slug, proposal.id, speaker.slug), Seq("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
+                        @formBtn(ProposalCtrl.removeSpeakerExt(proposal.talk.slug, proposal.id, speaker.slug), List("title" -> "Remove this speaker", "confirm" -> s"Remove ${speaker.name.value} from speakers?")) {<i class="fas fa-times"></i>}
                     }
                 </span>
             }
@@ -50,7 +50,7 @@
         @invites.map { i =>
             <span class="badge badge-pill badge-secondary" title="Speaker invitation, still not a speaker">
                 @i.email.value
-                @formBtn(ProposalCtrl.cancelInviteSpeakerExt(proposal.talk.slug, proposal.id, i.id), Seq("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
+                @formBtn(ProposalCtrl.cancelInviteSpeakerExt(proposal.talk.slug, proposal.id, i.id), List("title" -> "Cancel this invitation", "confirm" -> s"Cancel invitation of ${i.email.value}?")) {<i class="fas fa-times"></i>}
             </span>
         }
         <a href="#" class="badge badge-pill badge-primary" data-toggle="modal" data-target="#inviteUserModal"><i class="fas fa-plus"></i></a>

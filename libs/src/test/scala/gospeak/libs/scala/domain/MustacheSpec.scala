@@ -36,11 +36,11 @@ class MustacheSpec extends BaseSpec {
           "int" -> js(3),
           "double" -> js(3.14),
           "string" -> js("aaa"),
-          "arr" -> arr(Seq("aaa", "bbb", "ccc").map(js): _*),
+          "arr" -> arr(List("aaa", "bbb", "ccc").map(js): _*),
           "obj" -> obj(
             "aaa" -> js("aaa"),
             "bbb" -> js("bbb")),
-          "arrObj" -> arr(Seq("aaa", "bbb", "ccc").map(v => obj("value" -> js(v))): _*))
+          "arrObj" -> arr(List("aaa", "bbb", "ccc").map(v => obj("value" -> js(v))): _*))
         val template =
           """null: '{{null}}'
             |boolean: {{boolean}}

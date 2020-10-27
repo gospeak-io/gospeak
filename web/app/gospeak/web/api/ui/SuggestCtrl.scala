@@ -68,7 +68,7 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   def suggestVenues(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
-    makeSuggest[Venue.Full](venueRepo.listFull, v => SuggestedItem(v.id.value, s"${v.partner.name.value} - ${v.address.value}"))(group)
+    makeSuggest[Venue.Full](venueRepo.listAllFull, v => SuggestedItem(v.id.value, s"${v.partner.name.value} - ${v.address.value}"))(group)
   }
 
   def suggestSponsorPacks(group: Group.Slug): Action[AnyContent] = OrgaAction(group) { implicit req =>
@@ -76,9 +76,9 @@ class SuggestCtrl(cc: ControllerComponents,
   }
 
   // TODO: use OrgaReq instead of Group.Id to list items
-  private def makeSuggest[A](list: Group.Id => IO[Seq[A]], format: A => SuggestedItem)
+  private def makeSuggest[A](list: Group.Id => IO[List[A]], format: A => SuggestedItem)
                             (group: Group.Slug)
-                            (implicit req: OrgaReq[AnyContent]): IO[ApiResult[Seq[SuggestedItem]]] = {
+                            (implicit req: OrgaReq[AnyContent]): IO[ApiResult[List[SuggestedItem]]] = {
     list(req.group.id).map(results => ApiResult.of(results.map(format)))
   }
 
@@ -86,29 +86,29 @@ class SuggestCtrl(cc: ControllerComponents,
     externalEventRepo.listLogos().map(logos => ApiResult.of(logos.map(_.value).sorted))
   }
 
-  def searchRoot(group: Group.Slug): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
+  def searchRoot(group: Group.Slug): Action[AnyContent] = OrgaAction[List[SearchResultItem]](group) { implicit req =>
     IO.pure(ApiResult.forbidden("this endpoint should not be requested"))
   }
 
-  def searchSpeakers(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
+  def searchSpeakers(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[List[SearchResultItem]](group) { implicit req =>
     makeSearch[User.Full](userRepo.speakers, s => SearchResultItem(s.name.value, SpeakerCtrl.detail(group, s.slug).toString))(group, q)
   }
 
-  def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
+  def searchProposals(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[List[SearchResultItem]](group) { implicit req =>
     makeSearch[Proposal.Full](proposalRepo.listFull, p => SearchResultItem(p.title.value, ProposalCtrl.detail(group, p.cfp.slug, p.id).toString))(group, q)
   }
 
-  def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
+  def searchPartners(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[List[SearchResultItem]](group) { implicit req =>
     makeSearch[Partner](partnerRepo.list, p => SearchResultItem(p.name.value, PartnerCtrl.detail(group, p.slug).toString))(group, q)
   }
 
-  def searchEvents(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[Seq[SearchResultItem]](group) { implicit req =>
+  def searchEvents(group: Group.Slug, q: String): Action[AnyContent] = OrgaAction[List[SearchResultItem]](group) { implicit req =>
     makeSearch[Event](eventRepo.list, e => SearchResultItem(e.name.value, EventCtrl.detail(group, e.slug).toString))(group, q)
   }
 
   private def makeSearch[A](list: Page.Params => IO[Page[A]], format: A => SearchResultItem)
                            (group: Group.Slug, q: String)
-                           (implicit req: OrgaReq[AnyContent]): IO[ApiResult[Seq[SearchResultItem]]] = {
+                           (implicit req: OrgaReq[AnyContent]): IO[ApiResult[List[SearchResultItem]]] = {
     list(Page.Params.defaults.search(q)).map(results => ApiResult.of(results.items.map(format)))
   }
 }

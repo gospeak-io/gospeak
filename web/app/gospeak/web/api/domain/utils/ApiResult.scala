@@ -20,8 +20,8 @@ object ApiResult {
       data = p,
       execMs = Instant.now().toEpochMilli - ctx.now.toEpochMilli)
 
-  def of[A, B](p: Page[A], f: A => B)(implicit ctx: BasicCtx): PageResult[Seq[B]] =
-    PageResult[Seq[B]](
+  def of[A, B](p: Page[A], f: A => B)(implicit ctx: BasicCtx): PageResult[List[B]] =
+    PageResult[List[B]](
       data = p.items.map(f),
       totalItems = p.total.value,
       pageSize = p.params.pageSize.value,

@@ -78,7 +78,7 @@ object GsForms {
     "text" -> nonEmptyText
   )(Comment.Data.apply)(Comment.Data.unapply))
 
-  val updateTags: Form[Seq[Tag]] = Form(single(
+  val updateTags: Form[List[Tag]] = Form(single(
     "tags" -> tags))
 
   val templateForm: Form[Liquid[Nothing]] = Form(single(
@@ -236,7 +236,7 @@ object GsForms {
 
       case object No extends Recipient("Members that answered No", NonEmptyList.of(Event.Rsvp.Answer.No))
 
-      override val all: Seq[Recipient] = Seq(Yes, Wait, YesAndWait, No)
+      override val all: List[Recipient] = List(Yes, Wait, YesAndWait, No)
     }
 
   }
