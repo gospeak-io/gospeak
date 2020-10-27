@@ -1,41 +1,52 @@
 package gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
+import gospeak.infra.services.storage.sql.SponsorPackRepoSql._
 import gospeak.infra.services.storage.sql.SponsorPackRepoSqlSpec._
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec
 import gospeak.infra.services.storage.sql.testingutils.RepoSpec.mapFields
 
 class SponsorPackRepoSqlSpec extends RepoSpec {
   describe("SponsorPackRepoSql") {
-    describe("Queries") {
-      it("should build insert") {
-        val q = SponsorPackRepoSql.insert(sponsorPack)
-        check(q, s"INSERT INTO ${table.stripSuffix(" sp")} (${mapFields(fields, _.stripPrefix("sp."))}) VALUES (${mapFields(fields, _ => "?")})")
-      }
-      it("should build update") {
-        val q = SponsorPackRepoSql.update(group.id, sponsorPack.slug)(sponsorPack.data, user.id, now)
-        check(q, s"UPDATE $table SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
-      }
-      it("should build setActive") {
-        val q = SponsorPackRepoSql.setActive(group.id, sponsorPack.slug)(active = true, user.id, now)
-        check(q, s"UPDATE $table SET active=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
-      }
-      it("should build selectOne") {
-        val q = SponsorPackRepoSql.selectOne(group.id, sponsorPack.slug)
-        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.slug=? $orderBy")
-      }
-      it("should build selectAll ids") {
-        val q = SponsorPackRepoSql.selectAll(NonEmptyList.of(sponsorPack.id, sponsorPack.id))
-        check(q, s"SELECT $fields FROM $table WHERE sp.id IN (?, ?)  $orderBy")
-      }
-      it("should build selectAll") {
-        val q = SponsorPackRepoSql.selectAll(group.id)
-        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? $orderBy")
-      }
-      it("should build selectActives") {
-        val q = SponsorPackRepoSql.selectActives(group.id)
-        check(q, s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.active=? $orderBy")
-      }
+    it("should handle crud operations") {
+      val (user, group, ctx) = createOrga().unsafeRunSync()
+      sponsorPackRepo.listAll(group.id).unsafeRunSync() shouldBe List()
+      val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
+      sponsorPack.data shouldBe sponsorPackData1
+      sponsorPackRepo.listAll(group.id).unsafeRunSync() shouldBe List(sponsorPack)
+
+      sponsorPackRepo.edit(sponsorPack.slug, sponsorPackData2)(ctx).unsafeRunSync()
+      sponsorPackRepo.listAll(group.id).unsafeRunSync().map(_.data) shouldBe List(sponsorPackData2)
+      // no delete...
+    }
+    it("should perform specific updates") {
+      val (user, group, ctx) = createOrga().unsafeRunSync()
+      val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
+
+      sponsorPackRepo.disable(sponsorPack.slug)(ctx).unsafeRunSync()
+      sponsorPackRepo.find(sponsorPack.slug)(ctx).unsafeRunSync() shouldBe Some(sponsorPack.copy(active = false))
+
+      sponsorPackRepo.enable(sponsorPack.slug)(ctx).unsafeRunSync()
+      sponsorPackRepo.find(sponsorPack.slug)(ctx).unsafeRunSync() shouldBe Some(sponsorPack.copy(active = true))
+    }
+    it("should be able to read correctly") {
+      val (user, group, ctx) = createOrga().unsafeRunSync()
+      val sponsorPack = sponsorPackRepo.create(sponsorPackData1)(ctx).unsafeRunSync()
+
+      sponsorPackRepo.find(sponsorPack.slug)(ctx).unsafeRunSync() shouldBe Some(sponsorPack)
+      sponsorPackRepo.listAll(group.id).unsafeRunSync() shouldBe List(sponsorPack)
+      sponsorPackRepo.listAll(ctx).unsafeRunSync() shouldBe List(sponsorPack)
+      sponsorPackRepo.listActives(group.id).unsafeRunSync() shouldBe List(sponsorPack)
+      sponsorPackRepo.listActives(ctx).unsafeRunSync() shouldBe List(sponsorPack)
+    }
+    it("should check queries") {
+      check(insert(sponsorPack), s"INSERT INTO ${table.stripSuffix(" sp")} (${mapFields(fields, _.stripPrefix("sp."))}) VALUES (${mapFields(fields, _ => "?")})")
+      check(update(group.id, sponsorPack.slug)(sponsorPack.data, user.id, now), s"UPDATE $table SET slug=?, name=?, description=?, price=?, currency=?, duration=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
+      check(setActive(group.id, sponsorPack.slug)(active = true, user.id, now), s"UPDATE $table SET active=?, updated_at=?, updated_by=? WHERE sp.group_id=? AND sp.slug=?")
+      check(selectOne(group.id, sponsorPack.slug), s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.slug=? $orderBy")
+      check(selectAll(NonEmptyList.of(sponsorPack.id, sponsorPack.id)), s"SELECT $fields FROM $table WHERE sp.id IN (?, ?) $orderBy")
+      check(selectAll(group.id), s"SELECT $fields FROM $table WHERE sp.group_id=? $orderBy")
+      check(selectActives(group.id), s"SELECT $fields FROM $table WHERE sp.group_id=? AND sp.active=? $orderBy")
     }
   }
 }

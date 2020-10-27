@@ -7,11 +7,11 @@ import play.api.libs.json._
 object JsonUtils {
 
   implicit class ErrorMessageExtension(val in: ErrorMessage) extends AnyVal {
-    def toJson: JsonValidationError = JsonValidationError(Seq(in.value), in.args: _*)
+    def toJson: JsonValidationError = JsonValidationError(List(in.value), in.args: _*)
   }
 
   implicit class OpenApiErrorExtension(val in: OpenApiError) extends AnyVal {
-    def toJson: (JsPath, Seq[JsonValidationError]) = (JsPath(in.path.map(asPathNode)), in.errors.toList.map(_.toJson))
+    def toJson: (JsPath, List[JsonValidationError]) = (JsPath(in.path.map(asPathNode)), in.errors.toList.map(_.toJson))
 
     private def asPathNode(str: String): PathNode = str.head match {
       case '*' => RecursiveSearch(str.stripPrefix("*"))
@@ -51,12 +51,12 @@ object JsonUtils {
      * @param value hint attribute value
      */
     def hint(attr: String, value: String): Format[A] = Format(
-      js => (js \ attr).validate[String].flatMap(hint => if (hint == value) in.reads(js) else JsError(Seq(OpenApiError.badHintValue(hint, value, attr).toJson))),
+      js => (js \ attr).validate[String].flatMap(hint => if (hint == value) in.reads(js) else JsError(List(OpenApiError.badHintValue(hint, value, attr).toJson))),
       a => in.writes(a).as[JsObject].deepMerge(Json.obj(attr -> value))
     )
 
     private def asJson[T](res: Either[OpenApiError, T]): JsResult[T] =
-      res.fold(err => JsError(Seq(err.toJson)), JsSuccess(_))
+      res.fold(err => JsError(List(err.toJson)), JsSuccess(_))
 
     private def asJson[T](errors: List[OpenApiError], value: T): JsResult[T] =
       if (errors.isEmpty) JsSuccess(value) else JsError(errors.map(_.toJson))

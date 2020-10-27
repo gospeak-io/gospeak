@@ -54,10 +54,20 @@ object Extensions {
     def toNelUnsafe: NonEmptyList[A] = NonEmptyList.fromListUnsafe(in.toList)
   }
 
+  implicit class NonEmptyListExtension[A](val in: NonEmptyList[A]) extends AnyVal {
+    def mk(concat: (A, A) => A): A = in.tail.foldLeft(in.head)(concat)
+  }
+
   implicit class TraversableOnceExtension[A, M[X] <: TraversableOnce[X]](val in: M[A]) extends AnyVal {
     def toNel: Either[CustomException, NonEmptyList[A]] = NonEmptyList.fromList(in.toList).toEither(CustomException("List should not be empty"))
 
     def toNelUnsafe: NonEmptyList[A] = NonEmptyList.fromListUnsafe(in.toList)
+
+    def mk(concat: (A, A) => A): Option[A] = in.toList match {
+      case Nil => None
+      case head :: Nil => Some(head)
+      case head :: tail => Some(tail.foldLeft(head)(concat))
+    }
 
     def one: Either[Int, A] = in.toList match {
       case head :: Nil => Right(head)
@@ -90,8 +100,8 @@ object Extensions {
       coll.result()
     }
 
-    def duplicatesBy[B](f: A => B): Map[B, Seq[A]] =
-      in.toSeq.groupBy(f).filter(_._2.length > 1)
+    def duplicatesBy[B](f: A => B): Map[B, List[A]] =
+      in.toList.groupBy(f).filter(_._2.length > 1)
 
     def distinctBy[B](f: A => B)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {
       val values = mutable.Map[B, A]()
@@ -120,7 +130,7 @@ object Extensions {
 
   implicit class TraversableOnceTryExtension[A, M[X] <: TraversableOnce[X]](val in: M[Try[A]]) extends AnyVal {
     def sequence(implicit cbf: CanBuildFrom[M[Try[A]], A, M[A]]): Try[M[A]] = {
-      val init = Try(cbf(in) -> Seq.empty[Throwable])
+      val init = Try(cbf(in) -> List.empty[Throwable])
       in.foldLeft(init) { (acc, cur) =>
         acc.flatMap { case (results, errors) =>
           cur.map { result => (results += result, errors) }
@@ -132,7 +142,7 @@ object Extensions {
 
   implicit class TraversableOnceEitherExtension[E, A, M[X] <: TraversableOnce[X]](val in: M[Either[E, A]]) extends AnyVal {
     def sequence(implicit cbf: CanBuildFrom[M[Either[E, A]], A, M[A]]): Either[E, M[A]] = {
-      val init = cbf(in) -> Seq.empty[E]
+      val init = cbf(in) -> List.empty[E]
       sequenceResultEither[E, A, M](in.foldLeft(init) { (acc, cur) =>
         val (results, errors) = acc
         cur match {
@@ -145,7 +155,7 @@ object Extensions {
 
   implicit class TraversableOnceFutureExtension[A, M[X] <: TraversableOnce[X]](val in: M[Future[A]]) extends AnyVal {
     def sequence(implicit cbf: CanBuildFrom[M[Future[A]], A, M[A]], ec: ExecutionContext): Future[M[A]] = {
-      val init = Future.successful(cbf(in) -> Seq.empty[Throwable])
+      val init = Future.successful(cbf(in) -> List.empty[Throwable])
       in.foldLeft(init) { (acc, cur) =>
         acc.flatMap { case (results, errors) =>
           cur.map { result => (results += result, errors) }
@@ -157,7 +167,7 @@ object Extensions {
 
   implicit class TraversableOnceIOExtension[A, M[X] <: TraversableOnce[X]](val in: M[IO[A]]) extends AnyVal {
     def sequence(implicit cbf: CanBuildFrom[M[IO[A]], A, M[A]]): IO[M[A]] = IO {
-      val init = IO.pure(cbf(in) -> Seq.empty[Throwable])
+      val init = IO.pure(cbf(in) -> List.empty[Throwable])
       in.foldLeft(init) { (acc, cur) =>
         acc.flatMap { case (results, errors) =>
           Try(cur.unsafeRunSync())
@@ -381,14 +391,14 @@ object Extensions {
     def sequence: IO[Page[A]] = in.items.sequence.map(items => in.copy(items = items))
   }
 
-  private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[Throwable])): Try[M[A]] = {
+  private def sequenceResult[A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], List[Throwable])): Try[M[A]] = {
     sequenceResultEither(in).leftMap(_.flatMap {
       case MultiException(errs) => errs
       case e => NonEmptyList.of(e)
     }).asTry(errs => if (errs.length == 1) errs.head else MultiException(errs))
   }
 
-  private def sequenceResultEither[E, A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], Seq[E])): Either[NonEmptyList[E], M[A]] = {
+  private def sequenceResultEither[E, A, M[X] <: TraversableOnce[X]](in: (mutable.Builder[A, M[A]], List[E])): Either[NonEmptyList[E], M[A]] = {
     val (results, errors) = in
     errors.reverse.toNel.swap.map(_ => results.result())
   }

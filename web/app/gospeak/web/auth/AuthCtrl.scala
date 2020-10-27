@@ -9,7 +9,8 @@ import gospeak.core.domain.UserRequest.PasswordResetRequest
 import gospeak.core.domain.utils.Constants
 import gospeak.core.domain.{User, UserRequest}
 import gospeak.core.services.email.EmailSrv
-import gospeak.core.services.storage.{AuthGroupRepo, AuthUserRepo, AuthUserRequestRepo}
+import gospeak.core.services.storage.{AuthUserRepo, AuthUserRequestRepo}
+import gospeak.libs.scala.domain.EmailAddress
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
@@ -17,7 +18,6 @@ import gospeak.web.auth.services.AuthSrv
 import gospeak.web.emails.Emails
 import gospeak.web.pages.user.routes.{UserCtrl => UserRoutes}
 import gospeak.web.utils.{GsForms, UICtrl, UserAwareReq}
-import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import play.api.data.Form
 import play.api.mvc._
 
@@ -28,7 +28,6 @@ class AuthCtrl(cc: ControllerComponents,
                conf: AppConf,
                userRepo: AuthUserRepo,
                userRequestRepo: AuthUserRequestRepo,
-               groupRepo: AuthGroupRepo,
                authSrv: AuthSrv,
                emailSrv: EmailSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.Auth {
   def signup(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>

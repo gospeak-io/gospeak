@@ -1,7 +1,7 @@
 @import gospeak.web.pages.partials.form.Utils
 @import java.util.concurrent.TimeUnit
 
-@(field: Field, timeUnits: Seq[TimeUnit] = Utils.timeUnits, args: Seq[(String, String)] = Seq())
+@(field: Field, timeUnits: List[TimeUnit] = Utils.timeUnits, args: List[(String, String)] = List())
 @display(lengthField: Field, unitField: Field) = {
     <div class="row">
         <div class="col">

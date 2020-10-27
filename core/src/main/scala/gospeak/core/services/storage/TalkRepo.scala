@@ -13,15 +13,15 @@ trait OrgaTalkRepo
 trait SpeakerTalkRepo {
   def create(data: Talk.Data)(implicit ctx: UserCtx): IO[Talk]
 
-  def edit(talk: Talk.Slug, data: Talk.Data)(implicit ctx: UserCtx): IO[Done]
+  def edit(talk: Talk.Slug, data: Talk.Data)(implicit ctx: UserCtx): IO[Unit]
 
-  def editStatus(talk: Talk.Slug, status: Talk.Status)(implicit ctx: UserCtx): IO[Done]
+  def editStatus(talk: Talk.Slug, status: Talk.Status)(implicit ctx: UserCtx): IO[Unit]
 
-  def editSlides(talk: Talk.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Done]
+  def editSlides(talk: Talk.Slug, slides: Url.Slides)(implicit ctx: UserCtx): IO[Unit]
 
-  def editVideo(talk: Talk.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Done]
+  def editVideo(talk: Talk.Slug, video: Url.Video)(implicit ctx: UserCtx): IO[Unit]
 
-  def removeSpeaker(talk: Talk.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def removeSpeaker(talk: Talk.Slug, speaker: User.Id)(implicit ctx: UserCtx): IO[Unit]
 
   def find(talk: Talk.Id): IO[Option[Talk]]
 
@@ -37,7 +37,7 @@ trait SpeakerTalkRepo {
 }
 
 trait UserTalkRepo {
-  def addSpeaker(talk: Talk.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def addSpeaker(talk: Talk.Id, by: User.Id)(implicit ctx: UserCtx): IO[Unit]
 }
 
 trait AuthTalkRepo
@@ -53,11 +53,11 @@ trait PublicTalkRepo {
 
   def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Talk]]
 
-  def listAll(user: User.Id, status: Talk.Status): IO[Seq[Talk]]
+  def listAll(user: User.Id, status: Talk.Status): IO[List[Talk]]
 
-  def listAllPublicSlugs(): IO[Seq[(Talk.Slug, NonEmptyList[User.Id])]]
+  def listAllPublicSlugs(): IO[List[(Talk.Slug, NonEmptyList[User.Id])]]
 }
 
 trait SuggestTalkRepo {
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 }

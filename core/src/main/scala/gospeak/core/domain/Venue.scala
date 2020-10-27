@@ -19,7 +19,7 @@ final case class Venue(id: Venue.Id,
 
 object Venue {
   def apply(group: Group.Id, partner: Partner.Id, data: Data, info: Info): Venue =
-    new Venue(Id.generate(), partner, data.contact, data.address, data.notes, data.roomSize, ExtRefs(), info)
+    new Venue(Id.generate(), partner, data.contact, data.address, data.notes, data.roomSize, data.refs, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -49,22 +49,42 @@ object Venue {
   }
 
   // to list public venues (venues linked in published events)
-  final case class Public(slug: Partner.Slug,
+  final case class Public(id: Id,
+                          slug: Partner.Slug,
                           name: Partner.Name,
-                          logo: Url,
+                          logo: Logo,
                           address: GMapPlace,
-                          // aggregation fields, should be at the end
-                          id: Id,
                           events: Long)
+
+  object Public {
+    def apply(v: Venue.Full, events: Long): Public = new Public(
+      id = v.id,
+      slug = v.partner.slug,
+      name = v.partner.name,
+      logo = v.partner.logo,
+      address = v.address,
+      events = events)
+  }
 
   // to list both public and group venues
   final case class Common(id: Id,
                           slug: Partner.Slug,
                           name: Partner.Name,
-                          logo: Url,
+                          logo: Logo,
                           address: GMapPlace,
                           events: Long,
                           public: Boolean)
+
+  object Common {
+    def apply(v: Venue.Full, events: Long, public: Boolean): Common = new Common(
+      id = v.id,
+      slug = v.partner.slug,
+      name = v.partner.name,
+      logo = v.partner.logo,
+      address = v.address,
+      events = events,
+      public = public)
+  }
 
   // to hold form data
   final case class Data(contact: Option[Contact.Id],

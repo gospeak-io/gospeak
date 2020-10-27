@@ -18,13 +18,13 @@ final case class ExternalProposal(id: ExternalProposal.Id,
                                   slides: Option[Url.Slides],
                                   video: Option[Url.Video],
                                   url: Option[Url],
-                                  tags: Seq[Tag],
+                                  tags: List[Tag],
                                   info: Info) {
   def data: ExternalProposal.Data = ExternalProposal.Data(this)
 
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
-  def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
+  def speakerUsers(users: List[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
 
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
@@ -52,7 +52,7 @@ object ExternalProposal {
 
     def speakers: NonEmptyList[User.Id] = proposal.speakers
 
-    def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
+    def speakerUsers(users: List[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
 
     def slides: Option[Url.Slides] = proposal.slides
 
@@ -60,7 +60,7 @@ object ExternalProposal {
 
     def url: Option[Url] = proposal.url
 
-    def tags: Seq[Tag] = proposal.tags
+    def tags: List[Tag] = proposal.tags
 
     def info: Info = proposal.info
 
@@ -77,7 +77,7 @@ object ExternalProposal {
                         slides: Option[Url.Slides],
                         video: Option[Url.Video],
                         url: Option[Url],
-                        tags: Seq[Tag])
+                        tags: List[Tag])
 
   object Data {
     def apply(p: ExternalProposal): Data = new Data(p.status, p.title, p.duration, p.description, p.message, p.slides, p.video, p.url, p.tags)

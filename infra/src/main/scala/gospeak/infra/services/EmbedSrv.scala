@@ -118,7 +118,7 @@ object EmbedSrv {
       private def embedCode(url: Url): Html = Html(s"""<iframe src="${url.value}" width="576" height="420" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>""")
     }
 
-    val all: Seq[SyncService] = Seq(YouTube, Dailymotion, Vimeo, GoogleSlides, SlidesDotCom, Pdf)
+    val all: List[SyncService] = List(YouTube, Dailymotion, Vimeo, GoogleSlides, SlidesDotCom, Pdf)
   }
 
   sealed trait AsyncService {
@@ -168,7 +168,7 @@ object EmbedSrv {
       private def embedCode(url: Url): Html = Html(s"""<iframe src="${url.value}" width="595" height="485" frameborder="0"></iframe>""")
     }
 
-    val all: Seq[AsyncService] = Seq(SlideShare, SpeakerDeck, HtmlSlides)
+    val all: List[AsyncService] = List(SlideShare, SpeakerDeck, HtmlSlides)
   }
 
   private def embedCodeDefault(url: Url): Html =

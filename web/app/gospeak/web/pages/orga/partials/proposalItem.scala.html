@@ -6,7 +6,7 @@
 @import gospeak.web.pages.partials.display.html._
 @import gospeak.web.utils._
 
-@(proposal: Proposal.Full, speakers: Seq[User], userRatings: Seq[Proposal.Rating], params: Page.Params, link: Page.Params => Call)(implicit req: OrgaReq[AnyContent])
+@(proposal: Proposal.Full, speakers: List[User], userRatings: List[Proposal.Rating], params: Page.Params, link: Page.Params => Call)(implicit req: OrgaReq[AnyContent])
 <div class="list-group-item d-flex justify-content-between align-items-center pl-5">
     <div class="">
         <div class="row align-items-center">
@@ -27,8 +27,8 @@
             @commentsIcon(proposal.speakerCommentCount, proposal.speakerLastComment, "speaker")
             @commentsIcon(proposal.orgaCommentCount, proposal.orgaLastComment, "orga")
 
-            @proposal.tags.asBadgeLinks(t => link(params.withFilter("tags", t.value)))
-            @proposal.orgaTags.asBadgeLinks(t => link(params.withFilter("orga-tags", t.value)), color = "info", title = "orga tag")
+            @proposal.tags.asBadgeLinks(t => link(params.addFilter("tags", t.value)))
+            @proposal.orgaTags.asBadgeLinks(t => link(params.addFilter("orga-tags", t.value)), color = "info", title = "orga tag")
             <small>Proposed on @proposal.info.createdAt.asDate</small>
         </div>
     </div>

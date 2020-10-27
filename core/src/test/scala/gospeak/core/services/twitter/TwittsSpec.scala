@@ -20,7 +20,7 @@ class TwittsSpec extends BaseSpec with RandomDataGenerator {
     location = None,
     twitterAccount = None,
     twitterHashtag = None,
-    tags = Seq(),
+    tags = List(),
     publicLink = "https://gospeak.io/events/ext/1a887b22-ebcf-41eb-a3ab-fd7ca1a53689")
   private val cfp = MsgExternalCfp(
     begin = None,
@@ -46,7 +46,7 @@ class TwittsSpec extends BaseSpec with RandomDataGenerator {
           location = None,
           twitterAccount = None,
           twitterHashtag = None,
-          tags = Seq()),
+          tags = List()),
         cfp = cfp.copy(
           close = None),
         by = user.copy(
@@ -67,7 +67,7 @@ class TwittsSpec extends BaseSpec with RandomDataGenerator {
           location = Some(place.copy(country = "France", locality = Some("Paris"))),
           twitterAccount = Some(TwitterAccount(Url.Twitter.from("https://twitter.com/devoxx").get)),
           twitterHashtag = Some(TwitterHashtag.from("#Devoxx").get),
-          tags = Seq(Tag("tech"), Tag("big data"))),
+          tags = List(Tag("tech"), Tag("big data"))),
         cfp = cfp.copy(
           close = Some(ldt)),
         by = user.copy(

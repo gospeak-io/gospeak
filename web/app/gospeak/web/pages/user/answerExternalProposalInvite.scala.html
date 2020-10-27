@@ -13,8 +13,8 @@
         <h3>"@proposal.title.value"</h3>
         <h4>At @proposal.event.name.value</h4>
         @proposal.description.render
-        @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) { Do not join }
-        @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) { Join <b>@speaker.name.value</b> to speak about <b>@proposal.title.value</b> }
+        @formBtn(UserCtrl.rejectRequest(invite.id), List("class" -> "btn-danger")) { Do not join }
+        @formBtn(UserCtrl.acceptRequest(invite.id), List("class" -> "btn-success")) { Join <b>@speaker.name.value</b> to speak about <b>@proposal.title.value</b> }
     } else {
         <h1>Invitation to the proposal '@proposal.title.value' as @proposal.event.name.value by @speaker.name.value</h1>
         <h3 class="text-danger">Oups, this invite is expired</h3>

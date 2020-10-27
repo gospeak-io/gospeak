@@ -4,21 +4,21 @@
 @import gospeak.web.utils.OrgaReq
 
 @(form: Form[Cfp.Data])(implicit req: OrgaReq[AnyContent])
-@fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the CFP")) { (field, args) =>
-    @inputText(field, Seq("placeholder" -> "CFP name", "autofocus" -> "true") ++ args)
+@fieldHorizontal(form("name"), List("label" -> "Name", "help" -> "Name of the CFP")) { (field, args) =>
+    @inputText(field, List("placeholder" -> "CFP name", "autofocus" -> "true") ++ args)
 }
-@fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the CFP (in urls for example)")) { (field, args) =>
-    @inputText(field, Seq("placeholder" -> "CFP slug", "slug-for" -> form("name").id) ++ args)
+@fieldHorizontal(form("slug"), List("label" -> "Slug", "help" -> "Reference of the CFP (in urls for example)")) { (field, args) =>
+    @inputText(field, List("placeholder" -> "CFP slug", "slug-for" -> form("name").id) ++ args)
 }
-@fieldHorizontal(form("start"), Seq("label" -> "Start", "help" -> "When the CFP will start, leave it empty if you want it to start now")) { (field, args) =>
+@fieldHorizontal(form("start"), List("label" -> "Start", "help" -> "When the CFP will start, leave it empty if you want it to start now")) { (field, args) =>
     @inputLocalDatetime(field, args)
 }
-@fieldHorizontal(form("end"), Seq("label" -> "End", "help" -> "When the CFP will end, leave it empty if you don't want the CFP to end")) { (field, args) =>
+@fieldHorizontal(form("end"), List("label" -> "End", "help" -> "When the CFP will end, leave it empty if you don't want the CFP to end")) { (field, args) =>
     @inputLocalDatetime(field, args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "This is where to give speaker instructions: explain your event and what you expect from speakers")) { (field, args) =>
+@fieldHorizontal(form("description"), List("label" -> "Description", "help" -> "This is where to give speaker instructions: explain your event and what you expect from speakers")) { (field, args) =>
     @inputMarkdown(field, args)
 }
-@fieldHorizontal(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of your CFP")) { (field, args) =>
-    @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+@fieldHorizontal(form("tags"), List("label" -> "Tags", "help" -> "Main topics of your CFP")) { (field, args) =>
+    @inputTags(field, args ++ List("remote" -> SuggestCtrl.suggestTags().toString))
 }

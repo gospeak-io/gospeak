@@ -11,7 +11,7 @@ trait EmailSrv {
 
 object EmailSrv {
 
-  final case class Email(from: Contact, to: Seq[Contact], subject: String, content: Content)
+  final case class Email(from: Contact, to: List[Contact], subject: String, content: Content)
 
   sealed trait Content {
     def value: String

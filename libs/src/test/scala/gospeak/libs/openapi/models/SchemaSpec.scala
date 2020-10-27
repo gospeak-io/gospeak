@@ -23,7 +23,7 @@ class SchemaSpec extends BaseSpec {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "number"}""")
-      badJson.validate[Schema.StringVal] shouldBe JsError(Seq(OpenApiError.badHintValue("number", "string", "type").toJson))
+      badJson.validate[Schema.StringVal] shouldBe JsError(List(OpenApiError.badHintValue("number", "string", "type").toJson))
     }
     it("should parse a IntegerVal") {
       val json = Json.parse("""{"type": "integer", "format": "int32", "example": 12, "default": 1, "description": "page no", "minimum": 1}""")
@@ -34,7 +34,7 @@ class SchemaSpec extends BaseSpec {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.IntegerVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "integer", "type").toJson))
+      badJson.validate[Schema.IntegerVal] shouldBe JsError(List(OpenApiError.badHintValue("string", "integer", "type").toJson))
     }
     it("should parse a NumberVal") {
       val json = Json.parse("""{"type": "number", "format": "double", "example": 4.5, "default": 0.1, "description": "a rating"}""")
@@ -45,7 +45,7 @@ class SchemaSpec extends BaseSpec {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.NumberVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "number", "type").toJson))
+      badJson.validate[Schema.NumberVal] shouldBe JsError(List(OpenApiError.badHintValue("string", "number", "type").toJson))
     }
     it("should parse a BooleanVal") {
       val json = Json.parse("""{"type": "boolean", "example": true, "default": false, "description": "is admin"}""")
@@ -56,7 +56,7 @@ class SchemaSpec extends BaseSpec {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.BooleanVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "boolean", "type").toJson))
+      badJson.validate[Schema.BooleanVal] shouldBe JsError(List(OpenApiError.badHintValue("string", "boolean", "type").toJson))
     }
     it("should parse a ArrayVal") {
       val json = Json.parse("""{"type": "array", "items": {"type": "string"}, "example": ["tag"], "description": "list of tags"}""")
@@ -67,7 +67,7 @@ class SchemaSpec extends BaseSpec {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.ArrayVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "array", "type").toJson))
+      badJson.validate[Schema.ArrayVal] shouldBe JsError(List(OpenApiError.badHintValue("string", "array", "type").toJson))
     }
     it("should parse a ObjectVal") {
       val json = Json.parse("""{"type": "object", "properties": {"id": {"type": "string"}}, "description": "a user", "required": ["id"]}""")
@@ -78,7 +78,7 @@ class SchemaSpec extends BaseSpec {
       Json.toJson(schema: Schema) shouldBe json
 
       val badJson = Json.parse("""{"type": "string"}""")
-      badJson.validate[Schema.ObjectVal] shouldBe JsError(Seq(OpenApiError.badHintValue("string", "object", "type").toJson))
+      badJson.validate[Schema.ObjectVal] shouldBe JsError(List(OpenApiError.badHintValue("string", "object", "type").toJson))
     }
     it("should parse a ReferenceVal") {
       val json = Json.parse("""{"$ref": "#/components/schemas/Instant"}""")

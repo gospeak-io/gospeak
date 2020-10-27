@@ -22,7 +22,7 @@ object ApiExternalCfp {
                              eventLocation: Option[String],
                              eventTwitterAccount: Option[String],
                              eventTwitterHashtag: Option[String],
-                             tags: Seq[String])
+                             tags: List[String])
 
   object Published {
     implicit val writes: Writes[Published] = Json.writes[Published]

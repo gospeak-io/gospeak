@@ -5,7 +5,7 @@
 @import gospeak.web.pages.partials.container.html.main
 @import gospeak.web.utils.UserAwareReq
 
-@(event: Event.Full, attendeesEither: Either[String, Seq[MeetupAttendee]])(implicit req: UserAwareReq[AnyContent])
+@(event: Event.Full, attendeesEither: Either[String, List[MeetupAttendee]])(implicit req: UserAwareReq[AnyContent])
 @main(s"${Constants.Emoji.event} Attendee draw for ${event.name.value}", PageMeta.noIndex, style = Html(
     """<style>
       |html, body, .container {

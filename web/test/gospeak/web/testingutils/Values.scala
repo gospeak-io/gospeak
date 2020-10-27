@@ -42,9 +42,9 @@ object Values extends RandomDataGenerator {
   // silhouette
   private val user: User = random[User]
   private val loginInfo: LoginInfo = AuthSrv.loginInfo(user.email)
-  private val identity: AuthUser = AuthUser(loginInfo, user, Seq())
+  private val identity: AuthUser = AuthUser(loginInfo, user, List())
   protected val clock = Clock()
-  private val env: SilhouetteEnvironment[CookieEnv] = FakeEnvironment[CookieEnv](Seq(identity.loginInfo -> identity))
+  private val env: SilhouetteEnvironment[CookieEnv] = FakeEnvironment[CookieEnv](List(identity.loginInfo -> identity))
   private val securedAction: SecuredAction = new DefaultSecuredAction(new DefaultSecuredRequestHandler(new DefaultSecuredErrorHandler(messagesApi)), bodyParsers)
   private val unsecuredAction: UnsecuredAction = new DefaultUnsecuredAction(new DefaultUnsecuredRequestHandler(new DefaultUnsecuredErrorHandler(messagesApi)), bodyParsers)
   private val userAwareAction: UserAwareAction = new DefaultUserAwareAction(new DefaultUserAwareRequestHandler(), bodyParsers)
@@ -59,7 +59,7 @@ object Values extends RandomDataGenerator {
   val db: GsRepoSql = new GsRepoSql(dbConf, conf.gospeak)
   private val authRepo = new AuthRepo(db.user, db.group)
   val emailSrv = new InMemoryEmailSrv()
-  val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(Seq()), new AvatarSrv())
+  val authSrv = AuthSrv(conf.auth, silhouette, db.user, db.userRequest, db.group, authRepo, clock, SocialProviderRegistry(List()), new AvatarSrv())
 
   // twirl
   private val req: Request[AnyContent] = CSRFTokenHelper.addCSRFToken(FakeRequest().withAuthenticator(identity.loginInfo)(env))
@@ -67,5 +67,5 @@ object Values extends RandomDataGenerator {
   private val r: SecuredRequest[CookieEnv, AnyContent] = SecuredRequest[CookieEnv, AnyContent](identity, authenticator, req)
   val userReq: UserReq[AnyContent] = UserReq.from(conf, messagesApi, r)
   val userAwareReq: UserAwareReq[AnyContent] = userReq.userAware
-  val b: Breadcrumb = Breadcrumb(Seq())
+  val b: Breadcrumb = Breadcrumb(List())
 }

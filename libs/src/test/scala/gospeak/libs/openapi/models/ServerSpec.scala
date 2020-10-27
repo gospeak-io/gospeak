@@ -14,8 +14,8 @@ class ServerSpec extends BaseSpec {
       Json.toJson(ServerSpec.value) shouldBe json
     }
     it("should extract variables from an Url") {
-      Server.extractVariables(Url("https://gospeak.io/api")) shouldBe Seq()
-      Server.extractVariables(Url("https://{user}:{pass}@gospeak.io:{port}/api")) shouldBe Seq("user", "pass", "port")
+      Server.extractVariables(Url("https://gospeak.io/api")) shouldBe List()
+      Server.extractVariables(Url("https://{user}:{pass}@gospeak.io:{port}/api")) shouldBe List("user", "pass", "port")
     }
     it("should check if all variables are referenced") {
       val s = Schemas()

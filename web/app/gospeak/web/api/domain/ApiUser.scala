@@ -46,7 +46,7 @@ object ApiUser {
     implicit val writes: Writes[Embed] = Json.writes[Embed]
   }
 
-  def embed(id: User.Id, users: Seq[User])(implicit ctx: BasicCtx): Embed =
+  def embed(id: User.Id, users: List[User])(implicit ctx: BasicCtx): Embed =
     users.find(_.id == id).map(embed).getOrElse(unknown(id))
 
   def embed(user: User)(implicit ctx: BasicCtx): Embed =

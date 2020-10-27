@@ -46,7 +46,7 @@ class MessageHandler(appConf: ApplicationConf,
     groupElt <- OptionT(groupRepo.find(group))
     actions <- OptionT.liftF(groupSettingsRepo.findActions(groupElt.id))
     accounts <- OptionT.liftF(groupSettingsRepo.findAccounts(groupElt.id))
-    actionsToExec = Trigger.all.filter(_.message == msg.ref).flatMap(actions.getOrElse(_, Seq()))
+    actionsToExec = Trigger.all.filter(_.message == msg.ref).flatMap(actions.getOrElse(_, List()))
     results <- OptionT.liftF(actionsToExec.map(execGroupAction(accounts, _, data)).sequence)
   } yield results.length).value.map(_.getOrElse(0))
 
@@ -58,7 +58,7 @@ class MessageHandler(appConf: ApplicationConf,
         content <- email.content.render(data).map(_.toHtml).leftMap(e => CustomException(e.message))
       } yield emailSrv.send(EmailSrv.Email(
         from = Constants.Gospeak.noreplyEmail,
-        to = Seq(to),
+        to = List(to),
         subject = subject,
         content = EmailSrv.HtmlContent(content.value)
       ))).toIO.flatMap(identity).map(_ => ())

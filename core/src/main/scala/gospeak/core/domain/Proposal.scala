@@ -20,8 +20,8 @@ final case class Proposal(id: Proposal.Id,
                           speakers: NonEmptyList[User.Id],
                           slides: Option[Url.Slides],
                           video: Option[Url.Video],
-                          tags: Seq[Tag],
-                          orgaTags: Seq[Tag],
+                          tags: List[Tag],
+                          orgaTags: List[Tag],
                           info: Info) {
   def data: Proposal.Data = Proposal.Data(this)
 
@@ -29,7 +29,7 @@ final case class Proposal(id: Proposal.Id,
 
   def hasSpeaker(user: User.Id): Boolean = speakers.toList.contains(user)
 
-  def speakerUsers(users: Seq[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
+  def speakerUsers(users: List[User]): List[User] = speakers.toList.flatMap(id => users.find(_.id == id))
 
   def users: List[User.Id] = (speakers.toList ++ info.users).distinct
 }
@@ -42,7 +42,7 @@ object Proposal {
             status: Status,
             speakers: NonEmptyList[User.Id],
             info: Info): Proposal =
-    new Proposal(Id.generate(), talk, cfp, event, status, d.title, d.duration, d.description, d.message, speakers, d.slides, d.video, d.tags, Seq(), info)
+    new Proposal(Id.generate(), talk, cfp, event, status, d.title, d.duration, d.description, d.message, speakers, d.slides, d.video, d.tags, List(), info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -62,7 +62,7 @@ object Proposal {
       def description = "Remove this proposal from the pending ones"
     }
 
-    val all: Seq[Status] = Seq(Pending, Accepted, Declined)
+    val all: List[Status] = List(Pending, Accepted, Declined)
   }
 
   final case class Full(proposal: Proposal,
@@ -93,15 +93,15 @@ object Proposal {
 
     def speakers: NonEmptyList[User.Id] = proposal.speakers
 
-    def speakerUsers(users: Seq[User]): List[User] = proposal.speakerUsers(users)
+    def speakerUsers(users: List[User]): List[User] = proposal.speakerUsers(users)
 
     def slides: Option[Url.Slides] = proposal.slides
 
     def video: Option[Url.Video] = proposal.video
 
-    def tags: Seq[Tag] = proposal.tags
+    def tags: List[Tag] = proposal.tags
 
-    def orgaTags: Seq[Tag] = proposal.orgaTags
+    def orgaTags: List[Tag] = proposal.orgaTags
 
     def info: Info = proposal.info
 
@@ -129,7 +129,7 @@ object Proposal {
 
       case object Dislike extends Grade(-1)
 
-      val all: Seq[Grade] = Seq(Like, Dislike)
+      val all: List[Grade] = List(Like, Dislike)
 
       def from(value: Int): Either[CustomException, Grade] =
         all.find(_.value == value).map(Right(_)).getOrElse(Left(CustomException(s"'$value' is not a valid Proposal.Rating.Grade")))
@@ -155,7 +155,7 @@ object Proposal {
                         message: Markdown,
                         slides: Option[Url.Slides],
                         video: Option[Url.Video],
-                        tags: Seq[Tag])
+                        tags: List[Tag])
 
   object Data {
     def apply(t: Talk): Data = Data(t.title, t.duration, t.description, t.message, t.slides, t.video, t.tags)
@@ -170,8 +170,8 @@ object Proposal {
                             description: Markdown,
                             slides: Option[Url.Slides],
                             video: Option[Url.Video],
-                            tags: Seq[Tag],
-                            orgaTags: Seq[Tag])
+                            tags: List[Tag],
+                            orgaTags: List[Tag])
 
   object DataOrga {
     def apply(p: Proposal): DataOrga = DataOrga(p.title, p.duration, p.description, p.slides, p.video, p.tags, p.orgaTags)

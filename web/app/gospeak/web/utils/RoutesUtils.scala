@@ -5,10 +5,10 @@ import gospeak.web.utils.RoutesUtils._
 
 import scala.util.Try
 
-final case class Routes(routes: Seq[Route])
+final case class Routes(routes: List[Route])
 
 final case class Route(line: Int, verb: String, path: String, action: String) {
-  def variables: Seq[String] =
+  def variables: List[String] =
     variableRegex.findAllIn(path).toList.map(v => v.head match {
       case ':' => v.stripPrefix(":")
       case '*' => v.stripPrefix("*")
@@ -36,7 +36,7 @@ object RoutesUtils {
   private[utils] def readFile(): Try[String] =
     FileUtils.read(FileUtils.adaptLocalPath("web/conf/routes"))
 
-  private[utils] def parseRoutes(routes: String): Seq[Either[(Int, String), Route]] =
+  private[utils] def parseRoutes(routes: String): List[Either[(Int, String), Route]] =
     routes.split("\n").zipWithIndex.map { case (route, i) => parseRoute(i + 1, route) }.toList
 
   private[utils] def parseRoute(line: Int, route: String): Either[(Int, String), Route] = route match {

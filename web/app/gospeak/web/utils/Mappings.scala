@@ -57,7 +57,7 @@ object Mappings {
     from = d => TimePeriod.PeriodUnit.all.find(_.value == d).toEither(s"No period '$d'"),
     to = _.value,
     errorMessage = formatError,
-    errorArgs = Seq(_))
+    errorArgs = List(_))
   val period: Mapping[TimePeriod] = mapping(
     "length" -> longNumber,
     "unit" -> periodUnit
@@ -88,7 +88,7 @@ object Mappings {
     else PlayInvalid(ValidationError(passwordError))
   })
   val markdown: Mapping[Markdown] = textMapping(Markdown(_), _.value, Constraints.maxLength(Values.maxLength.text))
-  val currency: Mapping[Price.Currency] = stringEitherMapping[Price.Currency, String](c => Price.Currency.from(c).toEither(s"No currency '$c'"), _.value, formatError, Seq(_))
+  val currency: Mapping[Price.Currency] = stringEitherMapping[Price.Currency, String](c => Price.Currency.from(c).toEither(s"No currency '$c'"), _.value, formatError, List(_))
   val price: Mapping[Price] = mapping(
     "amount" -> double,
     "currency" -> currency
@@ -114,7 +114,7 @@ object Mappings {
       ).mapN(GMapPlace.apply).toEither.left.map(_.toList)
 
     override def unbind(key: String, value: GMapPlace): Map[String, String] =
-      Seq(
+      List(
         s"$key.id" -> Some(value.id),
         s"$key.name" -> Some(value.name),
         s"$key.streetNo" -> value.streetNo,
@@ -147,7 +147,7 @@ object Mappings {
   )(SocialAccounts.apply)(SocialAccounts.unapply)
 
   private val tag: Mapping[Tag] = WrappedMapping[String, Tag](text(1, Tag.maxSize), s => Tag(s.trim), _.value)
-  val tags: Mapping[Seq[Tag]] = seq(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
+  val tags: Mapping[List[Tag]] = list(tag).verifying(s"Can't add more than ${Tag.maxNumber} tags", _.length <= Tag.maxNumber)
 
   val userSlug: Mapping[User.Slug] = slugMapping(User.Slug)
   val userStatus: Mapping[User.Status] = stringEitherMapping[User.Status, CustomException](User.Status.from, _.value, formatError, _.getMessage :: Nil)
@@ -194,9 +194,9 @@ object Mappings {
 
   private def liquidFormatter[A]: Formatter[Liquid[A]] = new Formatter[Liquid[A]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Liquid[A]] =
-      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Liquid" => data.get(s"$key.value").map(v => Right(Liquid[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
-        case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
+      data.eitherGet(s"$key.kind").left.map(List(_)).flatMap {
+        case "Liquid" => data.get(s"$key.value").map(v => Right(Liquid[A](v))).getOrElse(Left(List(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case v => Left(List(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
     override def unbind(key: String, value: Liquid[A]): Map[String, String] = Map(s"$key.kind" -> "Liquid", s"$key.value" -> value.value)
@@ -206,9 +206,9 @@ object Mappings {
 
   private def liquidMarkdownFormatter[A]: Formatter[LiquidMarkdown[A]] = new Formatter[LiquidMarkdown[A]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], LiquidMarkdown[A]] =
-      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
-        case "Liquid" => data.get(s"$key.value").map(v => Right(LiquidMarkdown[A](v))).getOrElse(Left(Seq(FormError(s"$key.value", s"Missing key '$key.value'"))))
-        case v => Left(Seq(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
+      data.eitherGet(s"$key.kind").left.map(List(_)).flatMap {
+        case "Liquid" => data.get(s"$key.value").map(v => Right(LiquidMarkdown[A](v))).getOrElse(Left(List(FormError(s"$key.value", s"Missing key '$key.value'"))))
+        case v => Left(List(FormError(s"$key.kind", s"Invalid value '$v' for key '$key.kind'")))
       }
 
     override def unbind(key: String, value: LiquidMarkdown[A]): Map[String, String] = Map(s"$key.kind" -> "Liquid", s"$key.value" -> value.value)
@@ -218,14 +218,14 @@ object Mappings {
 
   val groupSettingsEvent: Mapping[Group.Settings.Action.Trigger] = of(new Formatter[Group.Settings.Action.Trigger] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action.Trigger] =
-      data.eitherGet(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(Seq(_))
+      data.eitherGet(key, v => Group.Settings.Action.Trigger.from(v).asTry(identity), formatError).left.map(List(_))
 
     override def unbind(key: String, trigger: Group.Settings.Action.Trigger): Map[String, String] = Map(key -> trigger.value)
   })
 
   val groupSettingsAction: Mapping[Group.Settings.Action] = of(new Formatter[Group.Settings.Action] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Group.Settings.Action] = {
-      data.eitherGet(s"$key.kind").left.map(Seq(_)).flatMap {
+      data.eitherGet(s"$key.kind").left.map(List(_)).flatMap {
         case "Email.Send" => (
           liquidFormatter[Any].bind(s"$key.to", data),
           liquidFormatter[Any].bind(s"$key.subject", data),
@@ -237,7 +237,7 @@ object Mappings {
           implicitly[Formatter[Boolean]].bind(s"$key.createdChannelIfNotExist", data),
           implicitly[Formatter[Boolean]].bind(s"$key.inviteEverybody", data)
           ).mapN(SlackAction.PostMessage.apply).map(Group.Settings.Action.Slack)
-        case v => Left(Seq(FormError(s"$key.kind", s"action kind '$v' not found")))
+        case v => Left(List(FormError(s"$key.kind", s"action kind '$v' not found")))
       }
     }
 
@@ -263,7 +263,7 @@ object Mappings {
     def nonEmptyTextMapping[A](from: String => A, to: A => String, constraints: Constraint[String]*): Mapping[A] =
       WrappedMapping(nonEmptyText.verifying(constraints: _*), from, to)
 
-    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, errorArgs: E => Seq[String], constraints: Constraint[String]*): Mapping[A] =
+    def stringEitherMapping[A, E](from: String => Either[E, A], to: A => String, errorMessage: String, errorArgs: E => List[String], constraints: Constraint[String]*): Mapping[A] =
       WrappedMapping(text.verifying(constraints: _*).verifying(format(from, errorMessage, errorArgs)), (s: String) => from(s).get, to)
 
     def idMapping[A <: IId](builder: UuidIdBuilder[A]): Mapping[A] =
@@ -272,7 +272,7 @@ object Mappings {
     def slugMapping[A <: ISlug](builder: SlugBuilder[A]): Mapping[A] =
       WrappedMapping(text.verifying(Constraints.nonEmpty(), Constraints.pattern(SlugBuilder.pattern), Constraints.maxLength(SlugBuilder.maxLength)), (s: String) => builder.from(s).get, _.value)
 
-    private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError, errorArgs: E => Seq[String] = (_: E) => Seq()): Constraint[String] =
+    private def format[E, A](parse: String => Either[E, A], errorMessage: String = formatError, errorArgs: E => List[String] = (_: E) => List()): Constraint[String] =
       Constraint[String](formatConstraint) { o =>
         if (o == null) PlayInvalid(ValidationError(requiredError))
         else parse(o.trim).fold(err => PlayInvalid(ValidationError(errorMessage, errorArgs(err): _*)), _ => PlayValid)

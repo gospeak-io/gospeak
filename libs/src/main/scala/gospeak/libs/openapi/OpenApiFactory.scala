@@ -13,7 +13,7 @@ object OpenApiFactory {
   def parseJson(json: JsValue): Either[OpenApiErrors, OpenApi] = {
     import Formats._
     json.validate[OpenApi].fold(
-      errors => Left(OpenApiErrors(errors.map(formatError))),
+      errors => Left(OpenApiErrors(errors.map(formatError).toList)),
       openApi => Right(openApi)
     )
   }
@@ -57,7 +57,7 @@ object OpenApiFactory {
         case Some(Schema.BooleanVal.hint) => fSchemaBoolean.reads(json)
         case Some(Schema.ArrayVal.hint) => fSchemaArray.reads(json)
         case Some(Schema.ObjectVal.hint) => fSchemaObject.reads(json)
-        case Some(value) => JsError(Seq(OpenApiError.unknownHint(value, Schema.hintAttr).atPath(Schema.hintAttr).toJson))
+        case Some(value) => JsError(List(OpenApiError.unknownHint(value, Schema.hintAttr).atPath(Schema.hintAttr).toJson))
         case None if (json \ Schema.ReferenceVal.hintAttr).asOpt[String].isDefined => fSchemaReference.reads(json)
         case None => fSchemaCombination.reads(json)
       },

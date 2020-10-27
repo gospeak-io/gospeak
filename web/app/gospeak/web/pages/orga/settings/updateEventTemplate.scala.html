@@ -22,16 +22,16 @@
     @formElt(form, SettingsCtrl.doUpdateEventTemplate(req.group.slug, templateName)) {
         <div class="row">
             <div class="col-6">
-                @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
-                    @inputTemplate(field, Some(Message.Ref.eventInfo), markdown = templateName.exists(!settings.event.templates.contains(_)), args = args ++ Seq("autofocus" -> "true"))
+                @fieldVertical(form("template"), List("label" -> "Your template:")) { (field, args) =>
+                    @inputTemplate(field, Some(Message.Ref.eventInfo), markdown = templateName.exists(!settings.event.templates.contains(_)), args = args ++ List("autofocus" -> "true"))
                 }
             </div>
             <div class="col-6">
                 @displayTemplateData(Some(Message.Ref.eventInfo))
             </div>
         </div>
-        @fieldHorizontal(form("id"), Seq("label" -> "Template id", "help" -> "It should be a unique identifier describing the template")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "ex: Intro slides") ++ args)
+        @fieldHorizontal(form("id"), List("label" -> "Template id", "help" -> "It should be a unique identifier describing the template")) { (field, args) =>
+            @inputText(field, List("placeholder" -> "ex: Intro slides") ++ args)
         }
         @actionsVertical() {
             @btnCancel(SettingsCtrl.settings(req.group.slug))

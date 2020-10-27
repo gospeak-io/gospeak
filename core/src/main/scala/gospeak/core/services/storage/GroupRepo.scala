@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
-import gospeak.libs.scala.domain.{Done, Page, Tag}
+import gospeak.libs.scala.domain.{Page, Tag}
 
 trait GroupRepo extends OrgaGroupRepo with SpeakerGroupRepo with UserGroupRepo with AuthGroupRepo with PublicGroupRepo with AdminGroupRepo with SuggestGroupRepo
 
@@ -20,13 +20,13 @@ trait OrgaGroupRepo {
 
   def create(data: Group.Data)(implicit ctx: UserCtx): IO[Group]
 
-  def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Done]
+  def edit(data: Group.Data)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def addOwner(group: Group.Id, owner: User.Id, by: User.Id)(implicit ctx: UserCtx): IO[Done]
+  def addOwner(group: Group.Id, owner: User.Id, by: User.Id)(implicit ctx: UserCtx): IO[Unit]
 
-  def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Done]
+  def removeOwner(owner: User.Id)(implicit ctx: OrgaCtx): IO[Unit]
 
-  def listMembers(implicit ctx: OrgaCtx): IO[Seq[Group.Member]]
+  def listMembers(implicit ctx: OrgaCtx): IO[List[Group.Member]]
 
   def getStats(implicit ctx: OrgaCtx): IO[Group.Stats]
 }
@@ -38,23 +38,23 @@ trait SpeakerGroupRepo {
 trait UserGroupRepo {
   def find(group: Group.Id): IO[Option[Group]]
 
-  def list(implicit ctx: UserCtx): IO[Seq[Group]]
+  def list(implicit ctx: UserCtx): IO[List[Group]]
 
   def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]]
 }
 
 trait AuthGroupRepo {
-  def list(user: User.Id): IO[Seq[Group]]
+  def list(user: User.Id): IO[List[Group]]
 }
 
 trait PublicGroupRepo {
-  def listAllSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(Group.Id, Group.Slug)]]
+  def listAllSlugs()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Group.Slug)]]
 
   def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]]
 
-  def listFull(user: User.Id): IO[Seq[Group.Full]]
+  def listFull(user: User.Id): IO[List[Group.Full]]
 
-  def list(ids: Seq[Group.Id]): IO[Seq[Group]]
+  def list(ids: List[Group.Id]): IO[List[Group]]
 
   def find(group: Group.Slug): IO[Option[Group]]
 
@@ -66,9 +66,9 @@ trait PublicGroupRepo {
 
   def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]]
 
-  def join(group: Group.Id)(user: User, now: Instant): IO[Done]
+  def join(group: Group.Id)(user: User, now: Instant): IO[Group.Member]
 
-  def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Done]
+  def leave(member: Group.Member)(user: User.Id, now: Instant): IO[Unit]
 }
 
 trait AdminGroupRepo {
@@ -78,5 +78,5 @@ trait AdminGroupRepo {
 }
 
 trait SuggestGroupRepo {
-  def listTags(): IO[Seq[Tag]]
+  def listTags(): IO[List[Tag]]
 }

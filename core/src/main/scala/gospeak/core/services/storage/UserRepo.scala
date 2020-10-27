@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.effect.IO
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
-import gospeak.libs.scala.domain.{Done, EmailAddress, Page}
+import gospeak.libs.scala.domain.{EmailAddress, Page}
 
 trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo with SuggestUserRepo
 
@@ -16,7 +16,7 @@ trait OrgaUserRepo {
 
   def speakers(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[User.Full]]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 }
 
 trait SpeakerUserRepo {
@@ -24,7 +24,7 @@ trait SpeakerUserRepo {
 
   def find(slug: User.Slug): IO[Option[User]]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 }
 
 trait UserUserRepo {
@@ -32,9 +32,9 @@ trait UserUserRepo {
 
   def edit(data: User.Data)(implicit ctx: UserCtx): IO[User]
 
-  def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Done]
+  def editStatus(status: User.Status)(implicit ctx: UserCtx): IO[Unit]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 }
 
 trait AuthUserRepo {
@@ -42,13 +42,13 @@ trait AuthUserRepo {
 
   def edit(user: User.Id)(data: User.Data, now: Instant): IO[User]
 
-  def createLoginRef(login: User.Login, user: User.Id): IO[Done]
+  def createLoginRef(login: User.Login, user: User.Id): IO[Unit]
 
   def createCredentials(credentials: User.Credentials): IO[User.Credentials]
 
-  def editCredentials(login: User.Login)(pass: User.Password): IO[Done]
+  def editCredentials(login: User.Login)(pass: User.Password): IO[Unit]
 
-  def removeCredentials(login: User.Login): IO[Done]
+  def removeCredentials(login: User.Login): IO[Unit]
 
   def findCredentials(login: User.Login): IO[Option[User.Credentials]]
 
@@ -66,11 +66,11 @@ trait PublicUserRepo {
 
   def speakerCountPublic(group: Group.Id): IO[Long]
 
-  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[Seq[(User.Id, User.Slug)]]
+  def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[(User.Id, User.Slug)]]
 
   def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]]
 
-  def list(ids: Seq[User.Id]): IO[Seq[User]]
+  def list(ids: List[User.Id]): IO[List[User]]
 
   def findPublic(user: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]]
 }

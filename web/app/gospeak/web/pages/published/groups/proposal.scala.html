@@ -10,7 +10,7 @@
 @import gospeak.web.pages.user.talks.proposals.routes.{ProposalCtrl => SpeakerProposalCtrl}
 @import gospeak.web.utils._
 
-@(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: Seq[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
+@(group: Group, proposal: Proposal.Full, tweet: Option[Tweet], users: List[User])(b: Breadcrumb)(implicit req: UserAwareReq[AnyContent])
 @container(s"${Constants.Emoji.proposal} ${proposal.title.value} ${Constants.Emoji.group} ${group.name.value}", PageMeta.proposal(group, proposal.proposal, b), b)() {
     <a href="@GroupCtrl.detail(group.slug)"><i class="fas fa-chevron-left"></i> @group.name.value</a>
     <div class="float-right">@socialShareButtons(Shareable(group, proposal.proposal, users))</div>

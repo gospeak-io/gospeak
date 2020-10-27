@@ -16,7 +16,7 @@
                     </span>
                     <span>
                         <a href="@SettingsCtrl.updateAction(req.group.slug, trigger, index)" class="btn btn-primary btn-xs mr-1">Update</a>
-                        @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), Seq("class" -> "btn-danger btn-xs mr-1")) {Remove}
+                        @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), List("class" -> "btn-danger btn-xs mr-1")) {Remove}
                     </span>
                 </h5>
                 <p class="mb-0 ml-3">Channel: @a.channel.value</p>
@@ -41,7 +41,7 @@
                     <span>Send email</span>
                     <span>
                         <a href="@SettingsCtrl.updateAction(req.group.slug, trigger, index)" class="btn btn-primary btn-xs mr-1">Update</a>
-                        @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), Seq("class" -> "btn-danger btn-xs mr-1")) {Remove}
+                        @formBtn(SettingsCtrl.doRemoveAction(req.group.slug, trigger, index), List("class" -> "btn-danger btn-xs mr-1")) {Remove}
                     </span>
                 </h5>
                 <p class="mb-0 ml-3">To: @a.to.value</p>

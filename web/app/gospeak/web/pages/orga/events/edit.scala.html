@@ -18,49 +18,49 @@
                 @btnSubmit("Save")
             </div>
         </div>
-        @fieldVertical(form("name"), Seq("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
+        @fieldVertical(form("name"), List("label" -> "Name", "help" -> "Name of the event")) { (field, args) =>
+            @inputText(field, List("placeholder" -> "Event name", "autofocus" -> "true") ++ args)
         }
-        @fieldVertical(form("kind"), Seq("label" -> "Kind")) { (field, args) =>
-            @inputSelect(field, Event.Kind.all.map(k => k.value -> k.value), Seq("placeholder" -> "What kind of event is it?") ++ args)
+        @fieldVertical(form("kind"), List("label" -> "Kind")) { (field, args) =>
+            @inputSelect(field, Event.Kind.all.map(k => k.value -> k.value), List("placeholder" -> "What kind of event is it?") ++ args)
         }
-        @fieldVertical(form("start"), Seq("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
+        @fieldVertical(form("start"), List("label" -> "Date", "help" -> "Local date and time when the event will start")) { (field, args) =>
             @inputLocalDatetime(field, args)
         }
         @inputHidden(form("venue"))
-        @* @fieldVertical(form("venue"), Seq("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
-            @inputSelect(field, Seq(), Seq("placeholder" -> "", "remote" -> SuggestCtrl.suggestVenues(req.group.slug).toString, "optional" -> "") ++ args)
+        @* @fieldVertical(form("venue"), List("label" -> "Venue", "help" -> "Where your event will take place")) { (field, args) =>
+            @inputSelect(field, List(), List("placeholder" -> "", "remote" -> SuggestCtrl.suggestVenues(req.group.slug).toString, "optional" -> "") ++ args)
         } *@
-        @fieldVertical(form("max-attendee"), Seq("label" -> "Max attendees", "help" -> "What is the capacity of this event")) { (field, args) =>
-            @inputNumber(field, Seq("placeholder" -> "50", "optional" -> "") ++ args)
+        @fieldVertical(form("max-attendee"), List("label" -> "Max attendees", "help" -> "What is the capacity of this event")) { (field, args) =>
+            @inputNumber(field, List("placeholder" -> "50", "optional" -> "") ++ args)
         }
-        @fieldCheckbox(form("allow-rsvp"), Seq("label" -> "Allow RSVP", "help" -> "Choose if users can RSVP to this event")) { (field, args) =>
+        @fieldCheckbox(form("allow-rsvp"), List("label" -> "Allow RSVP", "help" -> "Choose if users can RSVP to this event")) { (field, args) =>
             @inputCheckbox(field, args)
         }
-        @fieldVertical(form("cfp"), Seq("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
-            @inputSelect(field, Seq(), Seq("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.suggestCfps(req.group.slug).toString, "optional" -> "") ++ args)
+        @fieldVertical(form("cfp"), List("label" -> "CFP", "help" -> "You will be able to add proposals from the CFP to the event")) { (field, args) =>
+            @inputSelect(field, List(), List("placeholder" -> "-- Attach a CFP to this event", "remote" -> SuggestCtrl.suggestCfps(req.group.slug).toString, "optional" -> "") ++ args)
         }
-        @fieldVertical(form("tags"), Seq("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
-            @inputTags(field, args ++ Seq("remote" -> SuggestCtrl.suggestTags().toString))
+        @fieldVertical(form("tags"), List("label" -> "Tags", "help" -> "Main topics of the event")) { (field, args) =>
+            @inputTags(field, args ++ List("remote" -> SuggestCtrl.suggestTags().toString))
         }
-        @fieldVertical(form("description"), Seq("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
+        @fieldVertical(form("description"), List("label" -> "Description", "help" -> "Description of your event")) { (field, args) =>
             <div class="row">
                 <div class="col-6">
-                    @inputTemplate(field, ref = Some(Message.Ref.eventInfo), args = Seq("placeholder" -> "Event description") ++ args)
+                    @inputTemplate(field, ref = Some(Message.Ref.eventInfo), args = List("placeholder" -> "Event description") ++ args)
                 </div>
                 <div class="col-6">
                     @displayTemplateData(Some(Message.Ref.eventInfo))
                 </div>
             </div>
         }
-        @fieldVertical(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
-            @inputText(field, Seq("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
+        @fieldVertical(form("slug"), List("label" -> "Slug", "help" -> "Reference of the event (in urls for example)")) { (field, args) =>
+            @inputText(field, List("placeholder" -> "Event slug", "slug-for" -> form("name").id) ++ args)
         }
         @if(hasMeetupAccount) {
-            @fieldVertical(form("refs.meetup"), Seq("label" -> "Meetup reference", "help" -> "References of this event in Meetup.com")) { (field, args) =>
+            @fieldVertical(form("refs.meetup"), List("label" -> "Meetup reference", "help" -> "References of this event in Meetup.com")) { (field, args) =>
                 <div class="row">
-                    <div class="col-6">@inputText(field("group"), Seq("placeholder" -> "Group url name name", "optional" -> "true") ++ args)</div>
-                    <div class="col-6">@inputNumber(field("event"), Seq("placeholder" -> "Event id", "optional" -> "true") ++ args)</div>
+                    <div class="col-6">@inputText(field("group"), List("placeholder" -> "Group url name name", "optional" -> "true") ++ args)</div>
+                    <div class="col-6">@inputNumber(field("event"), List("placeholder" -> "Event id", "optional" -> "true") ++ args)</div>
                 </div>
             }
         }

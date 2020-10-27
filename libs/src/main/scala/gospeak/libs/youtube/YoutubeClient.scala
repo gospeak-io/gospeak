@@ -75,17 +75,17 @@ class YoutubeClient(val underlying: YouTube) {
   def listPlaylistVideos(playlistId: Url.Videos.Playlist.Id, pageToken: String = ""): IO[Either[YoutubeErrors, YoutubePage[YoutubeVideo]]] = {
     import Settings.Channel.Part._
     execute(underlying.playlistItems()
-      .list(util.Arrays.asList(Seq(snippet, contentDetails).mkString(separator)))
+      .list(util.Arrays.asList(List(snippet, contentDetails).mkString(separator)))
       .setPlaylistId(playlistId.value)
       .setPageToken(pageToken)
       .setMaxResults(maxResults))
       .map(_.flatMap(YoutubeVideo.page))
   }
 
-  def getVideoDetails(videoIds: Seq[Url.Video.Id]): IO[Either[YoutubeErrors, List[YoutubeVideo]]] = {
+  def getVideoDetails(videoIds: List[Url.Video.Id]): IO[Either[YoutubeErrors, List[YoutubeVideo]]] = {
     import Settings.Channel.Part._
     execute(underlying.videos()
-      .list(util.Arrays.asList(Seq(snippet, contentDetails, statistics).mkString(separator)))
+      .list(util.Arrays.asList(List(snippet, contentDetails, statistics).mkString(separator)))
       .setId(util.Arrays.asList(videoIds.map(_.value).mkString(separator))))
       .map(_.flatMap(_.getItems.asScala.toList.map(YoutubeVideo.from).sequence))
   }

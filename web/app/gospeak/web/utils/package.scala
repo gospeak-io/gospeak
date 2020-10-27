@@ -6,8 +6,8 @@ import java.util.Locale
 
 import gospeak.core.domain._
 import gospeak.core.domain.utils.Constants
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Filter, Sort}
 import gospeak.libs.scala.domain._
+import gospeak.libs.sql.dsl.Table
 import io.circe.Encoder
 import play.api.data.{Form, FormError}
 import play.api.mvc.{AnyContent, Call, Flash}
@@ -107,15 +107,15 @@ package object utils {
     def plural(word: String, plural: String = "")(implicit req: BasicReq[AnyContent]): String = (i: Long).plural(word, plural)
   }
 
-  implicit class RichSeq[A](val s: Seq[A]) extends AnyVal {
+  implicit class RichList[A](val s: List[A]) extends AnyVal {
     def plural(word: String, plural: String = "")(implicit req: BasicReq[AnyContent]): String = (s.length: Long).plural(word, plural)
   }
 
-  implicit class RichSeqHtml(val l: Seq[Html]) extends AnyVal {
+  implicit class RichListHtml(val l: List[Html]) extends AnyVal {
     def mkHtml(sep: Html): Html = l match {
-      case Seq() => Html("")
-      case Seq(head) => head
-      case Seq(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
+      case List() => Html("")
+      case List(head) => head
+      case List(head, tail@_*) => Html(tail.foldLeft(new StringBuilder(head.body.trim))((b, html) => b.append(sep.body + html.body.trim)).toString())
     }
 
     def mkHtml(sep: String): Html = mkHtml(Html(sep))
@@ -174,7 +174,7 @@ package object utils {
     def asLink: Html = Html(s"""<a href="${p.url}" target="_blank">${p.formatted}</a>""")
   }
 
-  implicit class RichSeqTag(val l: Seq[Tag]) extends AnyVal {
+  implicit class RichListTag(val l: List[Tag]) extends AnyVal {
     def asBadges: Html = asBadges()
 
     def asBadges(color: String = "primary", title: String = "tag"): Html =
@@ -197,21 +197,21 @@ package object utils {
   implicit class RichPage[A](val p: Page[A]) extends AnyVal {
     def plural(word: String, plural: String = "")(implicit req: BasicReq[AnyContent]): String = p.total.value.plural(word, plural)
 
-    def render(link: Page.Params => Call, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq())(item: A => Html): Html =
-      Html(Seq(
+    def render(link: Page.Params => Call, filters: List[Table.Filter] = List(), sorts: List[Table.Sort] = List())(item: A => Html): Html =
+      Html(List(
         paginationHeader(link, filters, sorts),
         paginationBody(item),
         paginationFooter(link)).map(_.body).mkString)
 
-    def renderCustom(link: Page.Params => Call, filters: Seq[Filter] = Seq(), sorts: Seq[Sort] = Seq())(header: Page[A] => Html)(empty: Html)(item: A => Html)(footer: Page[A] => Html): Html =
-      Html(Seq(
+    def renderCustom(link: Page.Params => Call, filters: List[Table.Filter] = List(), sorts: List[Table.Sort] = List())(header: Page[A] => Html)(empty: Html)(item: A => Html)(footer: Page[A] => Html): Html =
+      Html(List(
         paginationHeader(link, filters, sorts),
         header(p),
         if (p.isEmpty) empty else Html(p.items.map(item).mkString("\n")),
         footer(p),
         paginationFooter(link)).map(_.body).mkString)
 
-    private def paginationHeader(link: Page.Params => Call, filters: Seq[Filter], sorts: Seq[Sort]): Html = {
+    private def paginationHeader(link: Page.Params => Call, filters: List[Table.Filter], sorts: List[Table.Sort]): Html = {
       import gospeak.web.pages.partials.html
       Html(
         s"""<div class="row"${if (p.params.search.isEmpty && !p.hasManyPages) " style=\"display: none !important;\"" else ""}>
@@ -252,12 +252,12 @@ package object utils {
    */
 
   implicit class RichUserId(val id: User.Id) extends AnyVal {
-    def asBadge(users: Seq[User]): Html = users.find(_.id == id) match {
+    def asBadge(users: List[User]): Html = users.find(_.id == id) match {
       case Some(u) => Html(s"""<span class="badge badge-pill badge-primary">${u.name.value}</span>""")
       case None => Html(s"""<span class="badge badge-pill badge-primary">Unknown user (${id.value})</span>""")
     }
 
-    def asBadgeLink(users: Seq[User], link: User => Option[Call] = _ => None): Html = users.find(_.id == id).map(u => (u, link(u))) match {
+    def asBadgeLink(users: List[User], link: User => Option[Call] = _ => None): Html = users.find(_.id == id).map(u => (u, link(u))) match {
       case Some((u, Some(url))) => Html(s"""<a href="$url" class="badge badge-pill badge-primary">${u.name.value}</a>""")
       case Some((u, None)) => Html(s"""<span class="badge badge-pill badge-primary">${u.name.value}</span>""")
       case None => Html(s"""<span class="badge badge-pill badge-primary">Unknown user (${id.value})</span>""")
@@ -276,12 +276,12 @@ package object utils {
   }
 
   implicit class RichEventId(val id: Event.Id) extends AnyVal {
-    def asName(events: Seq[Event]): Html = events.find(_.id == id) match {
+    def asName(events: List[Event]): Html = events.find(_.id == id) match {
       case Some(e) => Html(s"""<span>${e.name.value}</span>""")
       case None => Html(s"""<span>Unknown (${id.value})</span>""")
     }
 
-    def asLink(events: Seq[Event], link: Event => Call)(implicit req: UserReq[AnyContent]): Html = events.find(_.id == id) match {
+    def asLink(events: List[Event], link: Event => Call)(implicit req: UserReq[AnyContent]): Html = events.find(_.id == id) match {
       case Some(e) => Html(s"""<a href="${link(e)}" title="on ${e.start.asDate}">${e.name.value}</a>""")
       case None => Html(s"""<span>Unknown (${id.value})</span>""")
     }

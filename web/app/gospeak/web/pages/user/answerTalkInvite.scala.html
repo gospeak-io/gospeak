@@ -12,8 +12,8 @@
         <h1>Nice!!! You have been invited to join a talk <i class="far fa-thumbs-up"></i></h1>
         <h3>@talk.title.value</h3>
         @talk.description.render
-        @formBtn(UserCtrl.rejectRequest(invite.id), Seq("class" -> "btn-danger")) {Do not join}
-        @formBtn(UserCtrl.acceptRequest(invite.id), Seq("class" -> "btn-success")) {Join <b>@speaker.name.value</b> for talk <b>@talk.title.value</b>}
+        @formBtn(UserCtrl.rejectRequest(invite.id), List("class" -> "btn-danger")) {Do not join}
+        @formBtn(UserCtrl.acceptRequest(invite.id), List("class" -> "btn-success")) {Join <b>@speaker.name.value</b> for talk <b>@talk.title.value</b>}
     } else {
         <h1>Invitation to the talk '@talk.title.value' by @speaker.name.value</h1>
         <h3 class="text-danger">Oups, this invite is expired</h3>

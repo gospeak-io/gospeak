@@ -7,7 +7,7 @@
 @import gospeak.web.pages.partials.form.html.formBtn
 @import gospeak.web.utils._
 
-@(event: Event, venueOpt: Option[Venue.Full], venues: Page[Venue.Common], groupVenues: Seq[Venue.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(event: Event, venueOpt: Option[Venue.Full], venues: Page[Venue.Common], groupVenues: List[Venue.Full])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(s"Set venue for ${event.name.value}", b)() {
     <div class="d-flex justify-content-between align-items-center">
         <h1>@event.name.value</h1>
@@ -34,7 +34,7 @@
                         <p class="mb-1">@venue.address.value</p>
                         <p class="mb-1">Public venue, hosted @venue.events events</p>
                     </div>
-                    @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), Seq(
+                    @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), List(
                         "class" -> "btn-success",
                         "title" -> "This is a public venue: if you choose it, it will be imported in your venues",
                         "data-toggle" ->"tooltip",
@@ -49,7 +49,7 @@
                     <p class="mb-1">@venue.address.value</p>
                     <p class="mb-1">Venue of your group</p>
                 </div>
-                @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), Seq("class" -> "btn-success")) {Choose this venue}
+                @formBtn(EventCtrl.doSetVenue(req.group.slug, event.slug, venue.id, venue.public), List("class" -> "btn-success")) {Choose this venue}
             </div>
         }
     }

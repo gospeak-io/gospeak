@@ -20,9 +20,9 @@ object ApiProposal {
                         duration: FiniteDuration,
                         slides: Option[String],
                         video: Option[String],
-                        speakers: Seq[ApiUser.Embed],
-                        tags: Seq[String],
-                        orgaTags: Seq[String],
+                        speakers: List[ApiUser.Embed],
+                        tags: List[String],
+                        orgaTags: List[String],
                         cfp: ApiCfp.Embed,
                         event: Option[ApiEvent.Embed],
                         venue: Option[ApiVenue.Embed],
@@ -43,7 +43,7 @@ object ApiProposal {
     object Rating {
       implicit val writes: Writes[Rating] = Json.writes[Rating]
 
-      def from(r: Proposal.Rating.Full, users: Seq[User])(implicit ctx: OrgaCtx): Rating =
+      def from(r: Proposal.Rating.Full, users: List[User])(implicit ctx: OrgaCtx): Rating =
         new Rating(
           proposal = embed(r.proposal, users),
           user = ApiUser.embed(r.user),
@@ -53,7 +53,7 @@ object ApiProposal {
 
   }
 
-  def orga(p: Proposal.Full, users: Seq[User])(implicit ctx: OrgaCtx): Orga =
+  def orga(p: Proposal.Full, users: List[User])(implicit ctx: OrgaCtx): Orga =
     new Orga(
       id = p.id.value,
       status = p.status.value,
@@ -81,8 +81,8 @@ object ApiProposal {
                              duration: FiniteDuration,
                              slides: Option[String],
                              video: Option[String],
-                             speakers: Seq[ApiUser.Embed],
-                             tags: Seq[String],
+                             speakers: List[ApiUser.Embed],
+                             tags: List[String],
                              group: ApiGroup.Embed,
                              cfp: ApiCfp.Embed,
                              event: Option[ApiEvent.Embed],
@@ -92,7 +92,7 @@ object ApiProposal {
     implicit val writes: Writes[Published] = Json.writes[Published]
   }
 
-  def published(p: Proposal.Full, users: Seq[User])(implicit ctx: BasicCtx): Published =
+  def published(p: Proposal.Full, users: List[User])(implicit ctx: BasicCtx): Published =
     new Published(
       id = p.id.value,
       title = p.title.value,
@@ -114,17 +114,17 @@ object ApiProposal {
                          duration: FiniteDuration,
                          slides: Option[String],
                          video: Option[String],
-                         speakers: Seq[ApiUser.Embed],
-                         tags: Seq[String])
+                         speakers: List[ApiUser.Embed],
+                         tags: List[String])
 
   object Embed {
     implicit val writes: Writes[Embed] = Json.writes[Embed]
   }
 
-  def embed(id: Proposal.Id, proposals: Seq[Proposal], users: Seq[User])(implicit ctx: BasicCtx): Embed =
+  def embed(id: Proposal.Id, proposals: List[Proposal], users: List[User])(implicit ctx: BasicCtx): Embed =
     proposals.find(_.id == id).map(embed(_, users)).getOrElse(unknown(id))
 
-  def embed(p: Proposal, users: Seq[User])(implicit ctx: BasicCtx): Embed =
+  def embed(p: Proposal, users: List[User])(implicit ctx: BasicCtx): Embed =
     new Embed(
       id = p.id.value,
       title = p.title.value,
@@ -143,7 +143,7 @@ object ApiProposal {
       duration = 10.minutes,
       slides = None,
       video = None,
-      speakers = Seq(),
-      tags = Seq())
+      speakers = List(),
+      tags = List())
 
 }

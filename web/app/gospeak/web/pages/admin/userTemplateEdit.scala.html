@@ -14,8 +14,8 @@
     @formElt(form, AdminCtrl.doEditUserTemplate(group, kind, ref, params)) {
         <div class="row">
             <div class="col-6">
-            @fieldVertical(form("template"), Seq("label" -> "Your template:")) { (field, args) =>
-                @inputTemplate(field, Some(templateRef), markdown = false, args = args ++ Seq("autofocus" -> "true"))
+            @fieldVertical(form("template"), List("label" -> "Your template:")) { (field, args) =>
+                @inputTemplate(field, Some(templateRef), markdown = false, args = args ++ List("autofocus" -> "true"))
             }
             </div>
             <div class="col-6">

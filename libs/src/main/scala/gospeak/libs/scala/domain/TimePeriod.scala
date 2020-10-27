@@ -63,8 +63,8 @@ object TimePeriod {
 
     case object Year extends PeriodUnit
 
-    val all: Seq[PeriodUnit] = Seq(Nano, Micro, Milli, Second, Minute, Hour, Day, Week, Month, Year)
-    val simple: Seq[PeriodUnit] = Seq(Minute, Hour, Day, Week, Month, Year)
+    val all: List[PeriodUnit] = List(Nano, Micro, Milli, Second, Minute, Hour, Day, Week, Month, Year)
+    val simple: List[PeriodUnit] = List(Minute, Hour, Day, Week, Month, Year)
   }
 
   implicit class TimePeriodBuilder(val value: Long) extends AnyVal {
