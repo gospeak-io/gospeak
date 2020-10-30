@@ -2,7 +2,6 @@ package gospeak.core.domain
 
 import java.time.{Instant, LocalDateTime}
 
-import gospeak.core.domain.Event.Notes
 import gospeak.core.domain.messages.Message
 import gospeak.core.domain.utils.{Constants, Info}
 import gospeak.core.services.meetup.domain.MeetupEvent
@@ -20,10 +19,10 @@ final case class Event(id: Event.Id,
                        allowRsvp: Boolean,
                        // duration: Option[Duration]
                        description: LiquidMarkdown[Message.EventInfo],
-                       orgaNotes: Notes,
+                       orgaNotes: Event.Notes,
                        venue: Option[Venue.Id],
-                       talks: Seq[Proposal.Id],
-                       tags: Seq[Tag],
+                       talks: List[Proposal.Id],
+                       tags: List[Tag],
                        published: Option[Instant],
                        refs: Event.ExtRefs,
                        info: Info) {
@@ -46,7 +45,7 @@ final case class Event(id: Event.Id,
 
 object Event {
   def create(group: Group.Id, d: Data, info: Info): Event =
-    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.kind, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updatedAt, info.updatedBy), d.venue, Seq(), d.tags, None, ExtRefs(), info)
+    new Event(Id.generate(), group, d.cfp, d.slug, d.name, d.kind, d.start, d.maxAttendee, d.allowRsvp, d.description, Notes("", info.updatedAt, info.updatedBy), d.venue, List(), d.tags, None, d.refs, info)
 
   final class Id private(value: String) extends DataClass(value) with IId
 
@@ -72,7 +71,7 @@ object Event {
 
     final case object PrivateEvent extends Kind("Private event")
 
-    val all: Seq[Kind] = Seq(Conference, Meetup, Training, PrivateEvent)
+    val all: List[Kind] = List(Conference, Meetup, Training, PrivateEvent)
 
   }
 
@@ -103,7 +102,7 @@ object Event {
 
       case object Wait extends Answer
 
-      val all: Seq[Answer] = Seq(Yes, No, Wait)
+      val all: List[Answer] = List(Yes, No, Wait)
 
       implicit val ordering: Ordering[Answer] = new Ordering[Answer] {
         override def compare(x: Answer, y: Answer): Int = toVal(x) - toVal(y)
@@ -133,9 +132,9 @@ object Event {
 
     def start: LocalDateTime = event.start
 
-    def talks: Seq[Proposal.Id] = event.talks
+    def talks: List[Proposal.Id] = event.talks
 
-    def tags: Seq[Tag] = event.tags
+    def tags: List[Tag] = event.tags
 
     def published: Option[Instant] = event.published
 
@@ -165,7 +164,7 @@ object Event {
                         allowRsvp: Boolean,
                         venue: Option[Venue.Id],
                         description: LiquidMarkdown[Message.EventInfo],
-                        tags: Seq[Tag],
+                        tags: List[Tag],
                         refs: Event.ExtRefs)
 
   object Data {

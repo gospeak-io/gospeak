@@ -3,18 +3,18 @@
 @import gospeak.web.utils.OrgaReq
 
 @(form: Form[SponsorPack.Data])(implicit req: OrgaReq[AnyContent])
-@fieldHorizontal(form("name"), Seq("label" -> "Name", "help" -> "Name of the sponsoring pack")) { (field, args) =>
-    @inputText(field, Seq("placeholder" -> "Pack name", "autofocus" -> "true") ++ args)
+@fieldHorizontal(form("name"), List("label" -> "Name", "help" -> "Name of the sponsoring pack")) { (field, args) =>
+    @inputText(field, List("placeholder" -> "Pack name", "autofocus" -> "true") ++ args)
 }
-@fieldHorizontal(form("description"), Seq("label" -> "Description", "help" -> "Describe what this pack is about, what are its benefits and why a partner should subscribe to it")) { (field, args) =>
+@fieldHorizontal(form("description"), List("label" -> "Description", "help" -> "Describe what this pack is about, what are its benefits and why a partner should subscribe to it")) { (field, args) =>
     @inputMarkdown(field, args)
 }
-@fieldHorizontal(form("price"), Seq("label" -> "Price", "help" -> "Standard price of this pack")) { (field, args) =>
+@fieldHorizontal(form("price"), List("label" -> "Price", "help" -> "Standard price of this pack")) { (field, args) =>
     @inputPrice(field, args)
 }
-@fieldHorizontal(form("duration"), Seq("label" -> "Subscription period", "help" -> "Standard period of subscription for this pack")) { (field, args) =>
+@fieldHorizontal(form("duration"), List("label" -> "Subscription period", "help" -> "Standard period of subscription for this pack")) { (field, args) =>
     @inputPeriod(field, args = args)
 }
-@fieldHorizontal(form("slug"), Seq("label" -> "Slug", "help" -> "Reference of the sponsor pack (in urls for example)")) { (field, args) =>
-    @inputText(field, Seq("placeholder" -> "Sponsor pack slug", "slug-for" -> form("name").id) ++ args)
+@fieldHorizontal(form("slug"), List("label" -> "Slug", "help" -> "Reference of the sponsor pack (in urls for example)")) { (field, args) =>
+    @inputText(field, List("placeholder" -> "Sponsor pack slug", "slug-for" -> form("name").id) ++ args)
 }

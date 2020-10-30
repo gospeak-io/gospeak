@@ -19,8 +19,8 @@
             </div>
             <div class="modal-body">
                 <p>Connect Gospeak to your slack workspace to post messages when something happen</p>
-                @fieldHorizontal(slackForm("token"), Seq("label" -> "Slack OAuth Token")) { (field, args) =>
-                    @inputText(field, Seq(
+                @fieldHorizontal(slackForm("token"), List("label" -> "Slack OAuth Token")) { (field, args) =>
+                    @inputText(field, List(
                         "autofocus" -> "true",
                         "placeholder" -> "ex: xoxp-19471843520-26025264040-635191736450-732a788fa04094e3aaedf6edb9fa2666",
                         "remote-validate" -> UtilsCtrl.validateSlackToken("{{input}}").toString) ++ args)
@@ -48,11 +48,11 @@
                         <li>Now copy the <span class="badge badge-primary">OAuth Access Token</span> here, so <b>Gospeak</b> will be able to interact with your Slack Workspace</li>
                     </ul>
                 }
-                @fieldHorizontal(slackForm("name"), Seq("label" -> "Bot name", "help" -> "The name that will be used in Slack")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "ex: Gospeak bot", "value" -> Constants.Slack.defaultBotName) ++ args)
+                @fieldHorizontal(slackForm("name"), List("label" -> "Bot name", "help" -> "The name that will be used in Slack")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "ex: Gospeak bot", "value" -> Constants.Slack.defaultBotName) ++ args)
                 }
-                @fieldHorizontal(slackForm("avatar"), Seq("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
-                    @inputImg(field, ImgConf.slackBotAvatar(Seq("value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args))
+                @fieldHorizontal(slackForm("avatar"), List("label" -> "Bot avatar", "help" -> "The bot avatar in Slack")) { (field, args) =>
+                    @inputImg(field, ImgConf.slackBotAvatar(List("value" -> Constants.Slack.defaultBotAvatar, "optional" -> "") ++ args))
                 }
             </div>
             <div class="modal-footer">

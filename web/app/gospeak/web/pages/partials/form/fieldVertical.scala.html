@@ -1,10 +1,10 @@
 @import gospeak.web.pages.partials.form.Utils
 @import gospeak.web.utils.BasicReq
 
-@(field: Field, args: Seq[(String, String)] = Seq())(input: (Field, Seq[(String, String)]) => Html)(implicit req: BasicReq[AnyContent])
+@(field: Field, args: List[(String, String)] = List())(input: (Field, List[(String, String)]) => Html)(implicit req: BasicReq[AnyContent])
 <div class="form-group @Utils.getArg(args, "class")">
     <label for="@Utils.id(field, args)">@Utils.getArg(args, "label", field.name)</label>
-    @input(field, Seq(Utils.getArg(args, "help").map(_ => "help" -> Utils.helpId(args, field))).flatten)
+    @input(field, List(Utils.getArg(args, "help").map(_ => "help" -> Utils.helpId(args, field))).flatten)
     @if(Utils.hasErrors(field)) {
         <div class="invalid-feedback">
             @Utils.getArg(args, "help").map { help => @helpText(field, args, help) }

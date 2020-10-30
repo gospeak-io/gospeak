@@ -69,7 +69,7 @@ object User {
       def description = "Stay under cover, your speaker page is not accessible and you are not in the public list of speakers"
     }
 
-    val all: Seq[Status] = Seq(Public, Private)
+    val all: List[Status] = List(Public, Private)
   }
 
   final case class ProviderId(value: String) extends AnyVal
@@ -93,7 +93,9 @@ object User {
       new LoginRef(Login(ProviderId(providerId), ProviderKey(providerKey)), user)
   }
 
-  final case class Credentials(login: Login, pass: Password)
+  final case class Credentials(login: Login, pass: Password) {
+    def ref(user: User.Id): LoginRef = LoginRef(login, user)
+  }
 
   object Credentials {
     def apply(providerId: String, providerKey: String, hasher: String, password: String, salt: Option[String]): Credentials =
@@ -154,5 +156,5 @@ object User {
   private[domain] def companyFromEmail(email: EmailAddress): Option[String] =
     email.value.split("@").drop(1).headOption
       .flatMap(_.split("\\.").headOption)
-      .filter(c => !Seq("gmail", "yahoo", "hotmail", "outlook", "protonmail", "mailoo", "mail", "missing-email").contains(c.toLowerCase))
+      .filter(c => !List("gmail", "yahoo", "hotmail", "outlook", "protonmail", "mailoo", "mail", "missing-email").contains(c.toLowerCase))
 }

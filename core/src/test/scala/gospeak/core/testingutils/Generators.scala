@@ -22,7 +22,7 @@ object Generators {
   private val _ = coproductCogen // to keep the `org.scalacheck.ScalacheckShapeless._` import
   private val stringGen = implicitly[Arbitrary[String]].arbitrary
   private val nonEmptyStringGen = Gen.nonEmptyListOf(Gen.alphaChar).map(_.mkString)
-  private val slugGen = Gen.nonEmptyListOf(Gen.alphaNumChar).map(_.mkString.take(SlugBuilder.maxLength).toLowerCase)
+  private val slugGen = Gen.choose(6, SlugBuilder.maxLength).flatMap(Gen.listOfN(_, Gen.alphaNumChar)).map(_.mkString.toLowerCase)
 
   private def buildDuration(length: Long, unit: TimeUnit): FiniteDuration = Try(new FiniteDuration(length, unit)).getOrElse(buildDuration(length / 2, unit))
 
@@ -32,17 +32,20 @@ object Generators {
   } yield buildDuration(length, unit))
   implicit val aPeriodUnit: Arbitrary[PeriodUnit] = Arbitrary(Gen.oneOf(PeriodUnit.all))
   implicit val aTimePeriod: Arbitrary[TimePeriod] = Arbitrary(for {
-    length <- implicitly[Arbitrary[Long]].arbitrary
+    length <- implicitly[Arbitrary[Int]].arbitrary // to avoid too long numbers
     unit <- implicitly[Arbitrary[PeriodUnit]].arbitrary
   } yield TimePeriod(length, unit))
   implicit val aInstant: Arbitrary[Instant] = Arbitrary(Gen.calendar.map(_.toInstant))
-  implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(Constants.defaultZoneId).toLocalDate))
-  implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(Gen.calendar.map(_.toInstant.atZone(Constants.defaultZoneId).toLocalDateTime))
-  implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toSeq.map(ZoneId.of)))
+  implicit val aLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(aInstant.arbitrary.map(_.atZone(Constants.defaultZoneId).toLocalDateTime))
+  implicit val aLocalDate: Arbitrary[LocalDate] = Arbitrary(for {
+    d <- aLocalDateTime.arbitrary.map(_.toLocalDate)
+    year <- Gen.choose(1990, 2030) // needed as saving LocalDate has strange behavior is some dates (ex: 0004-12-26 => 0004-12-25, 0000-12-30 => 0001-12-29...)
+  } yield d.withYear(year))
+  implicit val aZoneId: Arbitrary[ZoneId] = Arbitrary(Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.toList.map(ZoneId.of)))
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
   implicit val aUrlSlides: Arbitrary[Url.Slides] = Arbitrary(slugGen.map(slug => Url.Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").get))
-  implicit val aUrlVideo: Arbitrary[Url.Video] = Arbitrary(slugGen.map(slug => Url.YouTube.Video.from(s"http://youtu.be/${slug.take(104)}").get))
+  implicit val aUrlVideo: Arbitrary[Url.Video] = Arbitrary(slugGen.map(slug => Url.YouTube.Video.from(s"http://youtu.be/${slug.take(15)}").get))
   implicit val aUrlVideos: Arbitrary[Url.Videos] = Arbitrary(slugGen.map(slug => Url.YouTube.Channel.from(s"https://www.youtube.com/channel/${slug.take(104)}").get))
   implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(110) + "e@mail.com").get)) // TODO improve
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(u => Url.from(s"https://loicknuchel.fr#$u").get)) // TODO improve
@@ -66,7 +69,7 @@ object Generators {
   implicit val aGithubAccount: Arbitrary[GithubAccount] = Arbitrary(aGithubUrl.arbitrary.map(GithubAccount))
   implicit val aTwitterHashtag: Arbitrary[TwitterHashtag] = Arbitrary(nonEmptyStringGen.map(e => TwitterHashtag.from(e.replaceAll(" ", "")).get))
   implicit val aTag: Arbitrary[Tag] = Arbitrary(nonEmptyStringGen.map(str => Tag(str.take(Tag.maxSize))))
-  implicit val aTags: Arbitrary[Seq[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))
+  implicit val aTags: Arbitrary[List[Tag]] = Arbitrary(Gen.listOf(aTag.arbitrary).map(_.take(Tag.maxNumber)))
   implicit val aCurrency: Arbitrary[Price.Currency] = Arbitrary(Gen.oneOf(Price.Currency.all))
   implicit val aGeo: Arbitrary[Geo] = Arbitrary(for {
     lat <- Gen.chooseNum[Double](-90, 90)
@@ -102,7 +105,7 @@ object Generators {
   implicit val aContactFirstName: Arbitrary[Contact.FirstName] = Arbitrary(nonEmptyStringGen.map(f => Contact.FirstName(f)))
   implicit val aContactLastName: Arbitrary[Contact.LastName] = Arbitrary(nonEmptyStringGen.map(l => Contact.LastName(l)))
   implicit val aCommentId: Arbitrary[Comment.Id] = Arbitrary(Gen.uuid.map(id => Comment.Id.from(id.toString).get))
-  implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug).get))
+  implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug.take(80)).get))
   implicit val aUserRequestId: Arbitrary[UserRequest.Id] = Arbitrary(Gen.uuid.map(id => UserRequest.Id.from(id.toString).get))
   implicit val aExternalEventId: Arbitrary[ExternalEvent.Id] = Arbitrary(Gen.uuid.map(id => ExternalEvent.Id.from(id.toString).get))
   implicit val aExternalCfpId: Arbitrary[ExternalCfp.Id] = Arbitrary(Gen.uuid.map(id => ExternalCfp.Id.from(id.toString).get))

@@ -25,9 +25,7 @@ object Partner {
 
   final class Id private(value: String) extends DataClass(value) with IId
 
-  object Id extends UuidIdBuilder[Id]("Partner.Id", new Id(_)) {
-    val empty = new Id("00000000-0000-0000-0000-000000000000")
-  }
+  object Id extends UuidIdBuilder[Id]("Partner.Id", new Id(_))
 
   final class Slug private(value: String) extends DataClass(value) with ISlug
 

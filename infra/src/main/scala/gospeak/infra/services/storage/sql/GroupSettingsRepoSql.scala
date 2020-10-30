@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.Fragments
-import doobie.implicits._
+import doobie.syntax.string._
+import fr.loicknuchel.safeql.Query
 import gospeak.core.GsConf
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain.Group.Settings.Action
@@ -16,109 +16,107 @@ import gospeak.core.services.meetup.domain.MeetupCredentials
 import gospeak.core.services.slack.domain.SlackCredentials
 import gospeak.core.services.storage.GroupSettingsRepo
 import gospeak.infra.services.storage.sql.GroupSettingsRepoSql._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.Mappings._
-import gospeak.infra.services.storage.sql.utils.DoobieUtils.{Field, Insert, Select, Update}
+import gospeak.infra.services.storage.sql.database.Tables.GROUP_SETTINGS
+import gospeak.infra.services.storage.sql.database.tables.GROUP_SETTINGS
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
-import gospeak.libs.scala.domain.{Done, Liquid, LiquidMarkdown}
+import gospeak.libs.scala.domain.{Liquid, LiquidMarkdown}
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
-  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Done] = setSettings(ctx.group.id, settings)
+  override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Unit] = setSettings(ctx.group.id, settings)
 
-  override def set(group: Group.Id, settings: Group.Settings)(implicit ctx: AdminCtx): IO[Done] = setSettings(group, settings)
+  override def set(group: Group.Id, settings: Group.Settings)(implicit ctx: AdminCtx): IO[Unit] = setSettings(group, settings)
 
-  private def setSettings(group: Group.Id, settings: Group.Settings)(implicit ctx: UserCtx): IO[Done] =
-    selectOne(group).runOption(xa).flatMap { opt =>
+  private def setSettings(group: Group.Id, settings: Group.Settings)(implicit ctx: UserCtx): IO[Unit] =
+    selectOne(group).run(xa).flatMap { opt =>
       opt.map { _ =>
         update(group, settings, ctx.user.id, ctx.now).run(xa)
       }.getOrElse {
-        insert(group, settings, ctx.user.id, ctx.now).run(xa).map(_ => Done)
+        insert(group, settings, ctx.user.id, ctx.now).run(xa)
       }
     }
 
-  override def list(groups: Seq[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]] = runNel[Group.Id, (Group.Id, Group.Settings)](selectAll(_), groups)
+  override def list(groups: List[Group.Id])(implicit ctx: AdminCtx): IO[List[(Group.Id, Group.Settings)]] = runNel[Group.Id, (Group.Id, Group.Settings)](selectAll(_), groups)
 
   override def find(implicit ctx: OrgaCtx): IO[Group.Settings] =
-    selectOne(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
+    selectOne(ctx.group.id).run(xa).map(_.getOrElse(conf.defaultGroupSettings))
 
   override def find(group: Group.Id)(implicit ctx: AdminCtx): IO[Group.Settings] =
-    selectOne(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings))
+    selectOne(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings))
 
   override def findAccounts(group: Group.Id): IO[Group.Settings.Accounts] =
-    selectOneAccounts(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts))
+    selectOneAccounts(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts))
 
   override def findMeetup(implicit ctx: OrgaCtx): IO[Option[MeetupCredentials]] =
-    selectOneMeetup(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
+    selectOneMeetup(ctx.group.id).run(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
 
   override def findMeetup(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Option[MeetupCredentials]] =
-    selectOneMeetup(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
+    selectOneMeetup(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.meetup))
 
   override def findSlack(group: Group.Id): IO[Option[SlackCredentials]] =
-    selectOneSlack(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.slack))
+    selectOneSlack(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings.accounts.slack))
 
   override def findEventDescription(implicit ctx: OrgaCtx): IO[LiquidMarkdown[Message.EventInfo]] =
-    selectOneEventDescription(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.description))
+    selectOneEventDescription(ctx.group.id).run(xa).map(_.getOrElse(conf.defaultGroupSettings.event.description))
 
   override def findEventTemplates(implicit ctx: OrgaCtx): IO[Map[String, Liquid[Message.EventInfo]]] =
-    selectOneEventTemplates(ctx.group.id).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
+    selectOneEventTemplates(ctx.group.id).run(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
 
   override def findEventTemplates(group: Group.Id)(implicit ctx: UserAwareCtx): IO[Map[String, Liquid[Message.EventInfo]]] =
-    selectOneEventTemplates(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
+    selectOneEventTemplates(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings.event.templates))
 
   override def findProposalTweet(group: Group.Id): IO[Liquid[Message.ProposalInfo]] =
-    selectOneProposalTweet(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.proposal.tweet))
+    selectOneProposalTweet(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings.proposal.tweet))
 
-  override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]] =
-    selectOneActions(group).runOption(xa).map(_.getOrElse(conf.defaultGroupSettings.actions))
+  override def findActions(group: Group.Id): IO[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]] =
+    selectOneActions(group).run(xa).map(_.getOrElse(conf.defaultGroupSettings.actions))
 }
 
 object GroupSettingsRepoSql {
-  private val _ = groupIdMeta // for intellij not remove DoobieUtils.Mappings import
-  private val table = Tables.groupSettings
-  private val meetupFields = Seq("meetup_access_token", "meetup_refresh_token", "meetup_group_slug", "meetup_logged_user_id", "meetup_logged_user_name").map(n => Field(n, table.prefix))
-  private val slackFields = Seq("slack_token", "slack_bot_name", "slack_bot_avatar").map(n => Field(n, table.prefix))
+  private val MEETUP_FIELDS = GROUP_SETTINGS.getFields.filter(_.name.startsWith("meetup_"))
+  private val SLACK_FIELDS = GROUP_SETTINGS.getFields.filter(_.name.startsWith("slack_"))
 
-  private[sql] def insert(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Insert[Group.Settings] = {
-    val values = fr0"$group, " ++
+  private[sql] def insert(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Insert[GROUP_SETTINGS] =
+  // GROUP_SETTINGS.insert.values(group,
+  //   settings.accounts.meetup.map(_.accessToken), settings.accounts.meetup.map(_.refreshToken), settings.accounts.meetup.map(_.group), settings.accounts.meetup.map(_.loggedUserId), settings.accounts.meetup.map(_.loggedUserName),
+  //   settings.accounts.slack.map(_.token), settings.accounts.slack.map(_.name), settings.accounts.slack.map(_.avatar),
+  //   settings.event.description, settings.event.templates, settings.proposal.tweet, settings.actions, now, by)
+    GROUP_SETTINGS.insert.values(fr0"$group, " ++
       fr0"${settings.accounts.meetup.map(_.accessToken)}, ${settings.accounts.meetup.map(_.refreshToken)}, ${settings.accounts.meetup.map(_.group)}, ${settings.accounts.meetup.map(_.loggedUserId)}, ${settings.accounts.meetup.map(_.loggedUserName)}, " ++
       fr0"${settings.accounts.slack.map(_.token)}, ${settings.accounts.slack.map(_.name)}, ${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.proposal.tweet}, ${settings.actions}, $now, $by"
-    table.insert(settings, _ => values)
-  }
+      fr0"${settings.event.description}, ${settings.event.templates}, ${settings.proposal.tweet}, ${settings.actions}, $now, $by")
 
-  private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Update = {
-    val fields = fr0"meetup_access_token=${settings.accounts.meetup.map(_.accessToken)}, meetup_refresh_token=${settings.accounts.meetup.map(_.refreshToken)}, meetup_group_slug=${settings.accounts.meetup.map(_.group)}, meetup_logged_user_id=${settings.accounts.meetup.map(_.loggedUserId)}, meetup_logged_user_name=${settings.accounts.meetup.map(_.loggedUserName)}, " ++
-      fr0"slack_token=${settings.accounts.slack.map(_.token)}, slack_bot_name=${settings.accounts.slack.map(_.name)}, slack_bot_avatar=${settings.accounts.slack.flatMap(_.avatar)}, " ++
-      fr0"event_description=${settings.event.description}, event_templates=${settings.event.templates}, proposal_tweet=${settings.proposal.tweet}, " ++
-      fr0"actions=${settings.actions}, updated_at=$now, updated_by=$by"
-    table.update(fields, where(group))
-  }
+  private[sql] def update(group: Group.Id, settings: Group.Settings, by: User.Id, now: Instant): Query.Update[GROUP_SETTINGS] =
+    GROUP_SETTINGS.update.set(_.MEETUP_ACCESS_TOKEN, settings.accounts.meetup.map(_.accessToken)).set(_.MEETUP_REFRESH_TOKEN, settings.accounts.meetup.map(_.refreshToken)).set(_.MEETUP_GROUP_SLUG, settings.accounts.meetup.map(_.group)).set(_.MEETUP_LOGGED_USER_ID, settings.accounts.meetup.map(_.loggedUserId)).set(_.MEETUP_LOGGED_USER_NAME, settings.accounts.meetup.map(_.loggedUserName))
+      .set(_.SLACK_TOKEN, settings.accounts.slack.map(_.token)).set(_.SLACK_BOT_NAME, settings.accounts.slack.map(_.name)).set(_.SLACK_BOT_AVATAR, settings.accounts.slack.flatMap(_.avatar))
+      .set(_.EVENT_DESCRIPTION, settings.event.description).set(_.EVENT_TEMPLATES, settings.event.templates).set(_.PROPOSAL_TWEET, settings.proposal.tweet)
+      .set(_.ACTIONS, settings.actions).set(_.UPDATED_AT, now).set(_.UPDATED_BY, by)
+      .where(_.GROUP_ID.is(group))
 
-  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Select[(Group.Id, Group.Settings)] =
-    table.select[(Group.Id, Group.Settings)](table.fields.dropRight(2), fr0"WHERE " ++ Fragments.in(fr"gs.group_id", ids))
+  private[sql] def selectAll(ids: NonEmptyList[Group.Id])(implicit ctx: AdminCtx): Query.Select.All[(Group.Id, Group.Settings)] =
+    GROUP_SETTINGS.select.withoutFields(_.UPDATED_AT, _.UPDATED_BY).where(_.GROUP_ID.in(ids)).all[(Group.Id, Group.Settings)]
 
-  private[sql] def selectOne(group: Group.Id): Select[Group.Settings] =
-    table.select[Group.Settings](table.fields.drop(1).dropRight(2), where(group))
+  private[sql] def selectOne(group: Group.Id): Query.Select.Optional[Group.Settings] =
+    GROUP_SETTINGS.select.withoutFields(_.GROUP_ID, _.UPDATED_AT, _.UPDATED_BY).where(_.GROUP_ID.is(group)).option[Group.Settings]
 
-  private[sql] def selectOneAccounts(group: Group.Id): Select[Settings.Accounts] =
-    table.select[Group.Settings.Accounts](meetupFields ++ slackFields, where(group))
+  private[sql] def selectOneAccounts(group: Group.Id): Query.Select.Optional[Settings.Accounts] =
+    GROUP_SETTINGS.select.fields(MEETUP_FIELDS ++ SLACK_FIELDS).where(_.GROUP_ID.is(group)).option[Settings.Accounts]
 
-  private[sql] def selectOneMeetup(group: Group.Id): Select[Option[MeetupCredentials]] =
-    table.select[Option[MeetupCredentials]](meetupFields, where(group))
+  private[sql] def selectOneMeetup(group: Group.Id): Query.Select.Optional[Option[MeetupCredentials]] =
+    GROUP_SETTINGS.select.fields(MEETUP_FIELDS).where(_.GROUP_ID.is(group)).option[Option[MeetupCredentials]]
 
-  private[sql] def selectOneSlack(group: Group.Id): Select[Option[SlackCredentials]] =
-    table.select[Option[SlackCredentials]](slackFields, where(group))
+  private[sql] def selectOneSlack(group: Group.Id): Query.Select.Optional[Option[SlackCredentials]] =
+    GROUP_SETTINGS.select.fields(SLACK_FIELDS).where(_.GROUP_ID.is(group)).option[Option[SlackCredentials]]
 
-  private[sql] def selectOneEventDescription(group: Group.Id): Select[LiquidMarkdown[Message.EventInfo]] =
-    table.select[LiquidMarkdown[Message.EventInfo]](Seq(Field("event_description", "gs")), where(group))
+  private[sql] def selectOneEventDescription(group: Group.Id): Query.Select.Optional[LiquidMarkdown[Message.EventInfo]] =
+    GROUP_SETTINGS.select.withFields(_.EVENT_DESCRIPTION).where(_.GROUP_ID.is(group)).option[LiquidMarkdown[Message.EventInfo]]
 
-  private[sql] def selectOneEventTemplates(group: Group.Id): Select[Map[String, Liquid[Message.EventInfo]]] =
-    table.select[Map[String, Liquid[Message.EventInfo]]](Seq(Field("event_templates", "gs")), where(group))
+  private[sql] def selectOneEventTemplates(group: Group.Id): Query.Select.Optional[Map[String, Liquid[Message.EventInfo]]] =
+    GROUP_SETTINGS.select.withFields(_.EVENT_TEMPLATES).where(_.GROUP_ID.is(group)).option[Map[String, Liquid[Message.EventInfo]]]
 
-  private[sql] def selectOneProposalTweet(group: Group.Id): Select[Liquid[Message.ProposalInfo]] =
-    table.select[Liquid[Message.ProposalInfo]](Seq(Field("proposal_tweet", "gs")), where(group))
+  private[sql] def selectOneProposalTweet(group: Group.Id): Query.Select.Optional[Liquid[Message.ProposalInfo]] =
+    GROUP_SETTINGS.select.withFields(_.PROPOSAL_TWEET).where(_.GROUP_ID.is(group)).option[Liquid[Message.ProposalInfo]]
 
-  private[sql] def selectOneActions(group: Group.Id): Select[Map[Action.Trigger, Seq[Settings.Action]]] =
-    table.select[Map[Group.Settings.Action.Trigger, Seq[Group.Settings.Action]]](Seq(Field("actions", "gs")), where(group))
-
-  private def where(group: Group.Id) = fr0"WHERE gs.group_id=$group"
+  private[sql] def selectOneActions(group: Group.Id): Query.Select.Optional[Map[Action.Trigger, List[Settings.Action]]] =
+    GROUP_SETTINGS.select.withFields(_.ACTIONS).where(_.GROUP_ID.is(group)).option[Map[Group.Settings.Action.Trigger, List[Group.Settings.Action]]]
 }

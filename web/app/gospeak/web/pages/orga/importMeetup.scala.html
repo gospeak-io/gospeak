@@ -10,7 +10,7 @@
     <h1>Here are the meetup groups you own</h1>
     <h2>Select the one you want to import</h2>
     @groups.map { group =>
-        @formElt(form, GroupCtrl.meetupImport(), Seq("class" -> "card mb-3")) {
+        @formElt(form, GroupCtrl.meetupImport(), List("class" -> "card mb-3")) {
             <div class="media">
                 @group.logo.map { logo => <img class="align-self-center avatar mr-3" src="@logo.value" alt="@group.name logo"> }
                 <div class="media-body py-2 mr-3">
@@ -18,8 +18,8 @@
                     @group.description.asExcerpt
                 </div>
                 <div class="align-self-center mr-3">
-                    @inputHidden(form("token"), Seq("value" -> token))
-                    @inputHidden(form("slug"), Seq("value" -> group.slug.value))
+                    @inputHidden(form("token"), List("value" -> token))
+                    @inputHidden(form("slug"), List("value" -> group.slug.value))
                     @btnSubmit("Choose")
                 </div>
             </div>

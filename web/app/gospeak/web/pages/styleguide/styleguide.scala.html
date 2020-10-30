@@ -136,23 +136,23 @@
         </ul>
         @section("global", "Global components", "@import gospeak.web.pages.partials.html._") { _ =>
             @component("pagination", "@pagination(page, MyCtrl.list)") { name =>
-                @example(s"$name with no element") { _ => @global.pagination(Page(Seq.empty[Int], params, Page.Total(0)), StyleguideCtrl.index) }
-                @example(s"$name with 5 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(5)), StyleguideCtrl.index) }
-                @example(s"$name with 15 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(15)), StyleguideCtrl.index) }
-                @example(s"$name with 30 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(30)), StyleguideCtrl.index) }
-                @example(s"$name with 100 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(100)), StyleguideCtrl.index) }
-                @example(s"$name with 200 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(200)), StyleguideCtrl.index) }
-                @example(s"$name with 1000 elements") { _ => @global.pagination(Page(1 to params.pageSize.value, params, Page.Total(1000)), StyleguideCtrl.index) }
+                @example(s"$name with no element") { _ => @global.pagination(Page(List.empty[Int], params, Page.Total(0)), StyleguideCtrl.index) }
+                @example(s"$name with 5 elements") { _ => @global.pagination(Page((1 to params.pageSize.value).toList, params, Page.Total(5)), StyleguideCtrl.index) }
+                @example(s"$name with 15 elements") { _ => @global.pagination(Page((1 to params.pageSize.value).toList, params, Page.Total(15)), StyleguideCtrl.index) }
+                @example(s"$name with 30 elements") { _ => @global.pagination(Page((1 to params.pageSize.value).toList, params, Page.Total(30)), StyleguideCtrl.index) }
+                @example(s"$name with 100 elements") { _ => @global.pagination(Page((1 to params.pageSize.value).toList, params, Page.Total(100)), StyleguideCtrl.index) }
+                @example(s"$name with 200 elements") { _ => @global.pagination(Page((1 to params.pageSize.value).toList, params, Page.Total(200)), StyleguideCtrl.index) }
+                @example(s"$name with 1000 elements") { _ => @global.pagination(Page((1 to params.pageSize.value).toList, params, Page.Total(1000)), StyleguideCtrl.index) }
                 @example("") { _ =>
                     <div>
                         Try to change page size:
-                        <a href="@StyleguideCtrl.index(params.copy(pageSize = Page.Size(10)))">set page-size to 10</a>,
-                        <a href="@StyleguideCtrl.index(params.copy(pageSize = Page.Size(100)))">set page-size to 100</a>
+                        <a href="@StyleguideCtrl.index(params.pageSize(10))">set page-size to 10</a>,
+                        <a href="@StyleguideCtrl.index(params.pageSize(100))">set page-size to 100</a>
                     </div>
                 }
             }
             @component("Search", "@search(page, MyCtrl.list(params))") { name =>
-                @example(name) { _ => @global.search(Page(1 to params.pageSize.value, params, Page.Total(200)), StyleguideCtrl.index(params)) }
+                @example(name) { _ => @global.search(Page((1 to params.pageSize.value).toList, params, Page.Total(200)), StyleguideCtrl.index(params)) }
             }
             @component("Add slides form", "@slidesFields(MyCtrl.doAddSlides(talk.slug))") { name =>
                 @example(name) { _ => @global.slidesFields(StyleguideCtrl.index(params)) }
@@ -164,15 +164,15 @@
 
         @section("global-display", "Global display components", "@import gospeak.web.pages.partials.display.html._") { _ =>
             @component("info", "@info(talk.info, users, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.info(talk.info, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.info(talk.info, Seq(user)) }
-                @example(s"$name not found") { _ => @display.info(talk.info, Seq()) }
-                @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updatedAt = talk.info.updatedAt.plusSeconds(60)), Seq(user)) }
+                @example(s"$name") { _ => @display.info(talk.info, List(user), Some(_ => StyleguideCtrl.index(params))) }
+                @example(s"$name without link") { _ => @display.info(talk.info, List(user)) }
+                @example(s"$name not found") { _ => @display.info(talk.info, List()) }
+                @example(s"$name with different update date") { _ => @display.info(talk.info.copy(updatedAt = talk.info.updatedAt.plusSeconds(60)), List(user)) }
             }
             @component("avatar", "@avatars(NonEmptyList.of(user.id), users, Some(u => MyCtrl.detail(u.slug)))") { name =>
-                @example(s"$name") { _ => @display.avatars(talk.speakers, Seq(user), Some(_ => StyleguideCtrl.index(params))) }
-                @example(s"$name without link") { _ => @display.avatars(talk.speakers, Seq(user)) }
-                @example(s"$name not found") { _ => @display.avatars(talk.speakers, Seq()) }
+                @example(s"$name") { _ => @display.avatars(talk.speakers, List(user), Some(_ => StyleguideCtrl.index(params))) }
+                @example(s"$name without link") { _ => @display.avatars(talk.speakers, List(user)) }
+                @example(s"$name not found") { _ => @display.avatars(talk.speakers, List()) }
             }
         }
 
@@ -203,7 +203,7 @@
 
         @section("published", "Published components", "@import gospeak.web.pages.published.partials.html._") { _ =>
             @component("groupItem", "@groupItem(group)") { name =>
-                @example(s"$name") { _ => @published.groupItem(groupFull, Seq())(userAwareReq) }
+                @example(s"$name") { _ => @published.groupItem(groupFull, List())(userAwareReq) }
             }
             @component("cfpItem", "@cfpItem(cfp)") { name =>
                 @example(s"$name") { _ => @published.cfpItem(CommonCfp(group, cfp)) }
@@ -229,19 +229,19 @@
                 @example(s"$name") { _ => @orga.cfpItem(cfp) }
             }
             @component("eventItem", "@eventItem(group, event, proposals, speakers)") { name =>
-                @example(s"$name in the future") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(3))), Seq(), Seq(user)) }
-                @example(s"$name in the past") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(-3))), Seq(), Seq(user)) }
-                @example(s"$name with a talk") { _ => @orga.eventItem(eventFull.copy(event = event.copy(talks = Seq(proposal.id))), Seq(proposal), Seq(user)) }
+                @example(s"$name in the future") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(3))), List(), List(user)) }
+                @example(s"$name in the past") { _ => @orga.eventItem(eventFull.copy(event = event.copy(start = event.start.plusDays(-3))), List(), List(user)) }
+                @example(s"$name with a talk") { _ => @orga.eventItem(eventFull.copy(event = event.copy(talks = List(proposal.id))), List(proposal), List(user)) }
             }
             @component("proposalItem", "@proposalItem(group, proposalFull, speakers)") { name =>
-                @example(s"$name pending") { _ => @orga.proposalItem(proposalFull.copy(event = None), Seq(user), Seq(), params, StyleguideCtrl.index) }
-                @example(s"$name accepted with an event") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id))), Seq(user), Seq(), params, StyleguideCtrl.index) }
-                @example(s"$name declined") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined)), Seq(user), Seq(), params, StyleguideCtrl.index) }
+                @example(s"$name pending") { _ => @orga.proposalItem(proposalFull.copy(event = None), List(user), List(), params, StyleguideCtrl.index) }
+                @example(s"$name accepted with an event") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id))), List(user), List(), params, StyleguideCtrl.index) }
+                @example(s"$name declined") { _ => @orga.proposalItem(proposalFull.copy(proposal = proposal.copy(status = Proposal.Status.Declined)), List(user), List(), params, StyleguideCtrl.index) }
             }
             @component("proposalItem1", "@proposalItem1(group, cfp, proposal, speakers, events)") { name =>
-                @example(s"$name pending") { _ => @orga.proposalItem1(cfp, proposal, Seq(user), Seq()) }
-                @example(s"$name accepted with an event") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), Seq(user), Seq(event)) }
-                @example(s"$name declined") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Declined), Seq(user), Seq()) }
+                @example(s"$name pending") { _ => @orga.proposalItem1(cfp, proposal, List(user), List()) }
+                @example(s"$name accepted with an event") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Accepted, event = Some(event.id)), List(user), List(event)) }
+                @example(s"$name declined") { _ => @orga.proposalItem1(cfp, proposal.copy(status = Proposal.Status.Declined), List(user), List()) }
             }
             @component("speakerItem", "@speakerItem(group, speaker)") { name =>
                 @example(s"$name") { _ => @orga.speakerItem(userFull) }

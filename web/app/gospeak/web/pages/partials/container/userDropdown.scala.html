@@ -4,7 +4,7 @@
 @import gospeak.web.pages.published.speakers.routes.SpeakerCtrl
 @import gospeak.web.pages.user.routes.UserCtrl
 
-@(user: User, groups: Seq[Group], group: Option[Group] = None)
+@(user: User, groups: List[Group], group: Option[Group] = None)
 <li class="nav-item u-header__nav-item dropdown">
     <a id="account-dropdown" class="btn btn-xs btn-text-secondary u-sidebar--account__toggle-bg nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <span class="position-relative pl-1">

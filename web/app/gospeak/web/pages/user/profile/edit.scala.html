@@ -20,33 +20,33 @@
         <div class="card mb-3">
             <div class="card-header" data-toggle="collapse" data-target="#basicCollapse">Basic infos</div>
             <div class="card-body collapse show" id="basicCollapse">
-                @fieldHorizontal(form("status"), Seq("label" -> "Status")) { (field, args) =>
+                @fieldHorizontal(form("status"), List("label" -> "Status")) { (field, args) =>
                     @inputSelect(field, User.Status.all.map(s => (s.value, s.value)))
                     <small class="form-text text-muted">
                         If your profile is <b>Public</b>, it will be listed in <a href="@PublicSpeakerCtrl.list()" target="_blank">Gospeak speakers</a>.
                         Otherwise, you can stay under the radar.
                     </small>
                 }
-                @fieldHorizontal(form("first-name"), Seq("label" -> "Name")) { (field, args) =>
+                @fieldHorizontal(form("first-name"), List("label" -> "Name")) { (field, args) =>
                     <div class="row">
-                        <div class="col">@inputText(field, Seq("placeholder" -> "First Name", "autofocus" -> "true"))</div>
-                        <div class="col">@inputText(form("last-name"), Seq("placeholder" -> "Last Name"))</div>
+                        <div class="col">@inputText(field, List("placeholder" -> "First Name", "autofocus" -> "true"))</div>
+                        <div class="col">@inputText(form("last-name"), List("placeholder" -> "Last Name"))</div>
                     </div>
                 }
-                @fieldHorizontal(form("email"), Seq("label" -> "Email")) { (field, args) =>
-                    @inputEmail(field, Seq("placeholder" -> "Email"))
+                @fieldHorizontal(form("email"), List("label" -> "Email")) { (field, args) =>
+                    @inputEmail(field, List("placeholder" -> "Email"))
                 }
-                @fieldHorizontal(form("avatar"), Seq("label" -> "Avatar")) { (field, args) =>
+                @fieldHorizontal(form("avatar"), List("label" -> "Avatar")) { (field, args) =>
                     @inputImg(field, ImgConf.userAvatar())
                 }
-                @fieldHorizontal(form("title"), Seq("label" -> "Title")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "Your job title, what you do or a very short intro"))
+                @fieldHorizontal(form("title"), List("label" -> "Title")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "Your job title, what you do or a very short intro"))
                 }
-                @fieldHorizontal(form("bio"), Seq("label" -> "Bio")) { (field, args) =>
-                    @inputMarkdown(field, Seq("placeholder" -> "Tell people a bit more about you"))
+                @fieldHorizontal(form("bio"), List("label" -> "Bio")) { (field, args) =>
+                    @inputMarkdown(field, List("placeholder" -> "Tell people a bit more about you"))
                 }
-                @fieldHorizontal(form("mentoring"), Seq("label" -> "Mentoring")) { (field, args) =>
-                    @inputMarkdown(field, Seq("placeholder" -> "Help new people become speaker..."))
+                @fieldHorizontal(form("mentoring"), List("label" -> "Mentoring")) { (field, args) =>
+                    @inputMarkdown(field, List("placeholder" -> "Help new people become speaker..."))
                     <small class="form-text text-muted">
                         Gospeak encourage people to become speakers. If you have some experience, take some time to mentor them. It will be very kind.<br>
                         You can offer to to review CFP proposal, slides, give advices, propose repetitions or even be a co-speaker.<br>
@@ -64,20 +64,20 @@
         <div class="card mb-3">
             <div class="card-header" data-toggle="collapse" data-target="#moreCollapse">More infos</div>
             <div class="card-body collapse show" id="moreCollapse">
-                @fieldHorizontal(form("company"), Seq("label" -> "Company")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "ex: Zeenea"))
+                @fieldHorizontal(form("company"), List("label" -> "Company")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "ex: Zeenea"))
                 }
-                @fieldHorizontal(form("location"), Seq("label" -> "Location")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "ex: Paris"))
+                @fieldHorizontal(form("location"), List("label" -> "Location")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "ex: Paris"))
                 }
-                @fieldHorizontal(form("phone"), Seq("label" -> "Phone")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "ex: +33 6 12 74 93 56"))
+                @fieldHorizontal(form("phone"), List("label" -> "Phone")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "ex: +33 6 12 74 93 56"))
                 }
-                @fieldHorizontal(form("website"), Seq("label" -> "Website")) { (field, args) =>
-                    @inputUrl(field, Seq("placeholder" -> "ex: http://loic.knuchel.org"))
+                @fieldHorizontal(form("website"), List("label" -> "Website")) { (field, args) =>
+                    @inputUrl(field, List("placeholder" -> "ex: http://loic.knuchel.org"))
                 }
-                @fieldHorizontal(form("slug"), Seq("label" -> "Username")) { (field, args) =>
-                    @inputText(field, Seq("placeholder" -> "Username", "slug-for" -> Seq(form("first-name"), form("last-name")).map(_.id).mkString(",")))
+                @fieldHorizontal(form("slug"), List("label" -> "Username")) { (field, args) =>
+                    @inputText(field, List("placeholder" -> "Username", "slug-for" -> List(form("first-name"), form("last-name")).map(_.id).mkString(",")))
                 }
             </div>
         </div>

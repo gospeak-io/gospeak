@@ -51,7 +51,7 @@ object ApplicationConf {
       override def isProd: Boolean = true
     }
 
-    val all: Seq[Env] = Seq(Local, Dev, Staging, Prod)
+    val all: List[Env] = List(Local, Dev, Staging, Prod)
   }
 
 }

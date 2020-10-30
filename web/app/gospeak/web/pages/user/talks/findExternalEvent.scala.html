@@ -14,7 +14,7 @@
     </div>
     <h3>Where did you present your talk?</h3>
 
-    @events.render(TalkCtrl.findExternalEvent(talk.slug, _), ExternalEventRepoSql.table.filters) { event =>
+    @events.render(TalkCtrl.findExternalEvent(talk.slug, _), ExternalEventRepoSql.FILTERS) { event =>
         <a href="@TalkCtrl.createExternalProposal(talk.slug, event.id)" class="list-group-item list-group-item-action">
             <h5 class="mb-1">@event.name.value</h5>
             @event.start.map { s => <span class="badge badge-primary">@s.asDate</span> }

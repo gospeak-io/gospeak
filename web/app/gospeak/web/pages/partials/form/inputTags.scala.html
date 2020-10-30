@@ -1,7 +1,7 @@
 @import gospeak.web.pages.partials.form.Utils
 
-@(field: Field, args: Seq[(String, String)] = Seq())
-@defining(field.indexes.flatMap(i => field(s"[$i]").value)) { values: Seq[String] =>
+@(field: Field, args: List[(String, String)] = List())
+@defining(field.indexes.flatMap(i => field(s"[$i]").value).toList) { values: List[String] =>
     <select
         @Utils.idAttr(field, args)
         @Utils.nameAttr(field, args, multi = true)

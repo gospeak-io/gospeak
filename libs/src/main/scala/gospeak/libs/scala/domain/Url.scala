@@ -9,7 +9,7 @@ sealed class Url private(value: String, protected val parsed: Url.ParsedUrl) ext
 
   def host: String = parsed.host
 
-  def path: Seq[String] = parsed.path
+  def path: List[String] = parsed.path
 }
 
 object Url {
@@ -24,7 +24,7 @@ object Url {
         .orElse(Meetup.from(url).toOption)
         .orElse(Github.from(url).toOption)
         .getOrElse(url)
-    }.toEither.left.map(e => CustomException(s"'$in' is an invalid Url", Seq(CustomError(e.getMessage))))
+    }.toEither.left.map(e => CustomException(s"'$in' is an invalid Url", List(CustomError(e.getMessage))))
   }
 
   final class Slides private(url: Url) extends Url(url.value, url.parsed)
@@ -180,7 +180,7 @@ object Url {
         case List("channel", id, _*) => Right(new Channel(u))
         case List("user", user, _*) => Right(new Channel(u))
         case List("c", name) => Right(new Channel(u))
-        case List(name) if u.parsed.host != "youtu.be" && !Seq("playlist", "watch").contains(name) => Right(new Channel(u))
+        case List(name) if u.parsed.host != "youtu.be" && !Set("playlist", "watch").contains(name) => Right(new Channel(u))
         case _ => Left(CustomException(s"'${u.value}' is not a YouTube channel url"))
       }
 
@@ -248,8 +248,8 @@ object Url {
 
     object Channel {
       def from(u: Vimeo): Either[CustomException, Channel] = u.parsed.path match {
-        case Seq(onlyNumbers()) => Left(CustomException(s"'${u.value}' is not a Vimeo channel url"))
-        case Seq(_) => Right(new Channel(u))
+        case List(onlyNumbers()) => Left(CustomException(s"'${u.value}' is not a Vimeo channel url"))
+        case List(_) => Right(new Channel(u))
         case _ => Left(CustomException(s"'${u.value}' is not a Vimeo channel url"))
       }
 
@@ -278,7 +278,7 @@ object Url {
 
     object Video {
       def from(u: Vimeo): Either[CustomException, Video] = u.parsed.path match {
-        case Seq(onlyNumbers()) => Right(new Video(u))
+        case List(onlyNumbers()) => Right(new Video(u))
         case _ :+ "video" :+ onlyNumbers() => Right(new Video(u))
         case _ => Left(CustomException(s"'${u.value}' is not a Vimeo video url"))
       }
@@ -330,8 +330,8 @@ object Url {
 
     object Presentation {
       def from(u: Infoq): Either[CustomException, Presentation] = u.parsed.path match {
-        case Seq("presentations", prez) => Right(new Presentation(u))
-        case Seq(lang, "presentations", prez) if lang.length == 2 => Right(new Presentation(u))
+        case List("presentations", prez) => Right(new Presentation(u))
+        case List(lang, "presentations", prez) if lang.length == 2 => Right(new Presentation(u))
         case _ => Left(CustomException(s"'${u.value}' is not a Infoq presentation url"))
       }
 

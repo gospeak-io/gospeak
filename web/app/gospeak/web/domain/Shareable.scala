@@ -26,7 +26,7 @@ object Shareable {
     text = u.name.value,
     owners = List())
 
-  def apply(u: User, t: Talk, users: Seq[User])(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
+  def apply(u: User, t: Talk, users: List[User])(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
     url = req.toAbsolute(SpeakerCtrl.talk(u.slug, t.slug)),
     text = s"Talk ${t.title.value}",
     owners = t.speakerUsers(users).map(Owner(_)))
@@ -56,12 +56,12 @@ object Shareable {
     text = e.name.value,
     owners = List())
 
-  def apply(g: Group, p: Proposal, users: Seq[User])(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
+  def apply(g: Group, p: Proposal, users: List[User])(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
     url = req.toAbsolute(GroupCtrl.talk(g.slug, p.id)),
     text = s"Presentation of ${p.title.value}",
     owners = p.speakerUsers(users).map(Owner(_)))
 
-  def apply(e: ExternalEvent, p: ExternalProposal, users: Seq[User])(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
+  def apply(e: ExternalEvent, p: ExternalProposal, users: List[User])(implicit req: UserAwareReq[AnyContent]): Shareable = new Shareable(
     url = req.toAbsolute(EventCtrl.proposalExt(e.id, p.id)),
     text = s"Presentation of ${p.title.value}",
     owners = p.speakerUsers(users).map(Owner(_)))

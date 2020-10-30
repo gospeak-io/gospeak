@@ -1,9 +1,12 @@
 ThisBuild / version := "0.1-SNAPSHOT"
-ThisBuild / scalaVersion := "2.12.10"
+ThisBuild / scalaVersion := "2.12.12"
 ThisBuild / organization := "gospeak"
 
-ThisBuild / fork := true
-ThisBuild / javaOptions += "-Xmx1G"
+/**
+ * See .jmvopts for more options
+ * - xms: memory to use when start jvm
+ * - xmx: max memory available for the jvm
+ */
 
 
 /**
@@ -33,7 +36,7 @@ val circe = Seq(
   "io.circe" %% "circe-literal" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-java8" % "0.11.1")
-val doobieVersion = "0.8.6" // "0.8.7" & "0.8.8" versions causes: Can't infer the SQL type to use for an instance of java.time.Instant. Use setObject() with an explicit Types value to specify the type to use.
+val doobieVersion = "0.9.2"
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-h2",
@@ -76,7 +79,9 @@ val playTest = Seq(
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.34")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.2")
 val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
-val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.7")
+val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.1")
+val safeql = Seq("fr.loicknuchel" %% "safeql" % "0.1.0")
+val typedapi = Seq("fr.loicknuchel" %% "typedapi" % "0.1.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.1",
   "org.webjars.npm" % "bootstrap" % "4.5.0",
@@ -102,10 +107,10 @@ val scalaCheck = Seq(
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
-val libsDependencies = hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ cats ++ playJson ++ scalaTest ++ scalaCheck ++ youtubeApi
+val libsDependencies = cats ++ doobie ++ flyway ++ hammock ++ flexmark ++ mustache ++ liquid ++ googleMaps ++ youtubeApi ++ playJson ++ scalaTest ++ scalaCheck ++ doobieTest
 val coreDependencies = cats ++ scalaTest ++ scalaCheck
-val infraDependencies = twitter ++ akka ++ sendgrid ++ circe ++ doobie ++ flyway ++ scalaTest ++ scalaCheck ++ doobieTest
-val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
+val infraDependencies = twitter ++ akka ++ sendgrid ++ safeql ++ circe ++ scalaTest ++ scalaCheck ++ doobieTest
+val webDependencies = play ++ silhouette ++ pureconfig ++ cron ++ typedapi ++ webjars ++ logback ++ scalaTest ++ scalaCheck ++ playTest ++ silhouetteTest
 
 
 /**

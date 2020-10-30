@@ -2,7 +2,7 @@
 @import gospeak.core.domain.utils.Info
 @import gospeak.web.utils._
 
-@(info: Info, users: Seq[User], call: Option[User => Call] = None)(implicit req: UserReq[AnyContent])
+@(info: Info, users: List[User], call: Option[User => Call] = None)(implicit req: UserReq[AnyContent])
 @username(id: User.Id) = @{
     users.find(_.id == id).map(_.name.value).getOrElse(s"Unknown (${id.value})")
 }

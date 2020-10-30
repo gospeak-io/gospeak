@@ -5,7 +5,7 @@
 @import gospeak.web.pages.orga.speakers.routes.SpeakerCtrl
 @import gospeak.web.utils._
 
-@(speaker: User, proposals: Page[Proposal.Full], speakers: Seq[User], userRatings: Seq[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
+@(speaker: User, proposals: Page[Proposal.Full], speakers: List[User], userRatings: List[Proposal.Rating])(b: Breadcrumb)(implicit req: OrgaReq[AnyContent])
 @container(speaker.name.value, b)() {
     <div class="row">
         <div class="col-4">
