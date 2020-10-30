@@ -57,7 +57,7 @@ val youtubeApi = Seq(
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
 val googleMaps = Seq("com.google.maps" % "google-maps-services" % "0.14.0") // https://github.com/googlemaps/google-maps-services-java
-val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.4")
+val flyway = Seq("org.flywaydb" % "flyway-core" % "6.5.7")
 val cron = Seq(
   "eu.timepit" %% "fs2-cron-core" % "0.2.2",
   "com.github.pureconfig" %% "pureconfig-cron4s" % "0.13.0")
