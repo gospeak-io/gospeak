@@ -1,5 +1,5 @@
+@import fr.loicknuchel.safeql.Table.Sort
 @import gospeak.libs.scala.domain.Page
-@import gospeak.libs.sql.dsl.Table.Sort
 
 @(page: Page[_], link: Page.Params => Call, sorts: List[Sort])
 @if(sorts.nonEmpty) {

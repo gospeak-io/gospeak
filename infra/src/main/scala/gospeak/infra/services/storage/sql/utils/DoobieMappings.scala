@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 import cats.data.NonEmptyList
 import doobie.util.Read
 import doobie.util.meta.Meta
+import fr.loicknuchel.safeql.{Page => SqlPage, Query => SqlQuery}
 import gospeak.core.ApplicationConf
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
@@ -14,7 +15,6 @@ import gospeak.core.services.meetup.domain.{MeetupEvent, MeetupGroup, MeetupUser
 import gospeak.core.services.slack.domain.{SlackAction, SlackToken}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.dsl.Query
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
@@ -23,7 +23,30 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 object DoobieMappings {
 
   implicit class BasicCtxConverter(val ctx: BasicCtx) extends AnyVal {
-    def toDb: Query.Ctx = Query.Ctx.Basic(ctx.now)
+    def toSql: SqlQuery.Ctx = SqlQuery.Ctx.Basic(ctx.now)
+  }
+
+  implicit class PageParamsConverter(val params: Page.Params) extends AnyVal {
+    def toSql: SqlPage.Params = SqlPage.Params(
+      page = params.page.value,
+      pageSize = params.pageSize.value,
+      search = params.search.map(_.value),
+      orderBy = params.orderBy.map(_.values.toList).getOrElse(List()),
+      filters = params.filters,
+      nullsFirst = params.nullsFirst)
+  }
+
+  implicit class SqlPageConverter[A](val page: SqlPage[A]) extends AnyVal {
+    def fromSql: Page[A] = Page[A](
+      items = page.items,
+      params = Page.Params(
+        page = Page.No(page.params.page),
+        pageSize = Page.Size(page.params.pageSize.toInt),
+        search = page.params.search.map(Page.Search(_)),
+        orderBy = Page.OrderBy.from(page.params.orderBy),
+        filters = page.params.filters,
+        nullsFirst = page.params.nullsFirst),
+      total = Page.Total(page.total))
   }
 
   import scala.reflect.runtime.universe._

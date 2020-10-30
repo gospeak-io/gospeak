@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.storage.VenueRepo
@@ -15,7 +16,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Markdown, Page}
-import gospeak.libs.sql.dsl._
 
 class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                    partnerRepo: PartnerRepoSql,
@@ -58,11 +58,11 @@ class VenueRepoSql(protected[sql] val xa: doobie.Transactor[IO],
 
   override def findPublic(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[Option[Venue.Public]] = selectOnePublic(ctx.group.id, venue).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Full]] = selectPageFull(params).run(xa).map(_.fromSql)
 
-  override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(params).run(xa)
+  override def listPublic(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Public]] = selectPagePublic(params).run(xa).map(_.fromSql)
 
-  override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(params).run(xa)
+  override def listCommon(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Venue.Common]] = selectPageCommon(params).run(xa).map(_.fromSql)
 
   override def listAllFull()(implicit ctx: OrgaCtx): IO[List[Venue.Full]] = selectAllFull(ctx.group.id).run(xa)
 
@@ -106,16 +106,16 @@ object VenueRepoSql {
     VENUES_PUBLIC(group).select.where(VENUES.ID is id).option[Venue.Public]
 
   private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Venue.Full] =
-    VENUES_FULL.select.where(PARTNERS.GROUP_ID is ctx.group.id).page[Venue.Full](params, ctx.toDb)
+    VENUES_FULL.select.where(PARTNERS.GROUP_ID is ctx.group.id).page[Venue.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Venue.Public] =
-    VENUES_PUBLIC(ctx.group.id).select.page[Venue.Public](params, ctx.toDb)
+    VENUES_PUBLIC(ctx.group.id).select.page[Venue.Public](params.toSql, ctx.toSql)
 
   private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Venue.Common] = {
     val internalVenues = VENUES_WITH_PARTNER.fields(VENUES.ID, PARTNERS.SLUG, PARTNERS.NAME, PARTNERS.LOGO, VENUES.ADDRESS, TableField("0").as("events"), TableField("false").as("public")).select.where(PARTNERS.GROUP_ID is ctx.group.id)
     val publicVenues = VENUES_PUBLIC(ctx.group.id).addFields(TableField("true").as("public")).select
     val commonVenues = internalVenues.union(publicVenues, alias = Some("v"), sorts = List(("name", "name", List("public", "name", "-events"))), search = List("name", "address"))
-    commonVenues.select.page[Venue.Common](params, ctx.toDb)
+    commonVenues.select.page[Venue.Common](params.toSql, ctx.toSql)
   }
 
   private[sql] def selectAllFull(group: Group.Id): Query.Select.All[Venue.Full] =

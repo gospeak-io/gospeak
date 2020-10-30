@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{AggField, Cond, Query}
 import gospeak.core.domain.Event.Rsvp.Answer
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message
@@ -18,7 +19,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.dsl.{AggField, Cond, Query}
 
 class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with EventRepo {
   override def create(data: Event.Data)(implicit ctx: OrgaCtx): IO[Event] = {
@@ -62,9 +62,9 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def findFull(group: Group.Slug, event: Event.Slug)(implicit ctx: UserAwareCtx): IO[Option[Event.Full]] = selectOneFull(group, event).run(xa)
 
-  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event]] = selectPage(params).run(xa).map(_.fromSql)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageFull(params).run(xa).map(_.fromSql)
 
   override def list(venue: Venue.Id)(implicit ctx: OrgaCtx): IO[List[Event]] = selectAll(ctx.group.id, venue).run(xa)
 
@@ -72,15 +72,15 @@ class EventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listAllPublishedSlugs()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Event.Slug)]] = selectAllPublishedSlugs().run(xa)
 
-  override def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa)
+  override def listPublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Event.Full]] = selectPagePublished(group, params).run(xa).map(_.fromSql)
 
   override def list(ids: List[Event.Id]): IO[List[Event]] = runNel(selectAll, ids)
 
   override def listAllFromGroups(groups: List[Group.Id])(implicit ctx: AdminCtx): IO[List[Event]] = runNel[Group.Id, Event](selectAllFromGroups(_), groups)
 
-  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(params).run(xa)
+  override def listAfter(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Event.Full]] = selectPageAfterFull(params).run(xa).map(_.fromSql)
 
-  override def listIncoming(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(params).run(xa)
+  override def listIncoming(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Event.Full, Option[Event.Rsvp])]] = selectPageIncoming(params).run(xa).map(_.fromSql)
 
   override def countYesRsvp(event: Event.Id): IO[Long] = countRsvp(event, Event.Rsvp.Answer.Yes).run(xa).map(_.getOrElse(0))
 
@@ -150,16 +150,16 @@ object EventRepoSql {
     EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(group) and EVENTS.SLUG.is(event) and EVENTS.PUBLISHED.notNull).option[Event.Full](limit = true)
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Event] =
-    EVENTS.select.where(_.GROUP_ID.is(ctx.group.id)).page[Event](params, ctx.toDb)
+    EVENTS.select.where(_.GROUP_ID.is(ctx.group.id)).page[Event](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Event.Full] =
-    EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(ctx.group.id)).page[Event.Full](params, ctx.toDb)
+    EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(ctx.group.id)).page[Event.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectAllPublishedSlugs()(implicit ctx: UserAwareCtx): Query.Select.All[(Group.Id, Event.Slug)] =
     EVENTS.select.withFields(_.GROUP_ID, _.SLUG).where(_.PUBLISHED.notNull).all[(Group.Id, Event.Slug)]
 
   private[sql] def selectPagePublished(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[Event.Full] =
-    EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(group) and EVENTS.PUBLISHED.notNull).page[Event.Full](params, ctx.toDb)
+    EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(group) and EVENTS.PUBLISHED.notNull).page[Event.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(ids: NonEmptyList[Event.Id]): Query.Select.All[Event] =
     EVENTS.select.where(_.ID.in(ids)).all[Event]
@@ -174,10 +174,10 @@ object EventRepoSql {
     EVENTS_WITH_VENUES.select.where(EVENTS.GROUP_ID.is(group) and VENUES.PARTNER_ID.is(partner)).all[(Event, Venue)]
 
   private[sql] def selectPageAfterFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Event.Full] =
-    EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(ctx.group.id) and EVENTS.START.gt(TimeUtils.toLocalDateTime(ctx.now.truncatedTo(ChronoUnit.DAYS)))).page[Event.Full](params, ctx.toDb)
+    EVENTS_FULL.select.where(EVENTS.GROUP_ID.is(ctx.group.id) and EVENTS.START.gt(TimeUtils.toLocalDateTime(ctx.now.truncatedTo(ChronoUnit.DAYS)))).page[Event.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageIncoming(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[(Event.Full, Option[Event.Rsvp])] =
-    EVENTS_FULL_WITH_MEMBERS_AND_RSVPS.select.where(EVENTS.START.gt(TimeUtils.toLocalDateTime(ctx.now)) and EVENTS.PUBLISHED.notNull and GROUP_MEMBERS.USER_ID.is(ctx.user.id)).page[(Event.Full, Option[Event.Rsvp])](params, ctx.toDb)
+    EVENTS_FULL_WITH_MEMBERS_AND_RSVPS.select.where(EVENTS.START.gt(TimeUtils.toLocalDateTime(ctx.now)) and EVENTS.PUBLISHED.notNull and GROUP_MEMBERS.USER_ID.is(ctx.user.id)).page[(Event.Full, Option[Event.Rsvp])](params.toSql, ctx.toSql)
 
   private[sql] def selectTags(): Query.Select.All[List[Tag]] =
     EVENTS.select.withFields(_.TAGS).all[List[Tag]]

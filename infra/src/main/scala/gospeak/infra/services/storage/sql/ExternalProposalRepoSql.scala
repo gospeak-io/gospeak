@@ -6,6 +6,7 @@ import java.time.{Instant, LocalDateTime}
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Cond, Query}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalProposalRepo
@@ -18,7 +19,6 @@ import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.dsl.{Cond, Query}
 
 class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalProposalRepo {
   override def create(talk: Talk.Id, event: ExternalEvent.Id, data: ExternalProposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[ExternalProposal] = {
@@ -68,13 +68,13 @@ class ExternalProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) exte
 
   override def listAllPublicIds(): IO[List[(ExternalEvent.Id, ExternalProposal.Id)]] = selectAllPublicIds().run(xa)
 
-  override def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]] = selectPage(event, Proposal.Status.Accepted, params).run(xa)
+  override def listPublic(event: ExternalEvent.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[ExternalProposal]] = selectPage(event, Proposal.Status.Accepted, params).run(xa).map(_.fromSql)
 
-  override def listCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa)
+  override def listCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(talk, params).run(xa).map(_.fromSql)
 
-  override def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(params).run(xa)
+  override def listCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommon(params).run(xa).map(_.fromSql)
 
-  override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(params).run(xa)
+  override def listCurrentCommon(params: Page.Params)(implicit ctx: UserCtx): IO[Page[CommonProposal]] = selectPageCommonCurrent(params).run(xa).map(_.fromSql)
 
   override def listAllCommon(talk: Talk.Id): IO[List[CommonProposal]] = selectAllCommon(talk).run(xa)
 
@@ -142,13 +142,13 @@ object ExternalProposalRepoSql {
     EXTERNAL_PROPOSALS.select.withFields(_.EVENT_ID, _.ID).where(_.STATUS is Proposal.Status.Accepted).all[(ExternalEvent.Id, ExternalProposal.Id)]
 
   private[sql] def selectPage(event: ExternalEvent.Id, status: Proposal.Status, params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[ExternalProposal] =
-    EXTERNAL_PROPOSALS.select.where(ep => ep.EVENT_ID.is(event) and ep.STATUS.is(status)).page[ExternalProposal](params, ctx.toDb)
+    EXTERNAL_PROPOSALS.select.where(ep => ep.EVENT_ID.is(event) and ep.STATUS.is(status)).page[ExternalProposal](params.toSql, ctx.toSql)
 
   private[sql] def selectPageCommon(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[CommonProposal] =
-    COMMON_PROPOSALS.select.where(_.talk_id is talk).page[CommonProposal](params, ctx.toDb)
+    COMMON_PROPOSALS.select.where(_.talk_id is talk).page[CommonProposal](params.toSql, ctx.toSql)
 
   private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[CommonProposal] =
-    COMMON_PROPOSALS.select.where(_.speakers.like("%" + ctx.user.id.value + "%")).page[CommonProposal](params, ctx.toDb)
+    COMMON_PROPOSALS.select.where(_.speakers.like("%" + ctx.user.id.value + "%")).page[CommonProposal](params.toSql, ctx.toSql)
 
   private[sql] def selectPageCommonCurrent(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[CommonProposal] = {
     val now = TimeUtils.toLocalDateTime(ctx.now)
@@ -157,7 +157,7 @@ object ExternalProposalRepoSql {
     val acc = status.is(Proposal.Status.Accepted) and (COMMON_PROPOSALS.event_start[LocalDateTime].gt(now) or COMMON_PROPOSALS.event_ext_start[LocalDateTime].gt(now)).par
     val dec = status.is(Proposal.Status.Declined) and COMMON_PROPOSALS.updated_at[Instant].gt(ctx.now.minus(30, ChronoUnit.DAYS))
     val cur = pend.par or acc.par or dec.par
-    COMMON_PROPOSALS.select.where(p => p.speakers.like("%" + ctx.user.id.value + "%") and cur.par).page[CommonProposal](params, ctx.toDb)
+    COMMON_PROPOSALS.select.where(p => p.speakers.like("%" + ctx.user.id.value + "%") and cur.par).page[CommonProposal](params.toSql, ctx.toSql)
   }
 
   private[sql] def selectAllCommon(talk: Talk.Id): Query.Select.All[CommonProposal] =

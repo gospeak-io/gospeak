@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, Partner, User}
 import gospeak.core.services.storage.PartnerRepo
@@ -14,7 +15,6 @@ import gospeak.infra.services.storage.sql.database.tables.PARTNERS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{CustomException, Page}
-import gospeak.libs.sql.dsl._
 
 class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with PartnerRepo {
   override def create(data: Partner.Data)(implicit ctx: OrgaCtx): IO[Partner] = {
@@ -35,9 +35,9 @@ class PartnerRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def remove(partner: Partner.Slug)(implicit ctx: OrgaCtx): IO[Unit] = delete(ctx.group.id, partner).run(xa)
 
-  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner]] = selectPage(params).run(xa).map(_.fromSql)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Partner.Full]] = selectPageFull(params).run(xa).map(_.fromSql)
 
   override def list(group: Group.Id): IO[List[Partner]] = selectAll(group).run(xa)
 
@@ -96,10 +96,10 @@ object PartnerRepoSql {
     PARTNERS.delete.where(where(group, partner))
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Partner] =
-    PARTNERS.select.where(_.GROUP_ID is ctx.group.id).page[Partner](params, ctx.toDb)
+    PARTNERS.select.where(_.GROUP_ID is ctx.group.id).page[Partner](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Partner.Full] =
-    PARTNERS_FULL.select.where(PARTNERS.GROUP_ID is ctx.group.id).page[Partner.Full](params, ctx.toDb)
+    PARTNERS_FULL.select.where(PARTNERS.GROUP_ID is ctx.group.id).page[Partner.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(group: Group.Id): Query.Select.All[Partner] =
     PARTNERS.select.where(_.GROUP_ID is group).all[Partner]

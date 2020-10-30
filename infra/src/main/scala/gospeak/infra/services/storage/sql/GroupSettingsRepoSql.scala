@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.Query
 import gospeak.core.GsConf
 import gospeak.core.domain.Group.Settings
 import gospeak.core.domain.Group.Settings.Action
@@ -20,7 +21,6 @@ import gospeak.infra.services.storage.sql.database.tables.GROUP_SETTINGS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.{Liquid, LiquidMarkdown}
-import gospeak.libs.sql.dsl.Query
 
 class GroupSettingsRepoSql(protected[sql] val xa: doobie.Transactor[IO], conf: GsConf) extends GenericRepo with GroupSettingsRepo {
   override def set(settings: Group.Settings)(implicit ctx: OrgaCtx): IO[Unit] = setSettings(ctx.group.id, settings)

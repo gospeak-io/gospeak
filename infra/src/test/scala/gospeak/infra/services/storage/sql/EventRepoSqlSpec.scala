@@ -115,7 +115,7 @@ class EventRepoSqlSpec extends RepoSpec {
       eventRepo.list(params)(ctx).unsafeRunSync().items shouldBe List(event)
       eventRepo.listFull(params)(ctx).unsafeRunSync().items shouldBe List(eventFull)
       eventRepo.list(venue.id)(ctx).unsafeRunSync() shouldBe event.venue.map(_ => event).toList
-      eventRepo.list(partner.id)(ctx).unsafeRunSync() shouldBe List(event -> venue)
+      eventData1.venue.foreach(_ => eventRepo.list(partner.id)(ctx).unsafeRunSync() shouldBe List(event -> venue))
       eventRepo.listAllPublishedSlugs()(ctx.userAwareCtx).unsafeRunSync() // shouldBe List(group.id -> event.slug) // published should not be null
       eventRepo.listPublished(group.id, params)(ctx.userAwareCtx).unsafeRunSync().items // shouldBe List(eventFull) // published should not be null
       eventRepo.list(List(event.id)).unsafeRunSync() shouldBe List(event)

@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{AggField, Field, Query, Table}
 import gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, Proposal, User}
 import gospeak.core.services.storage.UserRepo
@@ -15,7 +16,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{EmailAddress, Page}
-import gospeak.libs.sql.dsl.{AggField, Field, Query, Table}
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
   override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] = {
@@ -61,7 +61,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     val speakerIdsQuery = PROPOSALS_WITH_CFPS.select.fields(PROPOSALS.SPEAKERS).where(CFPS.GROUP_ID.is(ctx.group.id)).all[NonEmptyList[User.Id]]
     for {
       speakerIds <- speakerIdsQuery.run(xa).map(_.flatMap(_.toList).distinct)
-      res <- speakerIds.toNel.map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
+      res <- speakerIds.toNel.map(ids => selectPage(ids, params).run(xa).map(_.fromSql)).getOrElse(IO.pure(Page.empty[User.Full]))
     } yield res
   }
 
@@ -69,7 +69,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
     val speakerIdsQuery = PROPOSALS_WITH_CFPS_EVENTS.select.fields(PROPOSALS.SPEAKERS).where(CFPS.GROUP_ID.is(group) and EVENTS.PUBLISHED.notNull).all[NonEmptyList[User.Id]]
     for {
       speakerIds <- speakerIdsQuery.run(xa).map(_.flatMap(_.toList).distinct)
-      res <- speakerIds.toNel.map(ids => selectPage(ids, params).run(xa)).getOrElse(IO.pure(Page.empty[User.Full]))
+      res <- speakerIds.toNel.map(ids => selectPage(ids, params).run(xa).map(_.fromSql)).getOrElse(IO.pure(Page.empty[User.Full]))
     } yield res
   }
 
@@ -80,7 +80,7 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
 
   override def listAllPublicSlugs()(implicit ctx: UserAwareCtx): IO[List[(User.Id, User.Slug)]] = selectAllPublicSlugs().run(xa)
 
-  override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa)
+  override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa).map(_.fromSql)
 
   override def list(ids: List[User.Id]): IO[List[User]] = runNel(selectAll, ids)
 }
@@ -170,10 +170,10 @@ object UserRepoSql {
     USERS.select.withFields(_.ID, _.SLUG).where(_.STATUS is User.Status.Public).all[(User.Id, User.Slug)]
 
   private[sql] def selectPagePublic(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[User.Full] =
-    USERS_FULL.select.where(USERS.STATUS is User.Status.Public).page[User.Full](params, ctx.toDb)
+    USERS_FULL.select.where(USERS.STATUS is User.Status.Public).page[User.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params)(implicit ctx: BasicCtx): Query.Select.Paginated[User.Full] =
-    USERS_FULL.select.where(USERS.ID in ids).page[User.Full](params, ctx.toDb)
+    USERS_FULL.select.where(USERS.ID in ids).page[User.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): Query.Select.All[User] =
     USERS.select.where(_.ID in ids).all[User]
