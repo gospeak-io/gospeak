@@ -7,16 +7,17 @@ import cats.effect.IO
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator
 import doobie.scalatest.IOChecker
 import doobie.util.testing.Analyzable
+import fr.loicknuchel.safeql.{Query, Table}
 import gospeak.core.domain.UserRequest.{AccountValidationRequest, PasswordResetRequest, UserAskToJoinAGroupRequest}
 import gospeak.core.domain._
 import gospeak.core.domain.utils._
 import gospeak.core.testingutils.Generators._
 import gospeak.infra.services.storage.sql._
+import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.testingutils.{BaseSpec, Values}
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.{Page, Tag, Url}
-import gospeak.libs.sql.dsl.{Query, Table}
 import org.scalatest.BeforeAndAfterEach
 
 class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with RandomDataGenerator {
@@ -187,7 +188,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
   protected def check[A](query: Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
     query.fr.query.sql shouldBe sql
     check(query.query)
-    query.run(db.xa).unsafeRunSync()
+    query.run(db.xa).unsafeRunSync().fromSql
   }
 
   protected def check[A](query: Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {
@@ -216,7 +217,7 @@ class RepoSpec extends BaseSpec with IOChecker with BeforeAndAfterEach with Rand
 
   protected def unsafeCheck[A](query: Query.Select.Paginated[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Page[A] = {
     query.fr.query.sql shouldBe sql
-    query.run(db.xa).unsafeRunSync()
+    query.run(db.xa).unsafeRunSync().fromSql
   }
 
   protected def unsafeCheck[A](query: Query.Select.Optional[A], sql: String)(implicit a: Analyzable[doobie.Query0[A]]): Option[A] = {

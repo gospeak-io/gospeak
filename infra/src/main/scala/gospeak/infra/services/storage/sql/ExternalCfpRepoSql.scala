@@ -4,6 +4,7 @@ import java.time.{Instant, LocalDateTime}
 
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Query, TableField}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ExternalCfpRepo
@@ -14,7 +15,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.Page
-import gospeak.libs.sql.dsl.{Query, TableField}
 
 class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalCfpRepo {
   override def create(event: ExternalEvent.Id, data: ExternalCfp.Data)(implicit ctx: UserCtx): IO[ExternalCfp] = {
@@ -29,7 +29,7 @@ class ExternalCfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends G
 
   override def listAll(event: ExternalEvent.Id): IO[List[ExternalCfp]] = selectAll(event).run(xa)
 
-  override def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]] = selectCommonPageIncoming(params).run(xa)
+  override def listIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonCfp]] = selectCommonPageIncoming(params).run(xa).map(_.fromSql)
 
   override def listDuplicatesFull(p: ExternalCfp.DuplicateParams): IO[List[ExternalCfp.Full]] = selectDuplicatesFull(p).run(xa)
 
@@ -80,7 +80,7 @@ object ExternalCfpRepoSql {
     COMMON_CFPS.select.where(_.ext_id[ExternalCfp.Id] is id).option[CommonCfp](limit = true)
 
   private[sql] def selectCommonPageIncoming(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[CommonCfp] =
-    COMMON_CFPS.select.where(c => c.close.isNull or c.close[LocalDateTime].gte(TimeUtils.toLocalDateTime(ctx.now))).page[CommonCfp](params, ctx.toDb)
+    COMMON_CFPS.select.where(c => c.close.isNull or c.close[LocalDateTime].gte(TimeUtils.toLocalDateTime(ctx.now))).page[CommonCfp](params.toSql, ctx.toSql)
 
   private[sql] def selectDuplicatesFull(p: ExternalCfp.DuplicateParams): Query.Select.All[ExternalCfp.Full] = {
     val filters = List(

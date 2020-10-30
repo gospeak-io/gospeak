@@ -72,6 +72,8 @@ object Page {
 
     def apply(value: String, other: String*): OrderBy = new OrderBy(NonEmptyList.of(value, other: _*))
 
+    def from(values: List[String]): Option[OrderBy] = NonEmptyList.fromList(values).map(new OrderBy(_))
+
     def parse(value: String): Option[OrderBy] =
       value.split(',').map(_.trim).filter(_.nonEmpty).toNel.map(OrderBy(_)).toOption
   }

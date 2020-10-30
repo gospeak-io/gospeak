@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Cond, Query}
 import gospeak.core.domain.UserRequest._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
@@ -15,7 +16,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.EmailAddress
-import gospeak.libs.sql.dsl.{Cond, Query}
 
 class UserRequestRepoSql(protected[sql] val xa: doobie.Transactor[IO],
                          groupRepo: GroupRepoSql,

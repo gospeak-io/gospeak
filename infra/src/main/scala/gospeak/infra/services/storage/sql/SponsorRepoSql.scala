@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Cond, Query, Table}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.storage.SponsorRepo
@@ -14,7 +15,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.Page
-import gospeak.libs.sql.dsl.{Cond, Query, Table}
 
 class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorRepo {
   override def create(data: Sponsor.Data)(implicit ctx: OrgaCtx): IO[Sponsor] = {
@@ -29,7 +29,7 @@ class SponsorRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gener
 
   override def find(sponsor: Sponsor.Id)(implicit ctx: OrgaCtx): IO[Option[Sponsor]] = selectOne(ctx.group.id, sponsor).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]] = selectPage(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Sponsor.Full]] = selectPage(params).run(xa).map(_.fromSql)
 
   override def listCurrentFull(group: Group.Id, now: Instant): IO[List[Sponsor.Full]] = selectCurrent(group, now).run(xa)
 
@@ -58,7 +58,7 @@ object SponsorRepoSql {
     SPONSORS.select.where(where(group, pack)).option[Sponsor]
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Sponsor.Full] =
-    SPONSORS_FULL.select.where(SPONSORS.GROUP_ID is ctx.group.id).page[Sponsor.Full](params, ctx.toDb)
+    SPONSORS_FULL.select.where(SPONSORS.GROUP_ID is ctx.group.id).page[Sponsor.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectCurrent(group: Group.Id, now: Instant): Query.Select.All[Sponsor.Full] = {
     val date = TimeUtils.toLocalDate(now)

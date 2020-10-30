@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Page => _, _}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ProposalRepo
@@ -16,7 +17,6 @@ import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.dsl._
 
 class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ProposalRepo {
   override def create(talk: Talk.Id, cfp: Cfp.Id, data: Proposal.Data, speakers: NonEmptyList[User.Id])(implicit ctx: UserCtx): IO[Proposal] = {
@@ -114,23 +114,23 @@ class ProposalRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Gene
 
   override def findPublicFull(group: Group.Id, proposal: Proposal.Id)(implicit ctx: UserAwareCtx): IO[Option[Proposal.Full]] = selectOnePublicFull(group, proposal).run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFullSpeaker(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFullSpeaker(params).run(xa).map(_.fromSql)
 
-  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(params).run(xa).map(_.fromSql)
 
-  override def listFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa)
+  override def listFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, params).run(xa).map(_.fromSql)
 
-  override def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa)
+  override def listFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(cfp, status, params).run(xa).map(_.fromSql)
 
-  override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa)
+  override def listFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Proposal.Full]] = selectPageFull(speaker, params).run(xa).map(_.fromSql)
 
-  override def listFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa)
+  override def listFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Proposal.Full]] = selectPageFull(talk, params).run(xa).map(_.fromSql)
 
   override def listAllPublicIds()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Proposal.Id)]] = selectAllPublicIds().run(xa)
 
   override def listAllPublicFull(speaker: User.Id)(implicit ctx: UserAwareCtx): IO[List[Proposal.Full]] = selectAllFullPublic(speaker).run(xa)
 
-  override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPageFullPublic(group, params).run(xa)
+  override def listPublicFull(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Proposal.Full]] = selectPageFullPublic(group, params).run(xa).map(_.fromSql)
 
   override def list(ids: List[Proposal.Id]): IO[List[Proposal]] = runNel(selectAll, ids)
 
@@ -252,22 +252,22 @@ object ProposalRepoSql {
     PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID.is(group) and PROPOSALS.ID.is(id) and EVENTS.PUBLISHED.notNull).option[Proposal.Full]
 
   private[sql] def selectPageFullSpeaker(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.SPEAKERS.like("%" + ctx.user.id.value + "%")).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.SPEAKERS.like("%" + ctx.user.id.value + "%")).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID is ctx.group.id).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID is ctx.group.id).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(cfp: Cfp.Slug, params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(CFPS.SLUG is cfp).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(CFPS.SLUG is cfp).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(cfp: Cfp.Slug, status: Proposal.Status, params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(CFPS.SLUG.is(cfp) and PROPOSALS.STATUS.is(status)).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(CFPS.SLUG.is(cfp) and PROPOSALS.STATUS.is(status)).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(speaker: User.Id, params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID.is(ctx.group.id) and PROPOSALS.SPEAKERS.like("%" + speaker.value + "%")).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(CFPS.GROUP_ID.is(ctx.group.id) and PROPOSALS.SPEAKERS.like("%" + speaker.value + "%")).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.TALK_ID is talk).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.TALK_ID is talk).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectAllPublicIds()(implicit ctx: UserAwareCtx): Query.Select.All[(Group.Id, Proposal.Id)] =
     PROPOSALS_WITH_EVENTS.select.fields(EVENTS.GROUP_ID, PROPOSALS.ID).where(EVENTS.PUBLISHED.notNull).all[(Group.Id, Proposal.Id)]
@@ -276,7 +276,7 @@ object ProposalRepoSql {
     PROPOSALS_FULL(ctx.user).select.where(PROPOSALS.SPEAKERS.like("%" + speaker.value + "%") and EVENTS.PUBLISHED.notNull).orderBy(PROPOSALS.CREATED_AT.desc).all[Proposal.Full]
 
   private[sql] def selectPageFullPublic(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[Proposal.Full] =
-    PROPOSALS_FULL(ctx.user).select.where(EVENTS.GROUP_ID.is(group) and EVENTS.PUBLISHED.notNull).page[Proposal.Full](params, ctx.toDb)
+    PROPOSALS_FULL(ctx.user).select.where(EVENTS.GROUP_ID.is(group) and EVENTS.PUBLISHED.notNull).page[Proposal.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(ids: NonEmptyList[Proposal.Id]): Query.Select.All[Proposal] =
     PROPOSALS.select.where(_.ID in ids).all[Proposal]

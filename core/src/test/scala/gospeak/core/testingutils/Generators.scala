@@ -22,7 +22,7 @@ object Generators {
   private val _ = coproductCogen // to keep the `org.scalacheck.ScalacheckShapeless._` import
   private val stringGen = implicitly[Arbitrary[String]].arbitrary
   private val nonEmptyStringGen = Gen.nonEmptyListOf(Gen.alphaChar).map(_.mkString)
-  private val slugGen = Gen.nonEmptyListOf(Gen.alphaNumChar).map(_.mkString.take(SlugBuilder.maxLength).toLowerCase)
+  private val slugGen = Gen.choose(6, SlugBuilder.maxLength).flatMap(Gen.listOfN(_, Gen.alphaNumChar)).map(_.mkString.toLowerCase)
 
   private def buildDuration(length: Long, unit: TimeUnit): FiniteDuration = Try(new FiniteDuration(length, unit)).getOrElse(buildDuration(length / 2, unit))
 
@@ -45,7 +45,7 @@ object Generators {
   implicit val aMarkdown: Arbitrary[Markdown] = Arbitrary(stringGen.map(str => Markdown(str)))
   implicit val aSecret: Arbitrary[Secret] = Arbitrary(stringGen.map(str => Secret(str)))
   implicit val aUrlSlides: Arbitrary[Url.Slides] = Arbitrary(slugGen.map(slug => Url.Slides.from(s"http://docs.google.com/presentation/d/${slug.take(82)}").get))
-  implicit val aUrlVideo: Arbitrary[Url.Video] = Arbitrary(slugGen.map(slug => Url.YouTube.Video.from(s"http://youtu.be/${slug.take(104)}").get))
+  implicit val aUrlVideo: Arbitrary[Url.Video] = Arbitrary(slugGen.map(slug => Url.YouTube.Video.from(s"http://youtu.be/${slug.take(15)}").get))
   implicit val aUrlVideos: Arbitrary[Url.Videos] = Arbitrary(slugGen.map(slug => Url.YouTube.Channel.from(s"https://www.youtube.com/channel/${slug.take(104)}").get))
   implicit val aEmailAddress: Arbitrary[EmailAddress] = Arbitrary(nonEmptyStringGen.map(slug => EmailAddress.from(slug.take(110) + "e@mail.com").get)) // TODO improve
   implicit val aUrl: Arbitrary[Url] = Arbitrary(stringGen.map(u => Url.from(s"https://loicknuchel.fr#$u").get)) // TODO improve
@@ -105,7 +105,7 @@ object Generators {
   implicit val aContactFirstName: Arbitrary[Contact.FirstName] = Arbitrary(nonEmptyStringGen.map(f => Contact.FirstName(f)))
   implicit val aContactLastName: Arbitrary[Contact.LastName] = Arbitrary(nonEmptyStringGen.map(l => Contact.LastName(l)))
   implicit val aCommentId: Arbitrary[Comment.Id] = Arbitrary(Gen.uuid.map(id => Comment.Id.from(id.toString).get))
-  implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug).get))
+  implicit val aMeetupGroupSlug: Arbitrary[MeetupGroup.Slug] = Arbitrary(slugGen.map(slug => MeetupGroup.Slug.from(slug.take(80)).get))
   implicit val aUserRequestId: Arbitrary[UserRequest.Id] = Arbitrary(Gen.uuid.map(id => UserRequest.Id.from(id.toString).get))
   implicit val aExternalEventId: Arbitrary[ExternalEvent.Id] = Arbitrary(Gen.uuid.map(id => ExternalEvent.Id.from(id.toString).get))
   implicit val aExternalCfpId: Arbitrary[ExternalCfp.Id] = Arbitrary(Gen.uuid.map(id => ExternalCfp.Id.from(id.toString).get))

@@ -1,6 +1,6 @@
 package gospeak.web.api.swagger
 
-import gospeak.libs.openapi.OpenApiFactory
+import fr.loicknuchel.typedapi.OpenApiFactory
 import gospeak.web.testingutils.BaseSpec
 import gospeak.web.utils.{JsonUtils, OpenApiUtils, RoutesUtils}
 import play.api.libs.json._

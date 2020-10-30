@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import fr.loicknuchel.safeql.{Cond, Query}
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.domain.{Group, SponsorPack, User}
 import gospeak.core.services.storage.SponsorPackRepo
@@ -13,7 +14,6 @@ import gospeak.infra.services.storage.sql.database.tables.SPONSOR_PACKS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.CustomException
-import gospeak.libs.sql.dsl.{Cond, Query}
 
 class SponsorPackRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with SponsorPackRepo {
   override def create(data: SponsorPack.Data)(implicit ctx: OrgaCtx): IO[SponsorPack] = {

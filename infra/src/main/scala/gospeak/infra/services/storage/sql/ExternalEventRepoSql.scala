@@ -4,6 +4,7 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Query, Table}
 import gospeak.core.domain.utils.{Info, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{CommonEvent, Event, ExternalEvent, User}
 import gospeak.core.services.storage.ExternalEventRepo
@@ -15,7 +16,6 @@ import gospeak.infra.services.storage.sql.utils.GenericQuery._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.StringUtils
 import gospeak.libs.scala.domain.{Logo, Page, Tag}
-import gospeak.libs.sql.dsl.{Query, Table}
 
 class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ExternalEventRepo {
   override def create(data: ExternalEvent.Data)(implicit ctx: UserCtx): IO[ExternalEvent] = {
@@ -28,9 +28,9 @@ class ExternalEventRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends
 
   override def listAllIds()(implicit ctx: UserAwareCtx): IO[List[ExternalEvent.Id]] = selectAllIds().run(xa)
 
-  override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: UserCtx): IO[Page[ExternalEvent]] = selectPage(params).run(xa).map(_.fromSql)
 
-  override def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]] = selectPageCommon(params).run(xa)
+  override def listCommon(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[CommonEvent]] = selectPageCommon(params).run(xa).map(_.fromSql)
 
   override def find(id: ExternalEvent.Id): IO[Option[ExternalEvent]] = selectOne(id).run(xa)
 
@@ -86,10 +86,10 @@ object ExternalEventRepoSql {
     EXTERNAL_EVENTS.select.withFields(_.ID).all[ExternalEvent.Id]
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[ExternalEvent] =
-    EXTERNAL_EVENTS_SELECT.select.page[ExternalEvent](params, ctx.toDb)
+    EXTERNAL_EVENTS_SELECT.select.page[ExternalEvent](params.toSql, ctx.toSql)
 
   private[sql] def selectPageCommon(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[CommonEvent] =
-    COMMON_EVENTS.select.page[CommonEvent](params, ctx.toDb)
+    COMMON_EVENTS.select.page[CommonEvent](params.toSql, ctx.toSql)
 
   private[sql] def selectTags(): Query.Select.All[List[Tag]] =
     EXTERNAL_EVENTS.select.withFields(_.TAGS).all[List[Tag]]

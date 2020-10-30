@@ -2,8 +2,8 @@ package gospeak.infra.services.storage.sql.utils
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import fr.loicknuchel.safeql.Query
 import gospeak.libs.scala.Extensions._
-import gospeak.libs.sql.dsl.Query
 
 trait GenericRepo {
   protected[sql] val xa: doobie.Transactor[IO]
