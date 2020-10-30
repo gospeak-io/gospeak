@@ -3,6 +3,7 @@ package gospeak.infra.services.storage.sql
 import java.time.Instant
 
 import cats.effect.IO
+import fr.loicknuchel.safeql.Query
 import gospeak.core.domain._
 import gospeak.core.domain.utils.OrgaCtx
 import gospeak.core.services.storage.ContactRepo
@@ -12,7 +13,6 @@ import gospeak.infra.services.storage.sql.database.tables.CONTACTS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.domain.EmailAddress
-import gospeak.libs.sql.dsl.Query
 
 class ContactRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with ContactRepo {
   override def create(data: Contact.Data)(implicit ctx: OrgaCtx): IO[Contact] = {

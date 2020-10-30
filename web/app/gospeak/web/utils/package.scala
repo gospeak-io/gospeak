@@ -4,10 +4,10 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.Locale
 
+import fr.loicknuchel.safeql.Table
 import gospeak.core.domain._
 import gospeak.core.domain.utils.Constants
 import gospeak.libs.scala.domain._
-import gospeak.libs.sql.dsl.Table
 import io.circe.Encoder
 import play.api.data.{Form, FormError}
 import play.api.mvc.{AnyContent, Call, Flash}

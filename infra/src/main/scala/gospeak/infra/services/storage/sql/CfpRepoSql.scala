@@ -5,6 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.{Cond, Query}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.CfpRepo
@@ -15,7 +16,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.{CustomException, Page, Tag}
-import gospeak.libs.sql.dsl.{Cond, Query}
 
 class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CfpRepo {
   override def create(data: Cfp.Data)(implicit ctx: OrgaCtx): IO[Cfp] = {
@@ -44,9 +44,9 @@ class CfpRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRe
 
   override def findIncoming(slug: Cfp.Slug)(implicit ctx: UserAwareCtx): IO[Option[Cfp]] = selectOneIncoming(slug, ctx.now).run(xa)
 
-  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: OrgaCtx): IO[Page[Cfp]] = selectPage(params).run(xa).map(_.fromSql)
 
-  override def availableFor(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Cfp]] = selectPage(talk, params).run(xa)
+  override def availableFor(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): IO[Page[Cfp]] = selectPage(talk, params).run(xa).map(_.fromSql)
 
   override def list(group: Group.Id): IO[List[Cfp]] = selectAll(group).run(xa)
 
@@ -85,11 +85,11 @@ object CfpRepoSql {
     CFPS.select.where(where(slug, now)).option[Cfp]
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: OrgaCtx): Query.Select.Paginated[Cfp] =
-    CFPS.select.where(_.GROUP_ID is ctx.group.id).page[Cfp](params, ctx.toDb)
+    CFPS.select.where(_.GROUP_ID is ctx.group.id).page[Cfp](params.toSql, ctx.toSql)
 
   private[sql] def selectPage(talk: Talk.Id, params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[Cfp] = {
     val TALK_CFPS = PROPOSALS.select.fields(PROPOSALS.CFP_ID).where(_.TALK_ID is talk).all[Cfp.Id]
-    CFPS.select.where(_.ID notIn TALK_CFPS).page[Cfp](params, ctx.toDb)
+    CFPS.select.where(_.ID notIn TALK_CFPS).page[Cfp](params.toSql, ctx.toSql)
   }
 
   private[sql] def selectAll(group: Group.Id): Query.Select.All[Cfp] =

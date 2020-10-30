@@ -2,6 +2,7 @@ package gospeak.infra.services.storage.sql
 
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.Query
 import gospeak.core.domain.utils.{OrgaCtx, UserCtx}
 import gospeak.core.domain.{Comment, Event, Proposal}
 import gospeak.core.services.storage.CommentRepo
@@ -10,7 +11,6 @@ import gospeak.infra.services.storage.sql.database.Tables.COMMENTS
 import gospeak.infra.services.storage.sql.database.tables.COMMENTS
 import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
-import gospeak.libs.sql.dsl.Query
 
 class CommentRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with CommentRepo {
   override def addComment(event: Event.Id, data: Comment.Data)(implicit ctx: UserCtx): IO[Comment] = {

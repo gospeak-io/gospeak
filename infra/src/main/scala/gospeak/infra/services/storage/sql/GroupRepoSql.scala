@@ -15,7 +15,7 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{CustomException, Page, Tag}
-import gospeak.libs.sql.dsl.{AggField, Query}
+import fr.loicknuchel.safeql.{AggField, Query}
 
 class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with GroupRepo {
   override def create(data: Group.Data)(implicit ctx: UserCtx): IO[Group] = {
@@ -62,11 +62,11 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listAllSlugs()(implicit ctx: UserAwareCtx): IO[List[(Group.Id, Group.Slug)]] = selectAllSlugs().run(xa)
 
-  override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPageFull(params).run(xa)
+  override def listFull(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Full]] = selectPageFull(params).run(xa).map(_.fromSql)
 
-  override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(params).run(xa)
+  override def listJoinable(params: Page.Params)(implicit ctx: UserCtx): IO[Page[Group]] = selectPageJoinable(params).run(xa).map(_.fromSql)
 
-  override def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[Group]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[Group]] = selectPage(params).run(xa).map(_.fromSql)
 
   override def list(user: User.Id): IO[List[Group]] = selectAll(user).run(xa)
 
@@ -76,7 +76,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def list(ids: List[Group.Id]): IO[List[Group]] = runNel(selectAll, ids)
 
-  override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(params).run(xa)
+  override def listJoined(params: Page.Params)(implicit ctx: UserCtx): IO[Page[(Group, Group.Member)]] = selectPageJoined(params).run(xa).map(_.fromSql)
 
   override def find(group: Group.Id): IO[Option[Group]] = selectOne(group).run(xa)
 
@@ -104,7 +104,7 @@ class GroupRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   override def listMembers(implicit ctx: OrgaCtx): IO[List[Group.Member]] = selectAllActiveMembers(ctx.group.id).run(xa)
 
-  override def listMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa)
+  override def listMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Group.Member]] = selectPageActiveMembers(group, params).run(xa).map(_.fromSql)
 
   override def findActiveMember(group: Group.Id, user: User.Id): IO[Option[Group.Member]] = selectOneActiveMember(group, user).run(xa)
 
@@ -156,16 +156,16 @@ object GroupRepoSql {
     GROUPS.select.withFields(_.ID, _.SLUG).all[(Group.Id, Group.Slug)]
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: AdminCtx): Query.Select.Paginated[Group] =
-    GROUPS_SELECT.select.page[Group](params, ctx.toDb)
+    GROUPS_SELECT.select.page[Group](params.toSql, ctx.toSql)
 
   private[sql] def selectPageFull(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[Group.Full] =
-    GROUPS_FULL.select.page[Group.Full](params, ctx.toDb)
+    GROUPS_FULL.select.page[Group.Full](params.toSql, ctx.toSql)
 
   private[sql] def selectPageJoinable(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[Group] =
-    GROUPS_SELECT.select.where(_.owners.notLike("%" + ctx.user.id.value + "%")).page[Group](params, ctx.toDb)
+    GROUPS_SELECT.select.where(_.owners.notLike("%" + ctx.user.id.value + "%")).page[Group](params.toSql, ctx.toSql)
 
   private[sql] def selectPageJoined(params: Page.Params)(implicit ctx: UserCtx): Query.Select.Paginated[(Group, Group.Member)] =
-    GROUP_WITH_MEMBERS.select.where(GROUP_MEMBERS.USER_ID is ctx.user.id).page[(Group, Group.Member)](params, ctx.toDb)
+    GROUP_WITH_MEMBERS.select.where(GROUP_MEMBERS.USER_ID is ctx.user.id).page[(Group, Group.Member)](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(user: User.Id): Query.Select.All[Group] =
     GROUPS_SELECT.select.where(_.owners.like("%" + user.value + "%")).all[Group]
@@ -202,7 +202,7 @@ object GroupRepoSql {
     GROUP_MEMBERS.update.set(_.JOINED_AT, now).set(_.LEAVED_AT, None).where(gm => gm.GROUP_ID.is(m.group) and gm.USER_ID.is(m.user.id))
 
   private[sql] def selectPageActiveMembers(group: Group.Id, params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[Group.Member] =
-    MEMBERS_WITH_USERS.select.where(gm => gm.group_id.is(group) and gm.leaved_at.isNull).page[Group.Member](params, ctx.toDb)
+    MEMBERS_WITH_USERS.select.where(gm => gm.group_id.is(group) and gm.leaved_at.isNull).page[Group.Member](params.toSql, ctx.toSql)
 
   private[sql] def selectAllActiveMembers(group: Group.Id): Query.Select.All[Group.Member] =
     MEMBERS_WITH_USERS.select.where(gm => gm.group_id.is(group) and gm.leaved_at.isNull).all[Group.Member]

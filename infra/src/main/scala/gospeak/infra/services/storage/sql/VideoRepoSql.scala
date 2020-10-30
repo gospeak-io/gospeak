@@ -4,6 +4,8 @@ import java.time.Instant
 
 import cats.effect.IO
 import doobie.syntax.string._
+import fr.loicknuchel.safeql.Expr.{Floor, Random, SubQuery}
+import fr.loicknuchel.safeql.{AggField, Query}
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{AdminCtx, UserAwareCtx}
 import gospeak.core.services.storage.VideoRepo
@@ -14,8 +16,6 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{Page, Url}
-import gospeak.libs.sql.dsl.Expr.{Floor, Random, SubQuery}
-import gospeak.libs.sql.dsl.{AggField, Query}
 
 import scala.util.control.NonFatal
 
@@ -45,7 +45,7 @@ class VideoRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends Generic
 
   def findRandom(): IO[Option[Video]] = selectOneRandom().run(xa)
 
-  override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa)
+  override def list(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[Video]] = selectPage(params).run(xa).map(_.fromSql)
 
   override def listAll(event: ExternalEvent.Id): IO[List[Video]] = selectAll(event).run(xa)
 
@@ -97,7 +97,7 @@ object VideoRepoSql {
     VIDEOS_SELECT.select.offset(Floor(Random() * SubQuery(VIDEOS.select.fields(AggField("COUNT(*)")).orderBy().one[Long]))).option[Video](limit = true)
 
   private[sql] def selectPage(params: Page.Params)(implicit ctx: UserAwareCtx): Query.Select.Paginated[Video] =
-    VIDEOS_SELECT.select.page[Video](params, ctx.toDb)
+    VIDEOS_SELECT.select.page[Video](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(event: ExternalEvent.Id): Query.Select.All[Video] =
     VIDEOS_WITH_SOURCES.select.where(VIDEO_SOURCES.EXTERNAL_EVENT_ID is event).all[Video]

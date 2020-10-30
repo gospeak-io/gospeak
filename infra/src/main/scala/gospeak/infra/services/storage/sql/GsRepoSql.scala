@@ -47,9 +47,9 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
     }
   }
 
-  def migrate(): IO[Int] = IO(flyway.migrate())
+  def migrate(): IO[Unit] = IO(flyway.migrate())
 
-  def dropTables(): IO[Done] = IO(flyway.clean()).map(_ => Done)
+  def dropTables(): IO[Unit] = IO(flyway.clean())
 
   override val user = new UserRepoSql(xa)
   override val talk = new TalkRepoSql(xa)

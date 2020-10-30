@@ -1,16 +1,13 @@
 package gospeak.web
 
-import java.util.UUID
-
 import cats.data.NonEmptyList
-import cats.effect.IO
+import fr.loicknuchel.safeql.gen.Generator
+import fr.loicknuchel.safeql.gen.reader.H2Reader
+import fr.loicknuchel.safeql.gen.writer.ScalaWriter.{DatabaseConfig, FieldConfig, SchemaConfig, TableConfig}
+import fr.loicknuchel.safeql.gen.writer.{ScalaWriter, Writer}
 import gospeak.core.services.storage.DbConf
 import gospeak.infra.services.storage.sql.utils.DbConnection
 import gospeak.libs.scala.FileUtils
-import gospeak.libs.sql.generator.Generator
-import gospeak.libs.sql.generator.reader.H2Reader
-import gospeak.libs.sql.generator.writer.ScalaWriter.{DatabaseConfig, FieldConfig, SchemaConfig, TableConfig}
-import gospeak.libs.sql.generator.writer.{ScalaWriter, Writer}
 
 import scala.util.Try
 
@@ -25,10 +22,12 @@ object GsCLI {
   }
 
   object GenerateTables {
-    private[web] val reader = new H2Reader(
+    private val dbConf = DbConf.H2(s"jdbc:h2:mem:cli_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
+    private[web] val reader = H2Reader(
+      url = dbConf.url,
       schema = Some("PUBLIC"),
       excludes = Some(".*flyway.*"))
-    private[web] val writer = new ScalaWriter(
+    private[web] val writer = ScalaWriter(
       directory = FileUtils.adaptLocalPath("web/../infra/src/main/scala"),
       packageName = "gospeak.infra.services.storage.sql.database",
       identifierStrategy = Writer.IdentifierStrategy.upperCase,
@@ -353,15 +352,13 @@ object GsCLI {
         )))))
 
     def run(): Try[Unit] = {
-      val xa = init()
-      Try(Generator.generate(xa, reader, writer).unsafeRunSync())
+      init()
+      Try(Generator.generate(reader, writer).unsafeRunSync())
     }
 
-    def init(): doobie.Transactor[IO] = {
-      val dbConf = DbConf.H2(s"jdbc:h2:mem:${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
+    def init(): Unit = {
       val (xa, flyway) = DbConnection.create(dbConf)
       flyway.migrate()
-      xa
     }
   }
 
