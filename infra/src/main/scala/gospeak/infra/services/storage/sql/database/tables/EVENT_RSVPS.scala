@@ -28,8 +28,8 @@ class EVENT_RSVPS private(getAlias: Option[String] = Some("er")) extends Table.S
 
   val EVENT_ID: SqlFieldRef[Event.Id, EVENT_RSVPS, EVENTS] = SqlField(this, "event_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1, EVENTS.table.ID)
   val USER_ID: SqlFieldRef[User.Id, EVENT_RSVPS, USERS] = SqlField(this, "user_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, USERS.table.ID)
-  val ANSWER: SqlField[Event.Rsvp.Answer, EVENT_RSVPS] = SqlField(this, "answer", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
-  val ANSWERED_AT: SqlField[Instant, EVENT_RSVPS] = SqlField(this, "answered_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 4)
+  val ANSWER: SqlFieldRaw[Event.Rsvp.Answer, EVENT_RSVPS] = SqlField(this, "answer", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val ANSWERED_AT: SqlFieldRaw[Instant, EVENT_RSVPS] = SqlField(this, "answered_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 4)
 
   override def getFields: List[SqlField[_, EVENT_RSVPS]] = List(EVENT_ID, USER_ID, ANSWER, ANSWERED_AT)
 

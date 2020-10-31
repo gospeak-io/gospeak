@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
-import fr.loicknuchel.safeql.{Page => _, _}
+import fr.loicknuchel.safeql._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.services.storage.ProposalRepo
