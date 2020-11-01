@@ -81,7 +81,7 @@ val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.2")
 val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
 val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.1")
 val safeql = Seq("fr.loicknuchel" %% "safeql" % "0.1.0")
-val typedapi = Seq("fr.loicknuchel" %% "typedapi" % "0.1.0")
+val typedapi = Seq("fr.loicknuchel" %% "typedapi" % "0.1.1")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.1",
   "org.webjars.npm" % "bootstrap" % "4.5.0",
