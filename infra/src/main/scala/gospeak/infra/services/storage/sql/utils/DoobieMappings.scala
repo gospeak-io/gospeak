@@ -5,7 +5,8 @@ import java.time.{Instant, LocalDate, LocalDateTime}
 import cats.data.NonEmptyList
 import doobie.util.Read
 import doobie.util.meta.Meta
-import fr.loicknuchel.safeql.{Page => SqlPage, Query => SqlQuery}
+import fr.loicknuchel.safeql.models.{Page => SqlPage}
+import fr.loicknuchel.safeql.{Query => SqlQuery}
 import gospeak.core.ApplicationConf
 import gospeak.core.domain._
 import gospeak.core.domain.messages.Message

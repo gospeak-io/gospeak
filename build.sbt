@@ -79,8 +79,8 @@ val playTest = Seq(
 val flexmark = Seq("com.vladsch.flexmark" % "flexmark-all" % "0.61.34")
 val mustache = Seq("com.github.eikek" %% "yamusca-core" % "0.6.2")
 val liquid = Seq("nl.big-o" % "liqp" % "0.7.9")
-val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.7")
-val safeql = Seq("fr.loicknuchel" %% "safeql" % "0.1.0")
+val sendgrid = Seq("com.sendgrid" % "sendgrid-java" % "4.6.1")
+val safeql = Seq("fr.loicknuchel" %% "safeql" % "0.1.3")
 val typedapi = Seq("fr.loicknuchel" %% "typedapi" % "0.1.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.1",

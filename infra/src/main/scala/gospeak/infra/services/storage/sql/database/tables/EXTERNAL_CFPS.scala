@@ -26,15 +26,15 @@ import scala.concurrent.duration.FiniteDuration
 class EXTERNAL_CFPS private(getAlias: Option[String] = Some("ec")) extends Table.SqlTable("PUBLIC", "external_cfps", getAlias) {
   type Self = EXTERNAL_CFPS
 
-  val ID: SqlField[ExternalCfp.Id, EXTERNAL_CFPS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val ID: SqlFieldRaw[ExternalCfp.Id, EXTERNAL_CFPS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
   val EVENT_ID: SqlFieldRef[ExternalEvent.Id, EXTERNAL_CFPS, EXTERNAL_EVENTS] = SqlField(this, "event_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 10, EXTERNAL_EVENTS.table.ID)
-  val DESCRIPTION: SqlField[Markdown, EXTERNAL_CFPS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 2)
-  val BEGIN: SqlField[LocalDateTime, EXTERNAL_CFPS] = SqlField(this, "begin", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 3)
-  val CLOSE: SqlField[LocalDateTime, EXTERNAL_CFPS] = SqlField(this, "close", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 4)
-  val URL: SqlField[Url, EXTERNAL_CFPS] = SqlField(this, "url", "VARCHAR(1024) NOT NULL", JdbcType.VarChar, nullable = false, 5)
-  val CREATED_AT: SqlField[Instant, EXTERNAL_CFPS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 6)
+  val DESCRIPTION: SqlFieldRaw[Markdown, EXTERNAL_CFPS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 2)
+  val BEGIN: SqlFieldRaw[LocalDateTime, EXTERNAL_CFPS] = SqlField(this, "begin", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 3)
+  val CLOSE: SqlFieldRaw[LocalDateTime, EXTERNAL_CFPS] = SqlField(this, "close", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 4)
+  val URL: SqlFieldRaw[Url, EXTERNAL_CFPS] = SqlField(this, "url", "VARCHAR(1024) NOT NULL", JdbcType.VarChar, nullable = false, 5)
+  val CREATED_AT: SqlFieldRaw[Instant, EXTERNAL_CFPS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 6)
   val CREATED_BY: SqlFieldRef[User.Id, EXTERNAL_CFPS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 7, USERS.table.ID)
-  val UPDATED_AT: SqlField[Instant, EXTERNAL_CFPS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 8)
+  val UPDATED_AT: SqlFieldRaw[Instant, EXTERNAL_CFPS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 8)
   val UPDATED_BY: SqlFieldRef[User.Id, EXTERNAL_CFPS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 9, USERS.table.ID)
 
   override def getFields: List[SqlField[_, EXTERNAL_CFPS]] = List(ID, EVENT_ID, DESCRIPTION, BEGIN, CLOSE, URL, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)

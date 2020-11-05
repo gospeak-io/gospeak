@@ -1,10 +1,15 @@
 package gospeak.libs.scala
 
 import gospeak.libs.testingutils.BaseSpec
+import org.scalatest.BeforeAndAfterEach
 
-class FileUtilsSpec extends BaseSpec {
-  private val path = FileUtils.adaptLocalPath("libs/target/test")
-  private val filePath = path + "/test.txt"
+class FileUtilsSpec extends BaseSpec with BeforeAndAfterEach {
+  private val root = "target/tests-file-utils"
+  private val filePath = s"$root/test.txt"
+
+  override protected def beforeEach(): Unit = FileUtils.mkdirs(root).get
+
+  override protected def afterEach(): Unit = FileUtils.delete(root).get
 
   describe("FileUtils") {
     it("should write, read and delete a file") {
@@ -27,24 +32,54 @@ class FileUtilsSpec extends BaseSpec {
       FileUtils.deleteFile(filePath).get
     }
     it("should delete a non empty folder") {
-      FileUtils.mkdirs(path + "/folder/non/empty").get
-      FileUtils.write(path + "/folder/test.txt", "aaa").get
-      FileUtils.exists(path + "/folder") shouldBe true
-      FileUtils.delete(path + "/folder").get
-      FileUtils.exists(path + "/folder") shouldBe false
+      FileUtils.mkdirs(s"$root/folder/non/empty").get
+      FileUtils.write(s"$root/folder/test.txt", "aaa").get
+      FileUtils.exists(s"$root/folder") shouldBe true
+      FileUtils.delete(s"$root/folder").get
+      FileUtils.exists(s"$root/folder") shouldBe false
     }
     it("should list files in folder") {
-      FileUtils.mkdirs(path + "/src/main/scala/test").get
-      FileUtils.mkdirs(path + "/test/main/scala/test").get
-      FileUtils.write(path + "/readme.md", "aaa").get
-      FileUtils.write(path + "/src/main/scala/test/main.scala", "aaa").get
-      FileUtils.write(path + "/test/main/readme.md", "aaa").get
-      FileUtils.listFiles(path, recursively = false).get shouldBe List(
-        path + "/readme.md")
-      FileUtils.listFiles(path).get shouldBe List(
-        path + "/readme.md",
-        path + "/src/main/scala/test/main.scala",
-        path + "/test/main/readme.md")
+      FileUtils.mkdirs(s"$root/src/main/scala/test").get
+      FileUtils.mkdirs(s"$root/test/main/scala/test").get
+      FileUtils.write(s"$root/readme.md", "aaa").get
+      FileUtils.write(s"$root/src/main/scala/test/main.scala", "aaa").get
+      FileUtils.write(s"$root/test/main/readme.md", "aaa").get
+      FileUtils.listFiles(root, recursively = false).get shouldBe List(
+        s"$root/readme.md")
+      FileUtils.listFiles(root).get shouldBe List(
+        s"$root/readme.md",
+        s"$root/src/main/scala/test/main.scala",
+        s"$root/test/main/readme.md")
+    }
+    it("should read a file with correct line breaks") {
+      val noEmptyEndLine =
+        """Bonjour,
+          |ça va ?""".stripMargin
+      FileUtils.write(filePath, noEmptyEndLine).get
+      FileUtils.read(filePath).get shouldBe noEmptyEndLine
+
+      val emptyEndLine =
+        """Bonjour,
+          |ça va ?
+          |""".stripMargin
+      FileUtils.write(filePath, emptyEndLine).get
+      FileUtils.read(filePath).get shouldBe emptyEndLine
+
+      val manyEmptyEndLines =
+        """Bonjour,
+          |
+          |""".stripMargin
+      FileUtils.write(filePath, manyEmptyEndLines).get
+      FileUtils.read(filePath).get shouldBe manyEmptyEndLines
+    }
+    it("should list folder content") {
+      FileUtils.mkdirs(s"$root/src/main/scala/fr/loicknuchel").get
+      FileUtils.write(s"$root/src/main/scala/fr/loicknuchel/Main.scala", "public class Main").get
+      FileUtils.write(s"$root/src/main/scala/README.md", "The readme").get
+
+      FileUtils.getDirContent(s"$root/src/main/scala").get shouldBe Map(
+        "README.md" -> "The readme",
+        "fr/loicknuchel/Main.scala" -> "public class Main")
     }
   }
 }
