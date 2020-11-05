@@ -1,15 +1,13 @@
 package gospeak.web
 
 import cats.data.NonEmptyList
+import cats.effect.IO
 import fr.loicknuchel.safeql.gen.Generator
 import fr.loicknuchel.safeql.gen.reader.H2Reader
 import fr.loicknuchel.safeql.gen.writer.ScalaWriter.{DatabaseConfig, FieldConfig, SchemaConfig, TableConfig}
 import fr.loicknuchel.safeql.gen.writer.{ScalaWriter, Writer}
 import gospeak.core.services.storage.DbConf
-import gospeak.infra.services.storage.sql.utils.DbConnection
 import gospeak.libs.scala.FileUtils
-
-import scala.util.Try
 
 /**
  * A CLI to perform common tasks
@@ -17,11 +15,11 @@ import scala.util.Try
 object GsCLI {
   def main(args: Array[String]): Unit = {
     // TODO
-    GenerateTables.run().get
-    println("done")
+    GenerateDatabaseTables.run().unsafeRunSync()
+    println("Done")
   }
 
-  object GenerateTables {
+  object GenerateDatabaseTables {
     private val dbConf = DbConf.H2(s"jdbc:h2:mem:cli_db;MODE=PostgreSQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1")
     private[web] val reader = H2Reader(
       url = dbConf.url,
@@ -30,7 +28,7 @@ object GsCLI {
     private[web] val writer = ScalaWriter(
       directory = FileUtils.adaptLocalPath("web/../infra/src/main/scala"),
       packageName = "gospeak.infra.services.storage.sql.database",
-      identifierStrategy = Writer.IdentifierStrategy.upperCase,
+      identifierStrategy = Writer.IdentifierStrategy.UpperCase,
       config = DatabaseConfig(
         scaladoc = _ => Some(
           """Generated file, do not update it!
@@ -351,15 +349,12 @@ object GsCLI {
           "video_sources" -> TableConfig(alias = "vis", sort = TableConfig.Sort("video", "video_id"), search = List("video_id"))
         )))))
 
-    def run(): Try[Unit] = {
-      init()
-      Try(Generator.generate(reader, writer).unsafeRunSync())
+    def run(folder: Option[String] = None): IO[Unit] = {
+      val w = folder.map(f => writer.directory(f)).getOrElse(writer)
+      Generator.flyway("classpath:migrations").writer(w).generate()
     }
 
-    def init(): Unit = {
-      val (xa, flyway) = DbConnection.create(dbConf)
-      flyway.migrate()
-    }
+    def run(folder: String): IO[Unit] = run(folder = Some(folder))
   }
 
 }

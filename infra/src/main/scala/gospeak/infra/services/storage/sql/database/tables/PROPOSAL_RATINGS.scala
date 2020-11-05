@@ -27,8 +27,8 @@ class PROPOSAL_RATINGS private(getAlias: Option[String] = Some("pr")) extends Ta
   type Self = PROPOSAL_RATINGS
 
   val PROPOSAL_ID: SqlFieldRef[Proposal.Id, PROPOSAL_RATINGS, PROPOSALS] = SqlField(this, "proposal_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1, PROPOSALS.table.ID)
-  val GRADE: SqlField[Proposal.Rating.Grade, PROPOSAL_RATINGS] = SqlField(this, "grade", "INT NOT NULL", JdbcType.Integer, nullable = false, 2)
-  val CREATED_AT: SqlField[Instant, PROPOSAL_RATINGS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 3)
+  val GRADE: SqlFieldRaw[Proposal.Rating.Grade, PROPOSAL_RATINGS] = SqlField(this, "grade", "INT NOT NULL", JdbcType.Integer, nullable = false, 2)
+  val CREATED_AT: SqlFieldRaw[Instant, PROPOSAL_RATINGS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 3)
   val CREATED_BY: SqlFieldRef[User.Id, PROPOSAL_RATINGS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 4, USERS.table.ID)
 
   override def getFields: List[SqlField[_, PROPOSAL_RATINGS]] = List(PROPOSAL_ID, GRADE, CREATED_AT, CREATED_BY)

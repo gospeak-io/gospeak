@@ -28,10 +28,10 @@ class GROUP_MEMBERS private(getAlias: Option[String] = Some("gm")) extends Table
 
   val GROUP_ID: SqlFieldRef[Group.Id, GROUP_MEMBERS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1, GROUPS.table.ID)
   val USER_ID: SqlFieldRef[User.Id, GROUP_MEMBERS, USERS] = SqlField(this, "user_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, USERS.table.ID)
-  val ROLE: SqlField[String, GROUP_MEMBERS] = SqlField(this, "role", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
-  val PRESENTATION: SqlField[String, GROUP_MEMBERS] = SqlField(this, "presentation", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 4)
-  val JOINED_AT: SqlField[Instant, GROUP_MEMBERS] = SqlField(this, "joined_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 5)
-  val LEAVED_AT: SqlField[Instant, GROUP_MEMBERS] = SqlField(this, "leaved_at", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 6)
+  val ROLE: SqlFieldRaw[String, GROUP_MEMBERS] = SqlField(this, "role", "VARCHAR(10) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val PRESENTATION: SqlFieldRaw[String, GROUP_MEMBERS] = SqlField(this, "presentation", "VARCHAR(4096)", JdbcType.VarChar, nullable = true, 4)
+  val JOINED_AT: SqlFieldRaw[Instant, GROUP_MEMBERS] = SqlField(this, "joined_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 5)
+  val LEAVED_AT: SqlFieldRaw[Instant, GROUP_MEMBERS] = SqlField(this, "leaved_at", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 6)
 
   override def getFields: List[SqlField[_, GROUP_MEMBERS]] = List(GROUP_ID, USER_ID, ROLE, PRESENTATION, JOINED_AT, LEAVED_AT)
 

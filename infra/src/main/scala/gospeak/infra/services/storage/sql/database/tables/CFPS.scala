@@ -26,17 +26,17 @@ import scala.concurrent.duration.FiniteDuration
 class CFPS private(getAlias: Option[String] = Some("c")) extends Table.SqlTable("PUBLIC", "cfps", getAlias) {
   type Self = CFPS
 
-  val ID: SqlField[Cfp.Id, CFPS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
+  val ID: SqlFieldRaw[Cfp.Id, CFPS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 1)
   val GROUP_ID: SqlFieldRef[Group.Id, CFPS, GROUPS] = SqlField(this, "group_id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 2, GROUPS.table.ID)
-  val SLUG: SqlField[Cfp.Slug, CFPS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 3)
-  val NAME: SqlField[Cfp.Name, CFPS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
-  val BEGIN: SqlField[LocalDateTime, CFPS] = SqlField(this, "begin", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 5)
-  val CLOSE: SqlField[LocalDateTime, CFPS] = SqlField(this, "close", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 6)
-  val DESCRIPTION: SqlField[Markdown, CFPS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 7)
-  val TAGS: SqlField[List[Tag], CFPS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 8)
-  val CREATED_AT: SqlField[Instant, CFPS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 9)
+  val SLUG: SqlFieldRaw[Cfp.Slug, CFPS] = SqlField(this, "slug", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 3)
+  val NAME: SqlFieldRaw[Cfp.Name, CFPS] = SqlField(this, "name", "VARCHAR(120) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val BEGIN: SqlFieldRaw[LocalDateTime, CFPS] = SqlField(this, "begin", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 5)
+  val CLOSE: SqlFieldRaw[LocalDateTime, CFPS] = SqlField(this, "close", "TIMESTAMP", JdbcType.Timestamp, nullable = true, 6)
+  val DESCRIPTION: SqlFieldRaw[Markdown, CFPS] = SqlField(this, "description", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 7)
+  val TAGS: SqlFieldRaw[List[Tag], CFPS] = SqlField(this, "tags", "VARCHAR(150) NOT NULL", JdbcType.VarChar, nullable = false, 8)
+  val CREATED_AT: SqlFieldRaw[Instant, CFPS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 9)
   val CREATED_BY: SqlFieldRef[User.Id, CFPS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 10, USERS.table.ID)
-  val UPDATED_AT: SqlField[Instant, CFPS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 11)
+  val UPDATED_AT: SqlFieldRaw[Instant, CFPS] = SqlField(this, "updated_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 11)
   val UPDATED_BY: SqlFieldRef[User.Id, CFPS, USERS] = SqlField(this, "updated_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 12, USERS.table.ID)
 
   override def getFields: List[SqlField[_, CFPS]] = List(ID, GROUP_ID, SLUG, NAME, BEGIN, CLOSE, DESCRIPTION, TAGS, CREATED_AT, CREATED_BY, UPDATED_AT, UPDATED_BY)

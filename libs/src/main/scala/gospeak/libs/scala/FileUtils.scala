@@ -3,6 +3,8 @@ package gospeak.libs.scala
 import java.io.File
 import java.nio.file.{Files, Paths}
 
+import gospeak.libs.scala.Extensions._
+
 import scala.collection.JavaConverters._
 import scala.util.Try
 
@@ -20,7 +22,7 @@ object FileUtils {
     mkdirs(parent(path)).flatMap(_ => Try(Files.write(Paths.get(path), content.getBytes)))
 
   def read(path: String): Try[String] =
-    Try(Files.readAllLines(Paths.get(path))).map(_.asScala.mkString("\n"))
+    Try(Files.readAllBytes(Paths.get(path))).map(new String(_))
 
   def listFiles(path: String, recursively: Boolean = true): Try[List[String]] = Try {
     def listDir(dir: File): List[File] = {
@@ -32,6 +34,13 @@ object FileUtils {
     }
 
     listDir(new File(path)).filter(_.isFile).map(_.getPath).sorted
+  }
+
+  // return a map for files with their relative path inside the directory and their content
+  def getDirContent(path: String): Try[Map[String, String]] = {
+    FileUtils.listFiles(path)
+      .flatMap(_.map(p => FileUtils.read(p).map(c => (p.stripPrefix(path + "/"), c))).sequence)
+      .map(_.toMap)
   }
 
   def deleteFile(path: String): Try[Unit] =

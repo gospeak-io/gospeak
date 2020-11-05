@@ -28,11 +28,11 @@ class COMMENTS private(getAlias: Option[String] = Some("co")) extends Table.SqlT
 
   val EVENT_ID: SqlFieldRef[Event.Id, COMMENTS, EVENTS] = SqlField(this, "event_id", "CHAR(36)", JdbcType.Char, nullable = true, 1, EVENTS.table.ID)
   val PROPOSAL_ID: SqlFieldRef[Proposal.Id, COMMENTS, PROPOSALS] = SqlField(this, "proposal_id", "CHAR(36)", JdbcType.Char, nullable = true, 2, PROPOSALS.table.ID)
-  val ID: SqlField[Comment.Id, COMMENTS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 3)
-  val KIND: SqlField[Comment.Kind, COMMENTS] = SqlField(this, "kind", "VARCHAR(15) NOT NULL", JdbcType.VarChar, nullable = false, 4)
+  val ID: SqlFieldRaw[Comment.Id, COMMENTS] = SqlField(this, "id", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 3)
+  val KIND: SqlFieldRaw[Comment.Kind, COMMENTS] = SqlField(this, "kind", "VARCHAR(15) NOT NULL", JdbcType.VarChar, nullable = false, 4)
   val ANSWERS: SqlFieldRef[Comment.Id, COMMENTS, COMMENTS] = SqlField(this, "answers", "CHAR(36)", JdbcType.Char, nullable = true, 5, ID)
-  val TEXT: SqlField[String, COMMENTS] = SqlField(this, "text", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 6)
-  val CREATED_AT: SqlField[Instant, COMMENTS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 7)
+  val TEXT: SqlFieldRaw[String, COMMENTS] = SqlField(this, "text", "VARCHAR(4096) NOT NULL", JdbcType.VarChar, nullable = false, 6)
+  val CREATED_AT: SqlFieldRaw[Instant, COMMENTS] = SqlField(this, "created_at", "TIMESTAMP NOT NULL", JdbcType.Timestamp, nullable = false, 7)
   val CREATED_BY: SqlFieldRef[User.Id, COMMENTS, USERS] = SqlField(this, "created_by", "CHAR(36) NOT NULL", JdbcType.Char, nullable = false, 8, USERS.table.ID)
 
   override def getFields: List[SqlField[_, COMMENTS]] = List(EVENT_ID, PROPOSAL_ID, ID, KIND, ANSWERS, TEXT, CREATED_AT, CREATED_BY)
