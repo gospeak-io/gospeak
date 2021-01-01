@@ -2,7 +2,7 @@ package gospeak.web.auth
 
 import cats.data.OptionT
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, InvalidPasswordException}
 import gospeak.core.domain.UserRequest.PasswordResetRequest
