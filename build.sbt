@@ -52,7 +52,7 @@ val hammock = Seq(
 val youtubeApi = Seq(
   "com.google.apis" % "google-api-services-youtube" % "v3-rev20200618-1.30.9",
   "com.google.api-client" % "google-api-client" % "1.23.1",
-  "com.google.oauth-client" % "google-oauth-client-jetty" % "1.31.0"
+  "com.google.oauth-client" % "google-oauth-client-jetty" % "1.31.4"
 )
 val akka = Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val twitter = Seq("com.danielasfregola" %% "twitter4s" % "6.2") // https://github.com/DanielaSfregola/twitter4s
