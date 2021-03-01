@@ -103,7 +103,7 @@ val scalaTest = Seq(
   "org.scalamock" %% "scalamock" % "4.4.0",
   "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.1").map(_ % Test)
 val scalaCheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.14.3",
+  "org.scalacheck" %% "scalacheck" % "1.15.3",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
   "com.danielasfregola" %% "random-data-generator" % "2.8").map(_ % Test)
 
