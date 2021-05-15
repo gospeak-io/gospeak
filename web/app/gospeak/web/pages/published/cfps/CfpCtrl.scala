@@ -168,7 +168,7 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
-    import cats.implicits._
+    import cats.syntax.all._
     GsForms.talkSignup.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, formWithErrors, GsForms.talkLogin.bindFromRequest),
       data => (for {
@@ -193,7 +193,7 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def doProposeLogin(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
-    import cats.implicits._
+    import cats.syntax.all._
     GsForms.talkLogin.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, GsForms.talkSignup.bindFromRequest, formWithErrors),
       data => (for {

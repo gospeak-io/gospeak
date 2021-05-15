@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime}
 import java.util.concurrent.TimeUnit
 
-import cats.implicits._
+import cats.syntax.all._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
 import gospeak.core.domain.utils.{Constants, SocialAccounts}
