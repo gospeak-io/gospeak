@@ -2,7 +2,7 @@ package gospeak.libs.slack
 
 import java.time.Instant
 
-import cats.implicits._
+import cats.syntax.all._
 import gospeak.libs.slack.domain._
 import gospeak.libs.scala.CirceUtils.decodeSingleValueClass
 import io.circe.Decoder
