@@ -100,7 +100,7 @@ val logback = Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.1.2",
-  "org.scalamock" %% "scalamock" % "4.4.0",
+  "org.scalamock" %% "scalamock" % "5.2.0",
   "org.scalatestplus" %% "scalacheck-1-14" % "3.1.0.1").map(_ % Test)
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
