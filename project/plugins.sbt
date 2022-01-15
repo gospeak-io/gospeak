@@ -3,7 +3,7 @@ logLevel := Level.Warn
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases"
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/maven-releases"
 
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.2")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.13")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.15")
 addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.13") // cf https://github.com/irundaia/sbt-sassify
 addSbtPlugin("com.arpnetworking" % "sbt-typescript" % "0.4.2") // cf https://github.com/ArpNetworking/sbt-typescript
