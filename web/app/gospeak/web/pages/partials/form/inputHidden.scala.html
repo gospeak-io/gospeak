@@ -1,9 +1,17 @@
 @import gospeak.web.pages.partials.form.Utils
 
-@(field: Field, args: List[(String, String)] = List())
-<input
-    @Utils.typeAttr("hidden")
-    @Utils.idAttr(field, args)
-    @Utils.nameAttr(field, args)
-    @Utils.valueAttr(field, args)
-    @Utils.classAttr(field, args, "")>
+@(field: Field, args: List[(String, String)] = List(), multi: Boolean = false)
+@input(f: Field) = {
+    <input
+        @Utils.typeAttr("hidden")
+        @Utils.idAttr(f, args)
+        @Utils.nameAttr(f, args)
+        @Utils.valueAttr(f, args)
+        @Utils.classAttr(f, args, "")>
+
+}
+@if(multi) {
+    @field.indexes.map { i => @input(field(s"[$i]")) }
+} else {
+    @input(field)
+}

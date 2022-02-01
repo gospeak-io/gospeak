@@ -40,11 +40,13 @@
                 <div class="card-body">
                 @formElt(loginForm, CfpCtrl.doProposeLogin(cfp.slug)) {
                     @inputHidden(loginForm("talk.title"))
-                    @inputHidden(loginForm("talk.description"))
                     @inputHidden(loginForm("talk.duration.length"))
                     @inputHidden(loginForm("talk.duration.unit"))
+                    @inputHidden(loginForm("talk.description"))
+                    @inputHidden(loginForm("talk.message"))
                     @inputHidden(loginForm("talk.slides"))
                     @inputHidden(loginForm("talk.video"))
+                    @inputHidden(signupForm(s"talk.tags"), multi = true)
                     @inputHidden(loginForm("talk.slug"))
                     @loginFields(loginForm("user"))
                     <button type="submit" class="btn btn-sm btn-primary transition-3d-hover mr-1">Login</button>
@@ -58,11 +60,13 @@
                 <div class="card-body">
                 @formElt(signupForm, CfpCtrl.doProposeSignup(cfp.slug)) {
                     @inputHidden(signupForm("talk.title"))
-                    @inputHidden(signupForm("talk.description"))
                     @inputHidden(signupForm("talk.duration.length"))
                     @inputHidden(signupForm("talk.duration.unit"))
+                    @inputHidden(signupForm("talk.description"))
+                    @inputHidden(signupForm("talk.message"))
                     @inputHidden(signupForm("talk.slides"))
                     @inputHidden(signupForm("talk.video"))
+                    @inputHidden(signupForm(s"talk.tags"), multi = true)
                     @inputHidden(signupForm("talk.slug"))
                     @signupFields(signupForm("user"))
                     <button type="submit" class="btn btn-sm btn-primary transition-3d-hover mr-1">Signup</button>

@@ -13,7 +13,7 @@ class SendGridEmailSrvSpec extends BaseSpec {
   ignore("SendGridEmailSrv") {
     it("should send an email") {
       val conf = SendGrid(Secret("..."))
-      val srv = SendGridEmailSrv.apply(conf)
+      val srv = SendGridEmailSrv(conf)
       srv.send(Email(
         from = EmailAddress.Contact(sender, Some("Gospeak unit tests")),
         to = List(EmailAddress.Contact(receiver, Some("LKN"))),

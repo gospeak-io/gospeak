@@ -367,6 +367,9 @@ object Extensions {
     def filter(p: A => Boolean): IO[A] =
       in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException(s"Predicate does not hold for $v")))
 
+    def filterErr(p: A => Boolean, err: A => String): IO[A] =
+      in.flatMap(v => if (p(v)) IO.pure(v) else IO.raiseError(new NoSuchElementException(err(v))))
+
     def mapFailure(f: Throwable => Throwable): IO[A] = {
       in.recoverWith { case NonFatal(e) => IO.raiseError(f(e)) }
     }

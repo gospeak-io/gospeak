@@ -22,7 +22,7 @@ class SendGridEmailSrv private(client: com.sendgrid.SendGrid) extends EmailSrv {
     for {
       body <- IO(mail.build)
       _ = request.setBody(body)
-      _ <- IO(client.api(request)).filter(_.getStatusCode == 202)
+      _ <- IO(client.api(request)).filterErr(_.getStatusCode == 202, r => s"Expected status 202 but got ${r.getStatusCode} (${r.getBody})")
     } yield Done
   }
 
