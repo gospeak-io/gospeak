@@ -1,12 +1,10 @@
 package gospeak.infra.services.storage.sql
 
-import java.time.Instant
-
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.syntax.string._
 import fr.loicknuchel.safeql.{AggField, Field, Query, Table}
-import gospeak.core.domain.utils.{BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, Proposal, User}
 import gospeak.core.services.storage.UserRepo
 import gospeak.infra.services.storage.sql.UserRepoSql._
@@ -16,6 +14,8 @@ import gospeak.infra.services.storage.sql.utils.DoobieMappings._
 import gospeak.infra.services.storage.sql.utils.GenericRepo
 import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{EmailAddress, Page}
+
+import java.time.Instant
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
   override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] = {
@@ -83,6 +83,8 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def listPublic(params: Page.Params)(implicit ctx: UserAwareCtx): IO[Page[User.Full]] = selectPagePublic(params).run(xa).map(_.fromSql)
 
   override def list(ids: List[User.Id]): IO[List[User]] = runNel(selectAll, ids)
+
+  override def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[User.Admin]] = selectPageAdmin(params).run(xa).map(_.fromSql)
 }
 
 object UserRepoSql {
@@ -111,6 +113,43 @@ object UserRepoSql {
       AggField("COALESCE(COUNT(DISTINCT p.id), 0) + COALESCE(COUNT(DISTINCT ep.id), 0)", "proposalCount"))
     .filters(FILTERS)
     .sorts(SORTS)
+  val FILTERS_ADMIN = List(
+    Table.Filter.Bool.fromNullable("email", "Has validated email", USERS.EMAIL_VALIDATED),
+    Table.Filter.Bool.fromCount("orga", "Is orga", GROUPS.ID),
+    Table.Filter.Bool.fromCount("member", "Is member", GROUP_MEMBERS.GROUP_ID),
+    Table.Filter.Bool.fromCount("attendee", "Is attendee", EVENT_RSVPS.EVENT_ID),
+    Table.Filter.Bool.fromCount("talks", "Has talk", TALKS.ID),
+    Table.Filter.Bool.fromCount("proposals", "Has proposal", PROPOSALS.ID),
+    Table.Filter.Bool.fromCount("ext-proposals", "Has ext proposal", EXTERNAL_PROPOSALS.ID),
+    Table.Filter.Bool.fromCount("ext-events", "Has ext event", EXTERNAL_EVENTS.ID),
+    Table.Filter.Bool.fromCount("ext-cfps", "Has ext cfp", EXTERNAL_CFPS.ID),
+    Table.Filter.Bool.fromCount("requests", "Has requests", USER_REQUESTS.ID),
+    new Table.Filter.Value("created", "Created", false, v => USERS.CREATED_AT.gt(Instant.parse(v))))
+  val SORTS_ADMIN = List(
+    Table.Sort("name", Field.Order("LOWER(u.last_name)"), Field.Order("LOWER(u.first_name)")),
+    Table.Sort("created", USERS.CREATED_AT.desc))
+  private val USERS_ADMIN = USERS
+    .join(GROUPS, _.LeftOuter).on(_.OWNERS cond fr0" LIKE CONCAT('%', u.id, '%')").dropFields(GROUPS.getFields)
+    .join(GROUP_MEMBERS, _.LeftOuter).on(_.USER_ID is USERS.ID).dropFields(GROUP_MEMBERS.getFields)
+    .join(EVENT_RSVPS, _.LeftOuter).on(_.USER_ID is USERS.ID).dropFields(EVENT_RSVPS.getFields)
+    .join(TALKS, _.LeftOuter).on(_.SPEAKERS cond fr0" LIKE CONCAT('%', u.id, '%')").dropFields(TALKS.getFields)
+    .join(PROPOSALS, _.LeftOuter).on(_.SPEAKERS.cond(fr0" LIKE CONCAT('%', u.id, '%')")).dropFields(PROPOSALS.getFields)
+    .join(EXTERNAL_PROPOSALS, _.LeftOuter).on(_.SPEAKERS.cond(fr0" LIKE CONCAT('%', u.id, '%')")).dropFields(EXTERNAL_PROPOSALS.getFields)
+    .join(EXTERNAL_EVENTS, _.LeftOuter).on(_.CREATED_BY is USERS.ID).dropFields(EXTERNAL_EVENTS.getFields)
+    .join(EXTERNAL_CFPS, _.LeftOuter).on(_.CREATED_BY is USERS.ID).dropFields(EXTERNAL_CFPS.getFields)
+    .join(USER_REQUESTS, _.LeftOuter).on(_.CREATED_BY is USERS.ID).dropFields(USER_REQUESTS.getFields)
+    .addFields(
+      AggField("COALESCE(COUNT(DISTINCT g.id), 0)", "groupOrgaCount"),
+      AggField("COALESCE(COUNT(DISTINCT gm.group_id), 0)", "groupMemberCount"),
+      AggField("COALESCE(COUNT(DISTINCT er.event_id), 0)", "attendeeCount"),
+      AggField("COALESCE(COUNT(DISTINCT t.id), 0)", "talkCount"),
+      AggField("COALESCE(COUNT(DISTINCT p.id), 0)", "proposalCount"),
+      AggField("COALESCE(COUNT(DISTINCT ep.id), 0)", "extProposalCount"),
+      AggField("COALESCE(COUNT(DISTINCT ep.id), 0)", "extEventCount"),
+      AggField("COALESCE(COUNT(DISTINCT ep.id), 0)", "extCfpCount"),
+      AggField("COALESCE(COUNT(DISTINCT ur.id), 0)", "requestCount"))
+    .filters(FILTERS_ADMIN)
+    .sorts(SORTS_ADMIN)
 
   private[sql] def insertLoginRef(i: User.LoginRef): Query.Insert[LOGINS] =
     LOGINS.insert.values(i.login.providerId, i.login.providerKey, i.user)
@@ -174,6 +213,9 @@ object UserRepoSql {
 
   private[sql] def selectPage(ids: NonEmptyList[User.Id], params: Page.Params)(implicit ctx: BasicCtx): Query.Select.Paginated[User.Full] =
     USERS_FULL.select.where(USERS.ID in ids).page[User.Full](params.toSql, ctx.toSql)
+
+  private[sql] def selectPageAdmin(params: Page.Params)(implicit ctx: AdminCtx): Query.Select.Paginated[User.Admin] =
+    USERS_ADMIN.select.page[User.Admin](params.toSql, ctx.toSql)
 
   private[sql] def selectAll(ids: NonEmptyList[User.Id]): Query.Select.All[User] =
     USERS.select.where(_.ID in ids).all[User]

@@ -236,6 +236,7 @@ POST        /u/groups/:group/settings/orgas/cancel/:request                     
 POST        /u/groups/:group/settings/orgas/:user/remove                                   gospeak.web.pages.orga.settings.SettingsCtrl.doRemoveOrga(group: Group.Slug, user: User.Slug)
 
 GET         /a                                                                             gospeak.web.pages.admin.AdminCtrl.index
+GET         /a/user-accounts                                                               gospeak.web.pages.admin.AdminCtrl.userAccounts(params: Page.Params ?= Page.Params.defaults)
 GET         /a/schedulers                                                                  gospeak.web.pages.admin.AdminCtrl.schedulers()
 GET         /a/schedulers/exec/:scheduler                                                  gospeak.web.pages.admin.AdminCtrl.schedulerExec(scheduler: String)
 GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)

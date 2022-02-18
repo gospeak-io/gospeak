@@ -1,13 +1,13 @@
 package gospeak.core.services.storage
 
-import java.time.Instant
-
 import cats.effect.IO
-import gospeak.core.domain.utils.{OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils.{AdminCtx, OrgaCtx, UserAwareCtx, UserCtx}
 import gospeak.core.domain.{Group, User}
 import gospeak.libs.scala.domain.{EmailAddress, Page}
 
-trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo with SuggestUserRepo
+import java.time.Instant
+
+trait UserRepo extends OrgaUserRepo with SpeakerUserRepo with UserUserRepo with AuthUserRepo with PublicUserRepo with AdminUserRepo with SuggestUserRepo
 
 trait OrgaUserRepo {
   def find(slug: User.Slug): IO[Option[User]]
@@ -73,6 +73,10 @@ trait PublicUserRepo {
   def list(ids: List[User.Id]): IO[List[User]]
 
   def findPublic(user: User.Slug)(implicit ctx: UserAwareCtx): IO[Option[User.Full]]
+}
+
+trait AdminUserRepo {
+  def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[User.Admin]]
 }
 
 trait SuggestUserRepo {

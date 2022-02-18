@@ -134,6 +134,17 @@ object User {
     def isPublic: Boolean = user.isPublic
   }
 
+  final case class Admin(user: User,
+                         groupOrgaCount: Long,
+                         groupMemberCount: Long,
+                         attendeeCount: Long,
+                         talkCount: Long,
+                         proposalCount: Long,
+                         extProposalCount: Long,
+                         extEventCount: Long,
+                         extCfpCount: Long,
+                         requestCount: Long)
+
   final case class Data(slug: User.Slug,
                         status: User.Status,
                         firstName: String,

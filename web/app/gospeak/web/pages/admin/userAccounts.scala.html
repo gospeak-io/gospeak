@@ -1,0 +1,52 @@
+@import gospeak.core.domain.User
+@import gospeak.libs.scala.domain.Page
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.pages.admin.routes.AdminCtrl
+@import gospeak.web.utils.AdminReq
+@import gospeak.web.utils._
+
+@import gospeak.infra.services.storage.sql.UserRepoSql
+@(users: Page[User.Admin])(implicit req: AdminReq[AnyContent])
+@container("Admin")() {
+    <h1>User accounts</h1>
+    <p>@users.total.value users in total</p>
+
+    @users.renderCustom(AdminCtrl.userAccounts, UserRepoSql.FILTERS_ADMIN, UserRepoSql.SORTS_ADMIN) { p =>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">User name</th>
+                    <th scope="col">Email validated</th>
+                    <th scope="col">Orga</th>
+                    <th scope="col">Member</th>
+                    <th scope="col">Attendee</th>
+                    <th scope="col">Talks</th>
+                    <th scope="col">Proposals</th>
+                    <th scope="col">Ext proposals</th>
+                    <th scope="col">Ext events</th>
+                    <th scope="col">Ext cfps</th>
+                    <th scope="col">Requests</th>
+                    <th scope="col">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+    } { <tr><td colspan="12" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr> } { u =>
+        <tr>
+            <td>@u.user.name.value</td>
+            <td>@u.user.emailValidated.map(_.asDatetime)</td>
+            <td>@u.groupOrgaCount</td>
+            <td>@u.groupMemberCount</td>
+            <td>@u.attendeeCount</td>
+            <td>@u.talkCount</td>
+            <td>@u.proposalCount</td>
+            <td>@u.extProposalCount</td>
+            <td>@u.extEventCount</td>
+            <td>@u.extCfpCount</td>
+            <td>@u.requestCount</td>
+            <td>@u.user.createdAt.asDatetime</td>
+        </tr>
+    } { p =>
+            </tbody>
+        </table>
+    }
+}()

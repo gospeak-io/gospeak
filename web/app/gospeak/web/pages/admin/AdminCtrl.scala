@@ -27,6 +27,7 @@ import scala.util.control.NonFatal
 class AdminCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
+                userRepo: AdminUserRepo,
                 groupRepo: AdminGroupRepo,
                 groupSettingsRepo: AdminGroupSettingsRepo,
                 eventRepo: AdminEventRepo,
@@ -37,6 +38,12 @@ class AdminCtrl(cc: ControllerComponents,
                 ms: MessageSrv) extends UICtrl(cc, silhouette, conf) with UICtrl.AdminAction {
   def index(): Action[AnyContent] = AdminAction { implicit req =>
     IO.pure(Ok(html.index()))
+  }
+
+  def userAccounts(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
+    for {
+      users <- userRepo.list(params)
+    } yield  Ok(html.userAccounts(users))
   }
 
   def schedulers(): Action[AnyContent] = AdminAction { implicit req =>

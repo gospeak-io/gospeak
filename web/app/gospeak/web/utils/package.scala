@@ -203,7 +203,11 @@ package object utils {
         paginationBody(item),
         paginationFooter(link)).map(_.body).mkString)
 
-    def renderCustom(link: Page.Params => Call, filters: List[Table.Filter] = List(), sorts: List[Table.Sort] = List())(header: Page[A] => Html)(empty: Html)(item: A => Html)(footer: Page[A] => Html): Html =
+    def renderCustom(link: Page.Params => Call, filters: List[Table.Filter] = List(), sorts: List[Table.Sort] = List())
+                    (header: Page[A] => Html)
+                    (empty: Html)
+                    (item: A => Html)
+                    (footer: Page[A] => Html): Html =
       Html(List(
         paginationHeader(link, filters, sorts),
         header(p),
