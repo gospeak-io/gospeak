@@ -1,0 +1,21 @@
+@import gospeak.core.domain.DbStats
+@import gospeak.web.pages.admin.partials.html.container
+@import gospeak.web.utils.AdminReq
+
+@(stats: DbStats)(implicit req: AdminReq[AnyContent])
+@container("Admin")() {
+    <h1>Database statistics</h1>
+    <h2>Tables</h2>
+    <p>@stats.rows.values.sum rows in total</p>
+    <table class="table">
+        <thead>
+            <th scope="col">Table</th>
+            <th scope="col">Rows</th>
+        </thead>
+        <tbody>
+            @stats.rows.toList.sortBy(_._1).map { case (table, rows) =>
+                <tr><th scope="row">@table</th><td>@rows</td></tr>
+            }
+        </tbody>
+    </table>
+}()

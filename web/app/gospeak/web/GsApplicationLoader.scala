@@ -76,6 +76,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val appConf: ApplicationConf = conf.app
 
   lazy val db: GsRepoSql = new GsRepoSql(conf.database, conf.gospeak)
+  lazy val adminRepo: AdminRepo = db.admin
   lazy val userRepo: UserRepo = db.user
   lazy val userRequestRepo: UserRequestRepo = db.userRequest
   lazy val groupRepo: GroupRepo = db.group

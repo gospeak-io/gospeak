@@ -26,6 +26,7 @@ import scala.util.control.NonFatal
 class AdminCtrl(cc: ControllerComponents,
                 silhouette: Silhouette[CookieEnv],
                 conf: AppConf,
+                adminRepo: AdminRepo,
                 userRepo: AdminUserRepo,
                 groupRepo: AdminGroupRepo,
                 groupSettingsRepo: AdminGroupSettingsRepo,
@@ -211,6 +212,12 @@ class AdminCtrl(cc: ControllerComponents,
       job.error = Some(e)
       job.finished = Some(Instant.now())
     }
+  }
+
+  def dbStats(): Action[AnyContent] = AdminAction { implicit req =>
+    for {
+      stats <- adminRepo.getStats()
+    } yield Ok(html.dbStats(stats))
   }
 }
 

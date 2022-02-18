@@ -51,6 +51,7 @@ class GsRepoSql(dbConf: DbConf, gsConf: GsConf) extends GsRepo {
 
   def dropTables(): IO[Unit] = IO(flyway.clean())
 
+  override val admin = new AdminRepoSql(xa)
   override val user = new UserRepoSql(xa)
   override val talk = new TalkRepoSql(xa)
   override val group = new GroupRepoSql(xa)

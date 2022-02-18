@@ -1,6 +1,7 @@
 package gospeak.core.services.storage
 
 trait GsRepo {
+  val admin: AdminRepo
   val user: UserRepo
   val talk: TalkRepo
   val group: GroupRepo

@@ -246,6 +246,7 @@ GET         /a/check-user-templates/edit/:group/:kind/:ref                      
 POST        /a/check-user-templates/edit/:group/:kind/:ref                                 gospeak.web.pages.admin.AdminCtrl.doEditUserTemplate(group: Group.Id, kind: String, ref: String, params: Page.Params)
 GET         /a/fetch-videos                                                                gospeak.web.pages.admin.AdminCtrl.fetchVideos(params: Page.Params ?= Page.Params.defaults)
 POST        /a/fetch-videos/ext-event/:event                                               gospeak.web.pages.admin.AdminCtrl.updateExtEventVideos(event: ExternalEvent.Id)
+GET         /a/db-stats                                                                    gospeak.web.pages.admin.AdminCtrl.dbStats
 
 GET         /styleguide                                                                    gospeak.web.pages.styleguide.StyleguideCtrl.index(params: Page.Params ?= Page.Params.defaults)
 GET         /styleguide/embed                                                              gospeak.web.pages.styleguide.StyleguideCtrl.embed
