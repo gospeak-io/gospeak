@@ -2,7 +2,7 @@
 @import gospeak.libs.scala.domain.Page
 @import gospeak.web.pages.admin.partials.html.container
 @import gospeak.web.pages.admin.routes.AdminCtrl
-@import gospeak.web.utils.AdminReq
+@import gospeak.web.pages.partials.form.html.formBtn
 @import gospeak.web.utils._
 
 @import gospeak.infra.services.storage.sql.UserRepoSql
@@ -27,12 +27,13 @@
                     <th scope="col">Ext cfps</th>
                     <th scope="col">Requests</th>
                     <th scope="col">Created</th>
+                    <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody>
-    } { <tr><td colspan="12" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr> } { u =>
+    } { <tr><td colspan="13" class="text-center p-5">No results <i class="far fa-sad-tear"></i></td></tr> } { u =>
         <tr>
-            <td>@u.user.name.value</td>
+            <td title="@u.user.id.value">@u.user.name.value</td>
             <td>@u.user.emailValidated.map(_.asDatetime)</td>
             <td>@u.groupOrgaCount</td>
             <td>@u.groupMemberCount</td>
@@ -44,9 +45,12 @@
             <td>@u.extCfpCount</td>
             <td>@u.requestCount</td>
             <td>@u.user.createdAt.asDatetime</td>
+            <td>@formBtn(AdminCtrl.deleteUser(u.user.id, users.params), List("class" -> "btn-danger btn-xs text-nowrap")) { Delete user }</td>
         </tr>
     } { p =>
             </tbody>
         </table>
     }
+
+    @formBtn(AdminCtrl.deleteUserPage(users.params), List("class" -> "btn-danger")) { Delete filtered users }
 }()

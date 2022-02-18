@@ -2,9 +2,12 @@ package gospeak.infra.services.storage.sql
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import doobie.syntax.connectionio._
 import doobie.syntax.string._
+import doobie.util.fragment.Fragment
+import fr.loicknuchel.safeql.models.FailedQuery
 import fr.loicknuchel.safeql.{AggField, Field, Query, Table}
-import gospeak.core.domain.utils.{AdminCtx, BasicCtx, OrgaCtx, UserAwareCtx, UserCtx}
+import gospeak.core.domain.utils._
 import gospeak.core.domain.{Group, Proposal, User}
 import gospeak.core.services.storage.UserRepo
 import gospeak.infra.services.storage.sql.UserRepoSql._
@@ -16,6 +19,7 @@ import gospeak.libs.scala.Extensions._
 import gospeak.libs.scala.domain.{EmailAddress, Page}
 
 import java.time.Instant
+import scala.util.control.NonFatal
 
 class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericRepo with UserRepo {
   override def create(data: User.Data, now: Instant, emailValidated: Option[Instant]): IO[User] = {
@@ -85,6 +89,16 @@ class UserRepoSql(protected[sql] val xa: doobie.Transactor[IO]) extends GenericR
   override def list(ids: List[User.Id]): IO[List[User]] = runNel(selectAll, ids)
 
   override def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[User.Admin]] = selectPageAdmin(params).run(xa).map(_.fromSql)
+
+  override def delete(user: User.Id)(implicit ctx: AdminCtx): IO[Unit] = for {
+    logins <- selectLogins(user).run(xa)
+    _ <- logins.map(deleteCredentials(_).run(xa)).sequence
+    _ <- execUpdate(deleteLogins(user).fr)
+    _ <- deleteUser(user).run(xa)
+  } yield ()
+
+  // to allow a delete all that is not supported in safeql Delete
+  private def execUpdate(fr: Fragment): IO[Int] = fr.update.run.transact(xa).recoverWith { case NonFatal(e) => IO.raiseError(FailedQuery(fr, e)) }
 }
 
 object UserRepoSql {
@@ -151,6 +165,9 @@ object UserRepoSql {
     .filters(FILTERS_ADMIN)
     .sorts(SORTS_ADMIN)
 
+  private[sql] def selectLogins(user: User.Id): Query.Select.All[User.Login] =
+    LOGINS.select.where(_.USER_ID.is(user)).dropFields(LOGINS.USER_ID).all[User.Login]
+
   private[sql] def insertLoginRef(i: User.LoginRef): Query.Insert[LOGINS] =
     LOGINS.insert.values(i.login.providerId, i.login.providerKey, i.user)
 
@@ -164,6 +181,12 @@ object UserRepoSql {
 
   private[sql] def deleteCredentials(login: User.Login): Query.Delete[CREDENTIALS] =
     CREDENTIALS.delete.where(cd => cd.PROVIDER_ID.is(login.providerId) and cd.PROVIDER_KEY.is(login.providerKey))
+
+  private[sql] def deleteLogins(user: User.Id): Query.Delete[LOGINS] =
+    LOGINS.delete.where(_.USER_ID is user)
+
+  private[sql] def deleteUser(user: User.Id): Query.Delete[USERS] =
+    USERS.delete.where(_.ID is user)
 
   private[sql] def selectCredentials(login: User.Login): Query.Select.Optional[User.Credentials] =
     CREDENTIALS.select.where(cd => cd.PROVIDER_ID.is(login.providerId) and cd.PROVIDER_KEY.is(login.providerKey)).option[User.Credentials]

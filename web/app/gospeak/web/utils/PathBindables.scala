@@ -49,6 +49,9 @@ object PathBindables {
   implicit def proposalRatingGradePathBinder(implicit i: PathBindable[Int]): PathBindable[Proposal.Rating.Grade] =
     intBindable(Proposal.Rating.Grade.from, _.value)
 
+  implicit def userIdPathBinder(implicit s: PathBindable[String]): PathBindable[User.Id] =
+    stringBindable(User.Id.from, _.value)
+
   implicit def userSlugPathBinder(implicit s: PathBindable[String]): PathBindable[User.Slug] =
     stringBindable(User.Slug.from, _.value)
 

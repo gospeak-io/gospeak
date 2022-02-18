@@ -1,11 +1,9 @@
 package gospeak.web.pages.admin
 
-import java.time.Instant
-
 import cats.effect.IO
 import com.mohiva.play.silhouette.api.Silhouette
 import gospeak.core.domain.messages.Message
-import gospeak.core.domain.{Event, ExternalEvent, Group, Video}
+import gospeak.core.domain._
 import gospeak.core.services.slack.domain.SlackAction
 import gospeak.core.services.storage._
 import gospeak.core.services.video.VideoSrv
@@ -20,6 +18,7 @@ import gospeak.web.utils.{AdminReq, GsForms, UICtrl}
 import io.circe.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
+import java.time.Instant
 import scala.collection.mutable
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -43,7 +42,20 @@ class AdminCtrl(cc: ControllerComponents,
   def userAccounts(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
     for {
       users <- userRepo.list(params)
-    } yield  Ok(html.userAccounts(users))
+    } yield Ok(html.userAccounts(users))
+  }
+
+  def deleteUser(id: User.Id, params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
+    for {
+      _ <- userRepo.delete(id)
+    } yield Redirect(routes.AdminCtrl.userAccounts(params)).flashing("success" -> "User deleted!")
+  }
+
+  def deleteUserPage(params: Page.Params): Action[AnyContent] = AdminAction { implicit req =>
+    for {
+      users <- userRepo.list(params)
+      _ <- users.items.map(user => userRepo.delete(user.user.id)).sequence
+    } yield Redirect(routes.AdminCtrl.userAccounts(params)).flashing("success" -> s"Deleted ${users.items.length} users!")
   }
 
   def schedulers(): Action[AnyContent] = AdminAction { implicit req =>

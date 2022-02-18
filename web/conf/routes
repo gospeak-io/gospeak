@@ -237,6 +237,8 @@ POST        /u/groups/:group/settings/orgas/:user/remove                        
 
 GET         /a                                                                             gospeak.web.pages.admin.AdminCtrl.index
 GET         /a/user-accounts                                                               gospeak.web.pages.admin.AdminCtrl.userAccounts(params: Page.Params ?= Page.Params.defaults)
+POST        /a/user-accounts/:id/delete                                                    gospeak.web.pages.admin.AdminCtrl.deleteUser(id: User.Id, params: Page.Params ?= Page.Params.defaults)
+POST        /a/user-accounts/delete-page                                                   gospeak.web.pages.admin.AdminCtrl.deleteUserPage(params: Page.Params ?= Page.Params.defaults)
 GET         /a/schedulers                                                                  gospeak.web.pages.admin.AdminCtrl.schedulers()
 GET         /a/schedulers/exec/:scheduler                                                  gospeak.web.pages.admin.AdminCtrl.schedulerExec(scheduler: String)
 GET         /a/check-user-templates                                                        gospeak.web.pages.admin.AdminCtrl.checkUserTemplates(params: Page.Params ?= Page.Params.defaults)

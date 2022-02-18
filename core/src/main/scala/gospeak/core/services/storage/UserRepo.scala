@@ -77,6 +77,8 @@ trait PublicUserRepo {
 
 trait AdminUserRepo {
   def list(params: Page.Params)(implicit ctx: AdminCtx): IO[Page[User.Admin]]
+
+  def delete(id: User.Id)(implicit ctx: AdminCtx): IO[Unit]
 }
 
 trait SuggestUserRepo {
