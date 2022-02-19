@@ -44,4 +44,4 @@
             <a href="@AuthCtrl.signup(redirect)" class="text-muted">Create new account</a>
         </div>
     </div>
-}()
+}{@req.conf.recaptcha.map { _ => <script src="https://www.google.com/recaptcha/api.js" async defer></script> }}

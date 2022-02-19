@@ -75,7 +75,7 @@ object ApiUser {
                                  email: EmailAddress,
                                  password: Secret,
                                  rememberMe: Option[Boolean]) {
-    def asData: GsForms.SignupData = GsForms.SignupData(username, firstName, lastName, email, password, rememberMe.getOrElse(false))
+    def asData: GsForms.SignupData = GsForms.SignupData(username, firstName, lastName, email, password, rememberMe.getOrElse(false), None)
   }
 
   object SignupPayload {
@@ -85,7 +85,7 @@ object ApiUser {
   final case class LoginPayload(email: EmailAddress,
                                 password: Secret,
                                 rememberMe: Option[Boolean]) {
-    def asData: GsForms.LoginData = GsForms.LoginData(email, password, rememberMe.getOrElse(false))
+    def asData: GsForms.LoginData = GsForms.LoginData(email, password, rememberMe.getOrElse(false), None)
   }
 
   object LoginPayload {

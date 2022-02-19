@@ -26,3 +26,5 @@
     @inputCheckbox(form("rememberMe"), List("label" -> "Remember me"))
     <div class="invalid-feedback">@req.formatErrors(form("rememberMe"))</div>
 </div>
+
+@req.conf.recaptcha.map { c => <div class="g-recaptcha" data-sitekey="@c.clientKey"></div> }

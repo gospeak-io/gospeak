@@ -7,6 +7,7 @@ import com.mohiva.play.silhouette.impl.exceptions.{IdentityNotFoundException, In
 import gospeak.core.domain.messages.Message
 import gospeak.core.domain.{Cfp, ExternalCfp, ExternalEvent, Talk}
 import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.recaptcha.RecaptchaSrv
 import gospeak.core.services.storage._
 import gospeak.libs.scala.MessageBus
 import gospeak.libs.scala.domain.{CustomException, Page}
@@ -29,6 +30,7 @@ import scala.util.control.NonFatal
 class CfpCtrl(cc: ControllerComponents,
               silhouette: Silhouette[CookieEnv],
               conf: AppConf,
+              recaptchaSrv: RecaptchaSrv,
               groupRepo: PublicGroupRepo,
               cfpRepo: PublicCfpRepo,
               talkRepo: SpeakerTalkRepo,
@@ -168,11 +170,11 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
-    ??? // break signup to avoid spam
     import cats.implicits._
     GsForms.talkSignup.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, formWithErrors, GsForms.talkLogin.bindFromRequest),
       data => (for {
+        _ <- OptionT.liftF(recaptchaSrv.validate(data.recaptcha))
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
         _ <- if (cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.createIdentity(data.user))
@@ -188,6 +190,7 @@ class CfpCtrl(cc: ControllerComponents,
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, signupData = Some(data), error = "Account activated, you need to validate it by clicking on the email validation link before submitting a talk")
         case _: DuplicateIdentityException => proposeConnectForm(cfp, signupData = Some(data), error = "User already exists")
         case e: DuplicateSlugException => proposeConnectForm(cfp, signupData = Some(data), error = s"Username ${e.slug.value} is already taken")
+        case e: CustomException => proposeConnectForm(cfp, signupData = Some(data), error = e.getMessage)
         case NonFatal(e) => proposeConnectForm(cfp, signupData = Some(data), error = s"${e.getClass.getSimpleName}: ${e.getMessage}")
       }
     )
@@ -198,6 +201,7 @@ class CfpCtrl(cc: ControllerComponents,
     GsForms.talkLogin.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, GsForms.talkSignup.bindFromRequest, formWithErrors),
       data => (for {
+        _ <- OptionT.liftF(recaptchaSrv.validate(data.recaptcha))
         cfpElt <- OptionT(cfpRepo.findRead(cfp))
         _ <- if (cfpElt.isActive(req.nowLDT)) OptionT.liftF(IO.pure(())) else OptionT.liftF(IO.raiseError(CustomException("Can't propose a talk, CFP is not open")))
         identity <- OptionT.liftF(authSrv.getIdentity(data.user))
@@ -211,6 +215,7 @@ class CfpCtrl(cc: ControllerComponents,
         case _: AccountValidationRequiredException => proposeConnectForm(cfp, loginData = Some(data), error = "You need to validate your account by clicking on the email validation link")
         case _: IdentityNotFoundException => proposeConnectForm(cfp, loginData = Some(data), error = "Wrong login or password")
         case _: InvalidPasswordException => proposeConnectForm(cfp, loginData = Some(data), error = "Wrong login or password")
+        case e: CustomException => proposeConnectForm(cfp, loginData = Some(data), error = e.getMessage)
         case NonFatal(e) => proposeConnectForm(cfp, loginData = Some(data), error = s"${e.getClass.getSimpleName}: ${e.getMessage}")
       }
     )

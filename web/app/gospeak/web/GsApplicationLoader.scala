@@ -1,7 +1,6 @@
 package gospeak.web
 
 import java.util.concurrent.TimeUnit
-
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto.{Crypter, CrypterAuthenticatorEncoder, Signer}
@@ -20,6 +19,7 @@ import gospeak.core.services.cloudinary.UploadSrv
 import gospeak.core.services.email.EmailSrv
 import gospeak.core.services.meetup.MeetupSrv
 import gospeak.core.services.places.PlacesSrv
+import gospeak.core.services.recaptcha.RecaptchaSrv
 import gospeak.core.services.slack.SlackSrv
 import gospeak.core.services.storage._
 import gospeak.core.services.twitter.TwitterSrv
@@ -27,6 +27,7 @@ import gospeak.core.services.video.VideoSrv
 import gospeak.infra.services.email.EmailSrvFactory
 import gospeak.infra.services.meetup.MeetupSrvImpl
 import gospeak.infra.services.places.PlacesSrvImpl
+import gospeak.infra.services.recaptcha.RecaptchaSrvImpl
 import gospeak.infra.services.slack.SlackSrvImpl
 import gospeak.infra.services.storage.sql._
 import gospeak.infra.services.twitter.TwitterSrvFactory
@@ -108,6 +109,7 @@ class GsComponents(context: ApplicationLoader.Context)
   lazy val placesSrv: PlacesSrv = PlacesSrvImpl.from(conf.googleMaps)
   lazy val videoSrv: VideoSrv = VideoSrvImpl.from(conf.app.name, conf.youtube).get
   lazy val slackSrv: SlackSrv = new SlackSrvImpl(new SlackClient(http))
+  lazy val recaptchaSrv: RecaptchaSrv = new RecaptchaSrvImpl(conf.recaptcha, http)
   lazy val messageSrv: MessageSrv = wire[MessageSrv]
   lazy val messageBus: MessageBus[Message] = wire[BasicMessageBus[Message]]
   lazy val messageHandler: MessageHandler = wire[MessageHandler]

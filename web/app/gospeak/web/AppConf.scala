@@ -6,6 +6,7 @@ import com.typesafe.config.Config
 import gospeak.core.services.email.EmailConf
 import gospeak.core.services.meetup.MeetupConf
 import gospeak.core.services.places.GoogleMapsConf
+import gospeak.core.services.recaptcha.RecaptchaConf
 import gospeak.core.services.storage.DbConf
 import gospeak.core.services.twitter.TwitterConf
 import gospeak.core.services.upload.UploadConf
@@ -31,6 +32,7 @@ final case class AppConf(app: ApplicationConf,
                          upload: UploadConf,
                          meetup: MeetupConf,
                          youtube: YoutubeConf,
+                         recaptcha: RecaptchaConf,
                          googleMaps: GoogleMapsConf,
                          twitter: TwitterConf,
                          gospeak: GsConf,
@@ -125,6 +127,9 @@ object AppConf {
     private implicit val youtubeConfDisabledReader: ConfigReader[YoutubeConf.Disabled] = deriveReader[YoutubeConf.Disabled]
     private implicit val youtubeConfEnabledReader: ConfigReader[YoutubeConf.Enabled] = deriveReader[YoutubeConf.Enabled]
     private implicit val youtubeConfReader: ConfigReader[YoutubeConf] = deriveReader[YoutubeConf]
+    private implicit val recaptchaConfDisabledReader: ConfigReader[RecaptchaConf.Disabled] = deriveReader[RecaptchaConf.Disabled]
+    private implicit val recaptchaConfEnabledReader: ConfigReader[RecaptchaConf.Enabled] = deriveReader[RecaptchaConf.Enabled]
+    private implicit val recaptchaConfReader: ConfigReader[RecaptchaConf] = deriveReader[RecaptchaConf]
     private implicit val googleMapsConfReader: ConfigReader[GoogleMapsConf] = deriveReader[GoogleMapsConf]
     private implicit val twitterConfConsoleReader: ConfigReader[TwitterConf.Console] = deriveReader[TwitterConf.Console]
     private implicit val twitterConfTwitterReader: ConfigReader[TwitterConf.Twitter] = deriveReader[TwitterConf.Twitter]

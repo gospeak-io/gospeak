@@ -9,8 +9,9 @@ import gospeak.core.domain.UserRequest.PasswordResetRequest
 import gospeak.core.domain.utils.Constants
 import gospeak.core.domain.{User, UserRequest}
 import gospeak.core.services.email.EmailSrv
+import gospeak.core.services.recaptcha.RecaptchaSrv
 import gospeak.core.services.storage.{AuthUserRepo, AuthUserRequestRepo}
-import gospeak.libs.scala.domain.EmailAddress
+import gospeak.libs.scala.domain.{CustomException, EmailAddress}
 import gospeak.web.AppConf
 import gospeak.web.auth.domain.CookieEnv
 import gospeak.web.auth.exceptions.{AccountValidationRequiredException, DuplicateIdentityException, DuplicateSlugException}
@@ -26,6 +27,7 @@ import scala.util.control.NonFatal
 class AuthCtrl(cc: ControllerComponents,
                silhouette: Silhouette[CookieEnv],
                conf: AppConf,
+               recaptchaSrv: RecaptchaSrv,
                userRepo: AuthUserRepo,
                userRequestRepo: AuthUserRequestRepo,
                authSrv: AuthSrv,
@@ -35,10 +37,10 @@ class AuthCtrl(cc: ControllerComponents,
   }
 
   def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
-    ??? // break signup to avoid spam
     GsForms.signup.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.signup(formWithErrors, redirect))),
       data => (for {
+        _ <- recaptchaSrv.validate(data.recaptcha)
         user <- authSrv.createIdentity(data)
         emailValidation <- userRequestRepo.createAccountValidationRequest(user.user.email, user.user.id, req.now)
         _ <- emailSrv.send(Emails.signup(emailValidation, user.user))
@@ -47,6 +49,7 @@ class AuthCtrl(cc: ControllerComponents,
         case e: AccountValidationRequiredException => authSrv.logout(e.identity, Redirect(routes.AuthCtrl.login(redirect)).flashing("warning" -> "Account created, you need to validate it by clicking on the email validation link"))
         case _: DuplicateIdentityException => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError("User already exists"), redirect)))
         case e: DuplicateSlugException => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError(s"Username ${e.slug.value} is already taken"), redirect)))
+        case e: CustomException => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError(e.getMessage), redirect)))
         case NonFatal(e) => IO.pure(BadRequest(html.signup(GsForms.signup.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect)))
       }
     )
@@ -60,6 +63,7 @@ class AuthCtrl(cc: ControllerComponents,
     GsForms.login.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.login(formWithErrors, redirect, authSrv.providerIds))),
       data => (for {
+        _ <- recaptchaSrv.validate(data.recaptcha)
         user <- authSrv.getIdentity(data)
         (_, result) <- authSrv.login(user, data.rememberMe, loggedRedirect(redirect)(_))
       } yield result: Result).recover {
@@ -70,6 +74,7 @@ class AuthCtrl(cc: ControllerComponents,
         ), redirect, authSrv.providerIds))
         case _: IdentityNotFoundException => BadRequest(html.login(GsForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
         case _: InvalidPasswordException => BadRequest(html.login(GsForms.login.fill(data).withGlobalError("Wrong login or password"), redirect, authSrv.providerIds))
+        case e: CustomException => BadRequest(html.login(GsForms.login.fill(data).withGlobalError(e.getMessage), redirect, authSrv.providerIds))
         case NonFatal(e) => BadRequest(html.login(GsForms.login.fill(data).withGlobalError(s"${e.getClass.getSimpleName}: ${e.getMessage}"), redirect, authSrv.providerIds))
       }
     )
@@ -133,12 +138,15 @@ class AuthCtrl(cc: ControllerComponents,
     GsForms.forgotPassword.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.forgotPassword(formWithErrors, redirect))),
       data => (for {
+        _ <- OptionT.liftF(recaptchaSrv.validate(data.recaptcha))
         user <- OptionT(userRepo.find(data.email))
         existingPasswordResetOpt <- OptionT.liftF(userRequestRepo.findPendingPasswordResetRequest(data.email, req.now))
         passwordReset <- existingPasswordResetOpt.map(OptionT.pure(_): OptionT[IO, PasswordResetRequest]).getOrElse(OptionT.liftF(userRequestRepo.createPasswordResetRequest(data.email, req.now)))
         _ <- OptionT.liftF(emailSrv.send(Emails.forgotPassword(user, passwordReset)))
       } yield Redirect(routes.AuthCtrl.login()).flashing("success" -> "Reset password email sent!")).value
-        .map(_.getOrElse(Redirect(routes.AuthCtrl.forgotPassword(redirect)).flashing("error" -> s"Email not found")))
+        .map(_.getOrElse(Redirect(routes.AuthCtrl.forgotPassword(redirect)).flashing("error" -> s"Email not found"))).recoverWith {
+        case e: CustomException => IO.pure(Ok(html.forgotPassword(GsForms.forgotPassword.fill(data).withGlobalError(e.getMessage), redirect)))
+      }
     )
   }
 
@@ -150,11 +158,14 @@ class AuthCtrl(cc: ControllerComponents,
     GsForms.resetPassword.bindFromRequest.fold(
       formWithErrors => resetPasswordForm(id, formWithErrors),
       data => (for {
+        _ <- OptionT.liftF(recaptchaSrv.validate(data.recaptcha))
         passwordReset <- OptionT(userRequestRepo.findPendingPasswordResetRequest(id))
         user <- OptionT(userRepo.find(passwordReset.email))
         updatedUser <- OptionT.liftF(authSrv.updateIdentity(data, passwordReset, user))
         (_, result) <- OptionT.liftF(authSrv.login(updatedUser, data.rememberMe, loggedRedirect(None)(_)))
-      } yield result).value.map(_.getOrElse(notFound()))
+      } yield result).value.map(_.getOrElse(notFound())).recoverWith {
+        case e: CustomException => resetPasswordForm(id, GsForms.resetPassword.fill(data).withGlobalError(e.getMessage))
+      }
     )
   }
 

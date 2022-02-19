@@ -4,7 +4,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime}
 import java.util.concurrent.TimeUnit
-
 import cats.implicits._
 import gospeak.core.domain._
 import gospeak.core.domain.utils.SocialAccounts.SocialAccount._
@@ -87,6 +86,7 @@ object Mappings {
     if (o.decode.length >= 8) PlayValid
     else PlayInvalid(ValidationError(passwordError))
   })
+  val captcha: Mapping[Secret] = nonEmptyTextMapping(Secret, _.decode)
   val markdown: Mapping[Markdown] = textMapping(Markdown(_), _.value, Constraints.maxLength(Values.maxLength.text))
   val currency: Mapping[Price.Currency] = stringEitherMapping[Price.Currency, String](c => Price.Currency.from(c).toEither(s"No currency '$c'"), _.value, formatError, List(_))
   val price: Mapping[Price] = mapping(

@@ -22,7 +22,7 @@ object GsForms {
    * Auth forms
    */
 
-  final case class SignupData(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, password: Secret, rememberMe: Boolean) {
+  final case class SignupData(slug: User.Slug, firstName: String, lastName: String, email: EmailAddress, password: Secret, rememberMe: Boolean, recaptcha: Option[Secret]) {
     def data(avatar: Avatar): User.Data = User.Data(slug, User.Status.Public, firstName, lastName, email, avatar, None, None, None, None, None, None, None, SocialAccounts.fromUrls())
   }
 
@@ -32,30 +32,34 @@ object GsForms {
     "last-name" -> text(1, Values.maxLength.title),
     "email" -> emailAddress,
     "password" -> password,
-    "rememberMe" -> boolean
+    "rememberMe" -> boolean,
+    "g-recaptcha-response" -> optional(captcha)
   )(SignupData.apply)(SignupData.unapply)
   val signup: Form[SignupData] = Form(signupMapping)
 
-  final case class LoginData(email: EmailAddress, password: Secret, rememberMe: Boolean)
+  final case class LoginData(email: EmailAddress, password: Secret, rememberMe: Boolean, recaptcha: Option[Secret])
 
   private val loginMapping: Mapping[LoginData] = mapping(
     "email" -> emailAddress,
     "password" -> secret,
-    "rememberMe" -> boolean
+    "rememberMe" -> boolean,
+    "g-recaptcha-response" -> optional(captcha)
   )(LoginData.apply)(LoginData.unapply)
   val login: Form[LoginData] = Form(loginMapping)
 
-  final case class ForgotPasswordData(email: EmailAddress)
+  final case class ForgotPasswordData(email: EmailAddress, recaptcha: Option[Secret])
 
   val forgotPassword: Form[ForgotPasswordData] = Form(mapping(
-    "email" -> emailAddress
+    "email" -> emailAddress,
+    "g-recaptcha-response" -> optional(captcha)
   )(ForgotPasswordData.apply)(ForgotPasswordData.unapply))
 
-  final case class ResetPasswordData(password: Secret, rememberMe: Boolean)
+  final case class ResetPasswordData(password: Secret, rememberMe: Boolean, recaptcha: Option[Secret])
 
   val resetPassword: Form[ResetPasswordData] = Form(mapping(
     "password" -> password,
-    "rememberMe" -> boolean
+    "rememberMe" -> boolean,
+    "g-recaptcha-response" -> optional(captcha)
   )(ResetPasswordData.apply)(ResetPasswordData.unapply))
 
 
@@ -287,18 +291,20 @@ object GsForms {
     "talk" -> talkMapping
   )(TalkLogged.apply)(TalkLogged.unapply))
 
-  final case class TalkSignup(talk: Talk.Data, user: SignupData) extends TalkAndProposalData
+  final case class TalkSignup(talk: Talk.Data, user: SignupData, recaptcha: Option[Secret]) extends TalkAndProposalData
 
   val talkSignup: Form[TalkSignup] = Form(mapping(
     "talk" -> talkMapping,
-    "user" -> signupMapping
+    "user" -> signupMapping,
+    "g-recaptcha-response" -> optional(captcha)
   )(TalkSignup.apply)(TalkSignup.unapply))
 
-  final case class TalkLogin(talk: Talk.Data, user: LoginData) extends TalkAndProposalData
+  final case class TalkLogin(talk: Talk.Data, user: LoginData, recaptcha: Option[Secret]) extends TalkAndProposalData
 
   val talkLogin: Form[TalkLogin] = Form(mapping(
     "talk" -> talkMapping,
-    "user" -> loginMapping
+    "user" -> loginMapping,
+  "g-recaptcha-response" -> optional(captcha)
   )(TalkLogin.apply)(TalkLogin.unapply))
 
   val proposal: Form[Proposal.Data] = Form(mapping(
