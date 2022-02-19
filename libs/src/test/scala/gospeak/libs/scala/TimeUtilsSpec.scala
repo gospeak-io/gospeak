@@ -10,6 +10,12 @@ import scala.util.{Failure, Success}
 
 class TimeUtilsSpec extends BaseSpec {
   describe("toFiniteDuration") {
+    it("should parse Instant") {
+      TimeUtils.parseInstant("2020-08-05T10:20:34Z") shouldBe Success(Instant.parse("2020-08-05T10:20:34Z"))
+      TimeUtils.parseInstant("2020-08-05T10:20:34") shouldBe Success(Instant.parse("2020-08-05T10:20:34Z"))
+      TimeUtils.parseInstant("2020-08-05T10:20") shouldBe Success(Instant.parse("2020-08-05T10:20:00Z"))
+      TimeUtils.parseInstant("2020-08-05") shouldBe Success(Instant.parse("2020-08-05T00:00:00Z"))
+    }
     it("should transform times") {
       val i = Instant.parse("2020-08-05T10:20:34Z")
       val ldt = LocalDateTime.of(2020, 8, 5, 10, 20, 34)

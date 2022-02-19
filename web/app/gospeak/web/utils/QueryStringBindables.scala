@@ -1,10 +1,10 @@
 package gospeak.web.utils
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
-
+import java.time.{Instant, LocalDate, LocalDateTime}
 import gospeak.core.domain._
 import gospeak.libs.scala.Extensions._
+import gospeak.libs.scala.TimeUtils
 import gospeak.libs.scala.domain.{CustomException, Page, Url}
 import play.api.mvc.QueryStringBindable
 
@@ -15,6 +15,9 @@ object QueryStringBindables {
   private[utils] val dtf2 = DateTimeFormatter.ofPattern("dd'%2F'MM'%2F'yyyy+HH'%3A'mm")
   private[utils] val df1 = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private[utils] val df2 = DateTimeFormatter.ofPattern("dd'%2F'MM'%2F'yyyy")
+
+  implicit def instantQueryStringBindable(implicit s: QueryStringBindable[String]): QueryStringBindable[Instant] =
+    stringBindable(TimeUtils.parseInstant(_).toEither.leftMap(e => CustomException(s"Bad Instant query string: ${e.getMessage}")), _.toString)
 
   implicit def localDateTimeQueryStringBindable(implicit s: QueryStringBindable[String]): QueryStringBindable[LocalDateTime] =
     new QueryStringBindable[LocalDateTime] {

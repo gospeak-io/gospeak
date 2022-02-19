@@ -214,9 +214,9 @@ class AdminCtrl(cc: ControllerComponents,
     }
   }
 
-  def dbStats(): Action[AnyContent] = AdminAction { implicit req =>
+  def dbStats(since: Option[Instant]): Action[AnyContent] = AdminAction { implicit req =>
     for {
-      stats <- adminRepo.getStats()
+      stats <- adminRepo.getStats(since)
     } yield Ok(html.dbStats(stats))
   }
 }

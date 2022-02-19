@@ -146,6 +146,7 @@ val web = (project in file("web"))
     name := "web",
     libraryDependencies ++= webDependencies ++ Seq(ws),
     routesImport ++= Seq(
+      "java.time.Instant",
       "gospeak.core.domain._",
       "gospeak.libs.scala.domain._",
       "gospeak.core.services.meetup.domain._",
