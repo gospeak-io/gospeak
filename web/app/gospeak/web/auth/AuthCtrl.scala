@@ -35,6 +35,7 @@ class AuthCtrl(cc: ControllerComponents,
   }
 
   def doSignup(redirect: Option[String]): Action[AnyContent] = UserAwareAction { implicit req =>
+    ??? // break signup to avoid spam
     GsForms.signup.bindFromRequest.fold(
       formWithErrors => IO.pure(BadRequest(html.signup(formWithErrors, redirect))),
       data => (for {

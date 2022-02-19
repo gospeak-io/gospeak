@@ -168,6 +168,7 @@ class CfpCtrl(cc: ControllerComponents,
   }
 
   def doProposeSignup(cfp: Cfp.Slug): Action[AnyContent] = UserAwareAction { implicit req =>
+    ??? // break signup to avoid spam
     import cats.implicits._
     GsForms.talkSignup.bindFromRequest.fold(
       formWithErrors => proposeConnectForm(cfp, formWithErrors, GsForms.talkLogin.bindFromRequest),
