@@ -186,7 +186,7 @@ val global = (project in file("."))
   .settings(name := "gospeak")
 
 // rename zip file created from `dist` command
-packageName in Universal := "gospeak"
+(Universal / packageName) := "gospeak"
 
 // needed to parallelise tests in circleci: https://tanin.nanakorn.com/technical/2018/09/10/parallelise-tests-in-sbt-on-circle-ci.html
 val printTests = taskKey[Unit]("Print full class names of tests to the file `test-full-class-names.log`.")
@@ -196,7 +196,7 @@ printTests := {
   println("Print full class names of tests to the file `test-full-class-names.log`.")
 
   val pw = new PrintWriter(new File("test-full-class-names.log"))
-  (definedTests in Test).value.sortBy(_.name).foreach { t =>
+  (Test / definedTests).value.sortBy(_.name).foreach { t =>
     pw.println(t.name)
   }
   pw.close()
