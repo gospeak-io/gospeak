@@ -44,7 +44,7 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-hikari").map(_ % doobieVersion)
 val doobieTest = Seq(
   "org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
-val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.13.0")
+val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.17.2")
 val hammock = Seq(
   "com.pepegar" %% "hammock-core",
   "com.pepegar" %% "hammock-circe",
@@ -60,7 +60,7 @@ val googleMaps = Seq("com.google.maps" % "google-maps-services" % "0.14.0") // h
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.4")
 val cron = Seq(
   "eu.timepit" %% "fs2-cron-core" % "0.2.2",
-  "com.github.pureconfig" %% "pureconfig-cron4s" % "0.13.0")
+  "com.github.pureconfig" %% "pureconfig-cron4s" % "0.17.2")
 val silhouetteVersion = "7.0.0"
 val silhouette = Seq(
   "com.mohiva" %% "play-silhouette",
