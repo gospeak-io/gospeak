@@ -85,7 +85,7 @@ val typedapi = Seq("fr.loicknuchel" %% "typedapi" % "0.1.0")
 val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib folder
   "org.webjars.npm" % "jquery" % "3.5.1",
   "org.webjars.npm" % "bootstrap" % "4.5.0",
-  "org.webjars.npm" % "autosize" % "4.0.2",
+  "org.webjars.npm" % "autosize" % "5.0.2",
   // "org.webjars.npm" % "@fortawesome/fontawesome-free" % "5.6.3",
   "org.webjars.npm" % "select2" % "4.0.13",
   "org.webjars.npm" % "select2-bootstrap-theme" % "0.1.0-beta.10",
