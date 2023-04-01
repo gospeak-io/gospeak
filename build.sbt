@@ -97,7 +97,7 @@ val webjars = Seq( // available in web/target/web/web-modules/main/webjars/lib f
   "org.webjars.npm" % "swagger-ui-dist" % "3.25.5")
 val logback = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.30",
-  "ch.qos.logback" % "logback-classic" % "1.2.3")
+  "ch.qos.logback" % "logback-classic" % "1.2.12")
 val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.1.2",
   "org.scalamock" %% "scalamock" % "4.4.0",
