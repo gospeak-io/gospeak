@@ -50,7 +50,7 @@ val hammock = Seq(
   "com.pepegar" %% "hammock-circe",
   "com.pepegar" %% "hammock-apache-http").map(_ % "0.11.0")
 val youtubeApi = Seq(
-  "com.google.apis" % "google-api-services-youtube" % "v3-rev20200618-1.30.9",
+  "com.google.apis" % "google-api-services-youtube" % "v3-rev20230319-2.0.0",
   "com.google.api-client" % "google-api-client" % "1.23.1",
   "com.google.oauth-client" % "google-oauth-client-jetty" % "1.31.0"
 )
